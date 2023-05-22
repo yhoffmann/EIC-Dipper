@@ -1,9 +1,8 @@
-#ifndef CONSTANTS_CPP
-#define CONSTANTS_CPP
+#pragma once
 
 
 #include<math.h>
-
+#include"utilities.cpp"
 
 // DEFINING GLOBAL PARAMETERS //
 const double PI = M_PI;
@@ -37,6 +36,3 @@ const double nBTofm2 = 1.0e-7;
 
 // Integration ranges
 const double BMAX = std::sqrt(get_b_range_factor()*2.0*BG);
-
-
-#endif

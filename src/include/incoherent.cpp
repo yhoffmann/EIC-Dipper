@@ -1,5 +1,4 @@
-#ifndef INCOHERENT_CPP
-#define INCOHERENT_CPP
+#pragma once
 
 
 namespace Incoherent {
@@ -26,9 +25,3 @@ namespace Incoherent {
         }
     }
 }
-
-
-
-
-
-#endif

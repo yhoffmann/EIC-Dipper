@@ -1,5 +1,4 @@
-#ifndef INCLUDE_H
-#define INCLUDE_H
+#pragma once
 
 #include"integration_routines.cpp"
 #include"integrand.cpp"
@@ -8,5 +7,3 @@
 #include"models_and_functions.cpp"
 #include"constants.cpp"
 #include"utilities.cpp"
-
-#endif

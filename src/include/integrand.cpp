@@ -1,13 +1,13 @@
-#ifndef INTEGRAND_CPP
-#define INTEGRAND_CPP
+#pragma once
 
 
 #include<cuba.h>
 #include"integration_routines.cpp"
 #include"constants.cpp"
 #include"models_and_functions.cpp"
+#include"utilities.cpp"
 
-
+/*
 static int integrand (const int *ndim, const cubareal xx[], const int *ncomp, cubareal ff[], void *userdata) {
     IntegrandConfig* c = (IntegrandConfig*) userdata;
 
@@ -90,10 +90,54 @@ static int integrand (const int *ndim, const cubareal xx[], const int *ncomp, cu
         }
     }
 
-    
+
     
     return 0;
 }
+*/
 
 
-#endif
+int integrand (const int *ndim, const cubareal xx[], const int *ncomp, cubareal ff[], void *userdata) {
+    IntegrandParams* i_params = (IntegrandParams*) userdata;
+    
+    double args[8]{0.0};
+
+    double r_range_factor = get_r_range_factor();
+    double r_significant_range = 1.0/Photon::epsilon(i_params->Q,i_params->z);
+
+    double lower_bound[8];
+    lower_bound[0] = i_params->min; //bmin
+    lower_bound[1] = 0.0; //phibmin
+    lower_bound[2] = 0.0; //rmin
+    lower_bound[3] = 0.0; //phirmin
+    lower_bound[4] = 0.0; //Bmin
+    lower_bound[5] = 0.0; //phiBmin
+    lower_bound[6] = 0.0; //Rmin
+    lower_bound[7] = 0.0; //phiRmin
+
+    double upper_bound[8];
+    upper_bound[0] = i_params->max; //bmax
+    upper_bound[1] = 2.0*PI; //phibmax
+    upper_bound[2] = r_range_factor*r_significant_range; //rmax
+    upper_bound[3] = 2.0*PI; //phirmax
+    upper_bound[4] = BMAX; //Bmax
+    upper_bound[5] = 2.0*PI; //phiBmax
+    upper_bound[6] = r_range_factor*r_significant_range; //Rmax
+    upper_bound[7] = 2.0*PI; //phiRmax
+
+    double jacobian = 1.0;
+
+    for (int n=0; n<*ndim; n++) {
+        args[n] = lower_bound[n]+(upper_bound[n]-lower_bound[n])*xx[n];
+        
+        jacobian *= (upper_bound[n]-lower_bound[n]);
+        
+        if (n%2==0) {
+            jacobian *= args[n];
+        }
+    }
+
+    ff[0] = jacobian * i_params->func(args[0],args[1],args[2],args[3],args[4],args[5],args[6],args[7],i_params->Q,i_params->z);
+
+    return 0;
+}
