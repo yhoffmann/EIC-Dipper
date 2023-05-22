@@ -1,46 +1,59 @@
 #pragma once
 
+#define MINEVAL 100000
+#define MAXEVAL 1000000
 
-#define SIX_D double,double,double,double,double,double
-#define TEN_D double,double,double,double,double,double,double,double,double,double
+#define NSTART 1000
+#define NINCREASE 500
+#define NBATCH 1000
+#define GRIDNO 0
+#define STATEFILE NULL
+#define SPIN NULL
 
-#include<vector>
-#include<cuba.h>
-#include<iostream>
-#include<gsl/gsl_math.h>
-#include"utilities.cpp"
-#include"coherent.cpp"
-#include"incoherent.cpp"
-#include"constants.cpp"
-#include"integrand.cpp"
-#include"utilities.cpp"
+#define NNEW 1000
+#define NMIN 2
+#define FLATNESS 100.
+
+#define KEY1 47
+#define KEY2 1
+#define KEY3 1
+#define MAXPASS 5
+#define BORDER 0.
+#define MAXCHISQ 10.
+#define MINDEVIATION .25
+#define NGIVEN 0
+#define LDXGIVEN NDIM
+#define NEXTRA 0
+
+#define KEY 0
 
 
-double cuba_integrate (CubaConfig c_config, IntegrandParams i_params) {
-    double ret;
+namespace Routines {
 
-    int num_of_regions(0), num_of_evals(0), error_status(0);
-    int num_of_integrals = 1;
-    int num_of_points = 1;
-    double epsrel = c_config.epsrel;
-    double epsabs = c_config.epsabs;
-    int flags1 = c_config.flags1;
-    int flags2 = c_config.flags2;
-    luint mineval = c_config.mineval;
-    luint maxeval = c_config.maxeval;
-    int seed = c_config.seed;
-std::cout << "in integrate" << std::endl;
-    cubareal value[num_of_integrals]{0.0}, error[num_of_integrals]{0.0}, probability[num_of_integrals]{0};
+    double cuba_integrate (integrand_t integrand, CubaConfig c_config, IntegrandParams i_params) {
+        double ret;
 
-    int num_of_dim = c_config.num_of_dims;
+        int num_of_regions(0), num_of_evals(0), error_status(0);
+        int num_of_integrals = 1;
+        int num_of_points = 1;
+        double epsrel = c_config.epsrel;
+        double epsabs = c_config.epsabs;
+        int flags1 = c_config.flags1;
+        int flags2 = c_config.flags2;
+        luint mineval = c_config.mineval;
+        luint maxeval = c_config.maxeval;
+        int seed = c_config.seed;
 
-    if (i_params.min == -999) {
-        i_params.min = 0.0;
-        i_params.max = std::sqrt(get_b_range_factor()*2.0*BG);
-    }
+        cubareal value[num_of_integrals]{0.0}, error[num_of_integrals]{0.0}, probability[num_of_integrals]{0};
 
-    switch (c_config.integrator) {
-        case 'c':
+        int num_of_dim = c_config.num_of_dims;
+
+        if (i_params.min == -999) {
+            i_params.min = 0.0;
+            i_params.max = std::sqrt(get_b_range_factor()*2.0*BG);
+        }
+
+        if (c_config.integrator == 'c') {
             Cuhre(num_of_dim, num_of_integrals,
                 integrand, &i_params, num_of_points,
                 epsrel, epsabs,
@@ -50,8 +63,7 @@ std::cout << "in integrate" << std::endl;
                 &num_of_regions,&num_of_evals, &error_status,
                 value, error, probability
             );
-            break;
-        case 's':
+        } else if (c_config.integrator == 's') {
             Suave(num_of_dim, num_of_integrals,
                 integrand, &i_params, num_of_points,
                 epsrel, epsabs,
@@ -62,18 +74,19 @@ std::cout << "in integrate" << std::endl;
                 &num_of_regions,&num_of_evals, &error_status,
                 value, error, probability
             );
-            break;
+        }
+
+        ret = value[0];
+
+        return ret;
     }
 
-    ret = value[0];
 
-    return ret;
-}
-
-
-double cuba_bessel_integrate (CubaConfig c_config, IntegrandParams i_params) {
-    double ret;
+    double cuba_bessel_integrate (integrand_t integrand, CubaConfig c_config, IntegrandParams i_params) {
+        double ret;
+        
         
 
-    return ret;
+        return ret;
+    }
 }

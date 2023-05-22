@@ -11,16 +11,16 @@ namespace GBWModel {
 };
 
 
-namespace Photon {
+namespace NRPhoton {
     double epsilon (double Q, double z) {
 
     }
 
-    namespace Trans {
-
-    };
-
-    namespace Longi {
-
-    };
+    double wave_function (double r1, double r1, double Q, double z, bool t_not_l) {
+        if (t_not_l) {
+            return 0;
+        } else {
+            return 0;
+        }
+    }
 };
