@@ -48,7 +48,7 @@ namespace Routines {
 
         int num_of_dim = c_config.num_of_dims;
 
-        if (i_params.min == -999) {
+        if (!c_config.using_bessel_integration) {
             i_params.min = 0.0;
             i_params.max = std::sqrt(get_b_range_factor()*2.0*BG);
         }
@@ -82,11 +82,52 @@ namespace Routines {
     }
 
 
-    double cuba_bessel_integrate (integrand_t integrand, CubaConfig c_config, IntegrandParams i_params) {
-        double ret;
-        
-        
+    double cuba_integrate_one_bessel (integrand_t integrand, CubaConfig c_config, IntegrandParams i_params) {
+        // for telling cuba_integrate whether to set integration range or not (here, no because range is being set in this function)
+        c_config.using_bessel_integration = true;
 
-        return ret;
+        bool use_bessel_zeros = (gsl_sf_bessel_zero_J0(1)/i_params.Delta < 4*BMAX);
+        
+        double partial_sum = 0.0;
+        double total_sum = 0.0;
+
+        double current_sum;
+
+        for (int n=0; n<c_config.max_oscillations; n++) {
+            // Check if partial_sum is small compared to overall total_sum, if yes then stop integration
+            if (n%c_config.ocillations_per_partial_sum == 0) {
+                if (std::abs(partial_sum) < c_config.bessel_tolerance*std::abs(total_sum)) {
+                    if (c_config.progress_monitor) std::cout << i_params.Q << " " << i_params.Delta << " " << n << " Converged " << total_sum << std::endl;
+                    break;
+                } else if ((n>0) && (std::abs(partial_sum)<1e-10) && (std::abs(total_sum)<1e-10)) {
+                    if (c_config.progress_monitor) std::cout << i_params.Q << " " << i_params.Delta << " " << n << " Small Value " << total_sum << std::endl;
+                    break;
+                } else {
+                    partial_sum = 0.0;
+                }
+            }
+            
+            if (n == c_config.max_oscillations-1) std::cout << "### WARNING SLOW CONVERGENCE ###" << std::endl;
+
+            // Assigning integration range based on Delta to hit the zeros of the J0
+            if (n!=0) {
+                i_params.bmin = i_params.bmax;
+                i_params.bmax = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(n+1)/i_params.Delta : (n+1)*brange;
+            } else {
+                i_params.bmin = 0;
+                i_params.bmax = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(1)/i_params.Delta : brange;
+            }
+
+            current_oscillation_value = cuba_integrate(integrand, c_config, i_params);
+
+            // Adding current integration results to overall result
+            total_sum += current_oscillation_value;
+            partial_sum += current_oscillation_value;
+            if (c_config.progress_monitor) std::cout << i_params.Q << " " << i_params.Delta << " " << i_params.WhichIntegrand << "\t" << n << "\t(" << i_params.bmin << "," << i_params.bmax << ")\t" << total_sum << "(+" << current_oscillation_value << ")" << std::endl;
+        }
+
+        c_config.using_bessel_integration = false;
+
+        return total_sum;
     }
 }
