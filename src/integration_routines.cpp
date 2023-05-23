@@ -1,5 +1,3 @@
-#pragma once
-
 #define MINEVAL 100000
 #define MAXEVAL 1000000
 
@@ -28,12 +26,19 @@
 #define KEY 0
 
 
-namespace Routines {
+#include "../include/integration_routines.h"
+#include "../include/constants.h"
+#include <stdlib.h>
+#include <iostream>
+#include <cuba.h>
+#include <gsl/gsl_sf.h>
 
+
+namespace Routines {
     double cuba_integrate (integrand_t integrand, CubaConfig c_config, IntegrandParams i_params) {
         double ret;
 
-        int num_of_regions(0), num_of_evals(0), error_status(0);
+        int num_of_dim = c_config.num_of_dims;
         int num_of_integrals = 1;
         int num_of_points = 1;
         double epsrel = c_config.epsrel;
@@ -44,13 +49,13 @@ namespace Routines {
         luint maxeval = c_config.maxeval;
         int seed = c_config.seed;
 
-        cubareal value[num_of_integrals]{0.0}, error[num_of_integrals]{0.0}, probability[num_of_integrals]{0};
+        cubareal value[num_of_integrals]{0.0}, error[num_of_integrals]{0.0}, probability[num_of_integrals]{0.0};
 
-        int num_of_dim = c_config.num_of_dims;
+        int num_of_regions(0), num_of_evals(0), error_status(0);
 
         if (!c_config.using_bessel_integration) {
             i_params.min = 0.0;
-            i_params.max = std::sqrt(get_b_range_factor()*2.0*BG);
+            i_params.max = BMAX;
         }
 
         if (c_config.integrator == 'c') {
@@ -59,7 +64,7 @@ namespace Routines {
                 epsrel, epsabs,
                 flags1 | flags2,
                 mineval, maxeval,
-                NULL, NULL, NULL,
+                KEY, NULL, NULL,
                 &num_of_regions,&num_of_evals, &error_status,
                 value, error, probability
             );
@@ -70,8 +75,8 @@ namespace Routines {
                 flags1 | flags2, seed,
                 mineval, maxeval,
                 c_config.n_new, c_config.n_min,
-                0, NULL, NULL,
-                &num_of_regions,&num_of_evals, &error_status,
+                KEY, NULL, NULL,
+                &num_of_regions, &num_of_evals, &error_status,
                 value, error, probability
             );
         }
@@ -91,7 +96,7 @@ namespace Routines {
         double partial_sum = 0.0;
         double total_sum = 0.0;
 
-        double current_sum;
+        double current_oscillation_value;
 
         for (int n=0; n<c_config.max_oscillations; n++) {
             // Check if partial_sum is small compared to overall total_sum, if yes then stop integration
@@ -111,11 +116,11 @@ namespace Routines {
 
             // Assigning integration range based on Delta to hit the zeros of the J0
             if (n!=0) {
-                i_params.bmin = i_params.bmax;
-                i_params.bmax = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(n+1)/i_params.Delta : (n+1)*brange;
+                i_params.min = i_params.max;
+                i_params.max = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(n+1)/i_params.Delta : (n+1)*BMAX;
             } else {
-                i_params.bmin = 0;
-                i_params.bmax = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(1)/i_params.Delta : brange;
+                i_params.min = 0;
+                i_params.max = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(1)/i_params.Delta : BMAX;
             }
 
             current_oscillation_value = cuba_integrate(integrand, c_config, i_params);
@@ -123,7 +128,8 @@ namespace Routines {
             // Adding current integration results to overall result
             total_sum += current_oscillation_value;
             partial_sum += current_oscillation_value;
-            if (c_config.progress_monitor) std::cout << i_params.Q << " " << i_params.Delta << " " << i_params.WhichIntegrand << "\t" << n << "\t(" << i_params.bmin << "," << i_params.bmax << ")\t" << total_sum << "(+" << current_oscillation_value << ")" << std::endl;
+
+            if (c_config.progress_monitor) std::cout << i_params.Q << " " << i_params.Delta << " " << i_params.t_not_l << "\t" << n << "\t(" << i_params.min << "," << i_params.max << ")\t" << total_sum << "(+" << current_oscillation_value << ")" << std::endl;
         }
 
         c_config.using_bessel_integration = false;
