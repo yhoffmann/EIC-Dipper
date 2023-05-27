@@ -36,11 +36,11 @@ namespace Incoherent {
     double dsigma_d2b_sqr (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2) {
         using namespace CorrelationMatrixElements;
         
-        return 4.0 * (1.0 -exp(G_xy(b1,b2,r1,r2,bb1,bb2,rb1,rb2)) -exp(G_xbyb(b1,b2,r1,r2,bb1,bb2,rb1,rb2)) +DD(b1,b2,r1,r2,bb1,bb2,rb1,rb2));
+        return 4.0 * (1.0 -exp(G_xy(b1,b2,r1,r2,bb1,bb2,rb1,rb2)) -exp(G_xbyb(b1,b2,r1,r2,bb1,bb2,rb1,rb2)) + DD(b1,b2,r1,r2,bb1,bb2,rb1,rb2));
     }
 
     double A_integrand_function_simple (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double z, double Delta, bool t_not_l) {
-        return 1.0/(16.0*PI*PI) * gsl_sf_bessel_J0(std::sqrt( sqr(b1-bb1)+sqr(b2-bb2) )*Delta)/(4.0*PI*PI) * NRPhoton::wave_function(r1,r2,Q,z,t_not_l) * Coherent::dsigma_d2b(b1,b2,r1,r2) * NRPhoton::wave_function(rb1,rb2,Q,z,t_not_l) * Coherent::dsigma_d2b(bb1,bb2,rb1,rb2);
+        return 1.0/(16.0*PI*PI) * gsl_sf_bessel_J0(std::sqrt( sqr(b1-bb1)+sqr(b2-bb2) )*Delta)/(4.0*PI*PI) * NRPhoton::wave_function(r1,r2,Q,z,t_not_l) * NRPhoton::wave_function(rb1,rb2,Q,z,t_not_l) * Coherent::dsigma_d2b(b1,b2,r1,r2) * Coherent::dsigma_d2b(bb1,bb2,rb1,rb2);
     }
 
     double A_integrand_function (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double z, double Delta, bool t_not_l) {

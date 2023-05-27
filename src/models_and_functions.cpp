@@ -77,18 +77,18 @@ namespace CorrelationMatrixElements
 
 
     double a (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2) {
-        return G_xy(b1,b2,r1,r2,bb1,bb2,rb1,rb2) + G_xbyb(b1,b2,r1,r2,bb1,bb2,rb1,rb2) - (T1(b1,b2,r1,r2,bb1,bb2,rb1,rb2))/(Nc*Nc-1);
+        return G_xy(b1,b2,r1,r2,bb1,bb2,rb1,rb2) + G_xbyb(b1,b2,r1,r2,bb1,bb2,rb1,rb2) - (T1(b1,b2,r1,r2,bb1,bb2,rb1,rb2))/(Nc*Nc-1.0);
     }
 
     double b (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2) {
-        return (T1(b1,b2,r1,r2,bb1,bb2,rb1,rb2))/(2*CF);
+        return (T1(b1,b2,r1,r2,bb1,bb2,rb1,rb2))/(2.0*CF);
     }
 
     double c (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2) {       
-        return (T2(b1,b2,r1,r2,bb1,bb2,rb1,rb2))/(2*CF);
+        return (T2(b1,b2,r1,r2,bb1,bb2,rb1,rb2))/(2.0*CF);
     }
 
     double d (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2) {
-        return G_xyb(b1,b2,r1,r2,bb1,bb2,rb1,rb2) + G_xby(b1,b2,r1,r2,bb1,bb2,rb1,rb2) - (T2(b1,b2,r1,r2,bb1,bb2,rb1,rb2))/(Nc*Nc-1);
+        return G_xyb(b1,b2,r1,r2,bb1,bb2,rb1,rb2) + G_xby(b1,b2,r1,r2,bb1,bb2,rb1,rb2) - (T2(b1,b2,r1,r2,bb1,bb2,rb1,rb2))/(Nc*Nc-1.0);
     }
 }
