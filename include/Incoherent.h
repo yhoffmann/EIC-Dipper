@@ -3,7 +3,7 @@
 
 #include <cuba.h>
 #include <vector>
-#include "integration_routines.h"
+#include "IntegrationRoutines.h"
 
 
 namespace Incoherent {

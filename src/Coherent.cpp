@@ -1,20 +1,18 @@
-#include "../include/coherent.h"
+#include "../include/Coherent.h"
 #include <vector>
 #include <math.h>
 #include <cuba.h>
 #include "../include/constants.h"
-#include "../include/integration_routines.h"
-#include "../include/models_and_functions.h"
+#include "../include/IntegrationRoutines.h"
+#include "../include/GBWModel.h"
+#include "../include/NRPhoton.h"
+#include "../include/SaturationModel.h"
 
 
 namespace Coherent {
-    double dsigma_d2b (double b1, double b2, double r1, double r2) {
-        return 2.0*(1.0 - exp(GBWModel::G( x(b1,r1),x(b2,r2),y(b1,r1),y(b2,r2) )));
-    }
-
-    double A_integrand_function (double b1, double b2, double r1, double r2, double Q, double z, double Delta, bool t_not_l) {
-        return 1.0/(4.0*PI) * NRPhoton::wave_function(r1,r2,Q,z,t_not_l) * gsl_sf_bessel_J0( std::sqrt(sqr(b1)+sqr(b2))*Delta )/(2.0*PI) * dsigma_d2b(b1,b2,r1,r2);
-    }
+    double A_integrand_function (double x1, double x2, double y1, double y2, double Q, double z, double Delta, bool t_not_l) {
+        return 1.0/(4.0*PI) * NRPhoton::wave_function(x1-y1,x2-y2,Q,z,t_not_l) * gsl_sf_bessel_J0( std::sqrt(sqr(b1)+sqr(b2))*Delta )/(2.0*PI) * SaturationModel::dsigma_d2b(b1,b2,r1,r2);
+    }// TODO also Incoherent, change everything to x and y
 
 
     int integrand (const int *ndim, const cubareal xx[], const int *ncomp, cubareal ff[], void *userdata) {
@@ -57,12 +55,12 @@ namespace Coherent {
 
         i_params.t_not_l = true;
 
-        ret[0] = Routines::cuba_integrate_one_bessel(Coherent::integrand,c_config,i_params);
+        ret[0] = IntegrationRoutines::cuba_integrate_one_bessel(Coherent::integrand,c_config,i_params);
         ret[0] = sqr(ret[0])*(GeVm1Tofm*GeVm1Tofm*fm2TonB)/(16.0*PI);
 
         i_params.t_not_l = false;
 
-        ret[1] = Routines::cuba_integrate_one_bessel(Coherent::integrand,c_config,i_params);
+        ret[1] = IntegrationRoutines::cuba_integrate_one_bessel(Coherent::integrand,c_config,i_params);
         ret[1] = sqr(ret[1])*(GeVm1Tofm*GeVm1Tofm*fm2TonB)/(16.0*PI);
 
         return ret;

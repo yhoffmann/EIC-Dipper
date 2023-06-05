@@ -1,50 +1,19 @@
-#include "../include/incoherent.h"
+#include "../include/Incoherent.h"
 #include <gsl/gsl_sf.h>
 #include <gsl/gsl_math.h>
+#include "../include/NRPhoton.h"
 #include "../include/constants.h"
-#include "../include/models_and_functions.h"
-#include "../include/coherent.h"
+#include "../include/SaturationModel.h"
 #include "../include/utilities.h"
 
 
 namespace Incoherent {
-    double DD (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2) {
-        double a = CorrelationMatrixElements::a(b1,b2,r1,r2,bb1,bb2,rb1,rb2);
-        double b = CorrelationMatrixElements::b(b1,b2,r1,r2,bb1,bb2,rb1,rb2);
-        double c = CorrelationMatrixElements::c(b1,b2,r1,r2,bb1,bb2,rb1,rb2);
-        double d = CorrelationMatrixElements::d(b1,b2,r1,r2,bb1,bb2,rb1,rb2);
-
-        double Sqrt = std::sqrt(4.0*b*c+std::pow(a-d,2.0));
-        double aplusd = a+d;
-        double factor = (a-d+2.0/Nc*b)/Sqrt;
-
-        //double ret = 0.5* ( (1.0+factor)*exp((aplusd+Sqrt)/2.0) + (1.0-factor)*exp((aplusd-Sqrt)/2.0) );
-
-        double ret = exp(aplusd/2.0) * ( cosh(0.5*Sqrt) + factor*sinh(0.5*Sqrt) );
-
-        if (gsl_isnan(ret)) {
-            std::cerr << ret << " " << b1 << " " << b2 << " " << bb1 << " " << bb2 << " " << r1 << " " << r2 << " " << rb1 << " " << rb2 << std::endl;
-            std::cout << 4.0*b*c+std::pow(a-d,2.0) << " " << aplusd << " " << factor;
-            std::cerr << "DipoleDipole is nan. Aborting" << std::endl;
-            exit(0);
-        }
-
-        return ret;
-    }
-
-
-    double dsigma_d2b_sqr (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2) {
-        using namespace CorrelationMatrixElements;
-        
-        return 4.0 * (1.0 -exp(G_xy(b1,b2,r1,r2,bb1,bb2,rb1,rb2)) -exp(G_xbyb(b1,b2,r1,r2,bb1,bb2,rb1,rb2)) + DD(b1,b2,r1,r2,bb1,bb2,rb1,rb2));
-    }
-
     double A_integrand_function_simple (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double z, double Delta, bool t_not_l) {
-        return 1.0/(16.0*PI*PI) * gsl_sf_bessel_J0(std::sqrt( sqr(b1-bb1)+sqr(b2-bb2) )*Delta)/(4.0*PI*PI) * NRPhoton::wave_function(r1,r2,Q,z,t_not_l) * NRPhoton::wave_function(rb1,rb2,Q,z,t_not_l) * Coherent::dsigma_d2b(b1,b2,r1,r2) * Coherent::dsigma_d2b(bb1,bb2,rb1,rb2);
+        return 1.0/(16.0*PI*PI) * gsl_sf_bessel_J0(std::sqrt( sqr(b1-bb1)+sqr(b2-bb2) )*Delta)/(4.0*PI*PI) * NRPhoton::wave_function(r1,r2,Q,z,t_not_l) * NRPhoton::wave_function(rb1,rb2,Q,z,t_not_l) * SaturationModel::dsigma_d2b(b1,b2,r1,r2) * SaturationModel::dsigma_d2b(bb1,bb2,rb1,rb2);
     }
 
     double A_integrand_function (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double z, double Delta, bool t_not_l) {
-        return 1.0/(16.0*PI*PI) * gsl_sf_bessel_J0(std::sqrt( sqr(b1-bb1)+sqr(b2-bb2) )*Delta)/(4.0*PI*PI) * NRPhoton::wave_function(r1,r2,Q,z,t_not_l) * NRPhoton::wave_function(rb1,rb2,Q,z,t_not_l) * dsigma_d2b_sqr(b1,b2,r1,r2,bb1,bb2,rb1,rb2);
+        return 1.0/(16.0*PI*PI) * gsl_sf_bessel_J0(std::sqrt( sqr(b1-bb1)+sqr(b2-bb2) )*Delta)/(4.0*PI*PI) * NRPhoton::wave_function(r1,r2,Q,z,t_not_l) * NRPhoton::wave_function(rb1,rb2,Q,z,t_not_l) * SaturationModel::dsigma_d2b_sqr(b1,b2,r1,r2,bb1,bb2,rb1,rb2);
     }
 
     int integrand (const int *ndim, const cubareal xx[], const int *ncomp, cubareal ff[], void *userdata) {
@@ -111,12 +80,12 @@ namespace Incoherent {
 
         i_params.t_not_l = true;
 
-        ret[0] = Routines::cuba_integrate_one_bessel(Incoherent::integrand,c_config,i_params);
+        ret[0] = IntegrationRoutines::cuba_integrate_one_bessel(Incoherent::integrand,c_config,i_params);
         ret[0] *= (GeVm1Tofm*GeVm1Tofm*fm2TonB)/(16.0*PI);
 
         i_params.t_not_l = false;
 
-        ret[1] = Routines::cuba_integrate_one_bessel(Incoherent::integrand,c_config,i_params);
+        ret[1] = IntegrationRoutines::cuba_integrate_one_bessel(Incoherent::integrand,c_config,i_params);
         ret[1] *= (GeVm1Tofm*GeVm1Tofm*fm2TonB)/(16.0*PI);
 
         return ret;

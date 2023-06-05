@@ -3,8 +3,7 @@
 
 #include <cuba.h>
 #include <vector>
-#include "integration_routines.h"
-#include "models_and_functions.h"
+#include "IntegrationRoutines.h"
 
 
 namespace Coherent {

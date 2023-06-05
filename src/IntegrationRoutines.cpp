@@ -26,7 +26,7 @@
 #define KEY 0
 
 
-#include "../include/integration_routines.h"
+#include "../include/IntegrationRoutines.h"
 #include "../include/constants.h"
 #include <stdlib.h>
 #include <iostream>
@@ -34,7 +34,7 @@
 #include <gsl/gsl_sf.h>
 
 
-namespace Routines {
+namespace IntegrationRoutines {
     double cuba_integrate (integrand_t integrand, CubaConfig c_config, IntegrandParams i_params) {
         double ret;
 

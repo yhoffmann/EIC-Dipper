@@ -1,8 +1,10 @@
 #pragma once
 
 #include "utilities.h"
-#include "coherent.h"
+#include "Coherent.h"
 #include "constants.h"
-#include "incoherent.h"
-#include "integration_routines.h"
-#include "models_and_functions.h"
+#include "Incoherent.h"
+#include "IntegrationRoutines.h"
+#include "NRPhoton.h"
+#include "GBWModel.h"
+#include "SaturationModel.h"

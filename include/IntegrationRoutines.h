@@ -46,7 +46,7 @@ struct IntegrandParams {
 };
 
 
-namespace Routines {
+namespace IntegrationRoutines {
     double cuba_integrate (integrand_t integrand, CubaConfig c_config, IntegrandParams i_params);
 
     double cuba_integrate_one_bessel (integrand_t integrand, CubaConfig c_config, IntegrandParams i_params);
