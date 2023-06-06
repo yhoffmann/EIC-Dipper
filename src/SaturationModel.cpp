@@ -7,6 +7,9 @@
 #include "../include/utilities.h"
 #include "../include/GBWModel.h"
 
+#include "../../../libs/EigenLib/Eigen/Eigen"
+#include "../../../libs/EigenLib/unsupported/Eigen/MatrixFunctions"
+
 
 namespace SaturationModel {
     double D (double G) {
@@ -151,5 +154,19 @@ namespace SaturationModel {
 
             return G_xxb+G_yyb-T/(sqr(Nc)-1.0);
         }
+    }
+
+    double DDEigen (double x1, double x2, double y1, double y2, double xb1, double xb2, double yb1, double yb2) {
+        Eigen::MatrixXd M(2,2);
+
+        M(0,0) = DDCorrelationMatrixElements::a(x1,x2,y1,y2,xb1,xb2,yb1,yb2);
+        M(0,1) = DDCorrelationMatrixElements::b(x1,x2,y1,y2,xb1,xb2,yb1,yb2);
+        M(1,0) = DDCorrelationMatrixElements::c(x1,x2,y1,y2,xb1,xb2,yb1,yb2);
+        M(1,1) = DDCorrelationMatrixElements::d(x1,x2,y1,y2,xb1,xb2,yb1,yb2);
+
+        Eigen::VectorXd lVec(2); lVec(0)=1.0; 	lVec(1)=0.0;
+        Eigen::VectorXd rVec(2); rVec(0)=Nc*Nc; rVec(1)=Nc;
+
+        return lVec.dot(M.exp()*rVec);
     }
 }

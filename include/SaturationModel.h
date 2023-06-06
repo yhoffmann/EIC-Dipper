@@ -50,4 +50,6 @@ namespace SaturationModel {
 
         double d (double x1, double x2, double y1, double y2, double xb1, double xb2, double yb1, double yb2);
     }
+
+    double DDEigen (double x1, double x2, double y1, double y2, double xb1, double xb2, double yb1, double yb2);
 }
