@@ -1,6 +1,9 @@
 #pragma once
 
 
+#include <gsl/gsl_sf.h>
+
+
 typedef long unsigned int luint;
 
 inline double get_b_range_factor() {
@@ -24,3 +27,6 @@ inline double x (double b, double r) {
 inline double y (double b, double r) {
     return b-r/2.0;
 }
+
+
+double bessel_K_safe (int n, double x);

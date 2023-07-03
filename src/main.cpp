@@ -15,7 +15,7 @@ int main (int argc, char** argv) {
     std::cout << SaturationModel::DDEigen(06.674, -25.3162, -79.9407, 03.12111, -19.0802, 79.47, -07.93541, -59.8289) << std::endl;
 
     double counter = 0.0;
-    while (true) {
+    while (false) {
         double bx = (5+counter)*2*(rng01()-0.5);
         double by = (5+counter)*2*(rng01()-0.5);
         double bbx = (5+counter)*2*(rng01()-0.5);
@@ -33,7 +33,7 @@ int main (int argc, char** argv) {
         std::this_thread::sleep_for(std::chrono::milliseconds(150));
         counter += 0.1;
     }
-/*
+
     CubaConfig c_config;
     IntegrandParams i_params;
 
@@ -42,6 +42,6 @@ int main (int argc, char** argv) {
     i_params.Delta = 0.0;
 
     std::cout << Incoherent::calculate_dsigma_dt(c_config, i_params)[0] << std::endl;
-*/
+
     return 0;
 }
