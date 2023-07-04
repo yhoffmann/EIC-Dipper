@@ -3,12 +3,12 @@
 namespace SaturationModel {
     double D (double x);
 
-    double DD (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2);
+    double DD (double x1, double x2, double y1, double y2, double xb1, double xb2, double yb1, double yb2);
 
 
-    double dsigma_d2b_sqr (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2);
+    double dsigma_d2b_sqr (double x1, double x2, double y1, double y2, double xb1, double xb2, double yb1, double yb2);
 
-    double dsigma_d2b (double b1, double b2, double r1, double r2);
+    double dsigma_d2b (double x1, double x2, double y1, double y2);
 
     /*namespace CorrelationMatrixElements {
 
