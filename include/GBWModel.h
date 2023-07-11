@@ -6,7 +6,9 @@ namespace GBWModel {
 
     double Q_s_sqr (double b1, double b2);
 
-    double G_old (double,double,double,double);
+    double G_old (double x1, double x2, double y1, double y2);
+
+    double Kmod (double x1, double x2, double y1, double y2);
 
     double G (double x1, double x2, double y1, double y2);
 }
