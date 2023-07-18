@@ -11,8 +11,8 @@ double rng01() {
 int main (int argc, char** argv) {
     
     //std::cout << Coherent::A_integrand_function(1.20915, 0.199206, 2.82996, 1.30603,0.3,0.5,0.0,1) << std::endl;
-    std::cout << 9.0*SaturationModel::DD(06.674, -25.3162, -79.9407, 03.12111, -19.0802, 79.47, -07.93541, -59.8289) << std::endl;
-    std::cout << SaturationModel::DDEigen(06.674, -25.3162, -79.9407, 03.12111, -19.0802, 79.47, -07.93541, -59.8289) << std::endl;
+    std::cout << SaturationModel::DD(0.299042, -1.3952, 4.59043, -4.67101, 4.9222, 4.78085, 1.82755, 1.69059) << std::endl;
+    std::cout << 1.0/Nc/Nc*SaturationModel::DDEigen(0.299042, -1.3952, 4.59043, -4.67101, 4.9222, 4.78085, 1.82755, 1.69059) << std::endl;
 
     double counter = 0.0;
     while (false) {
@@ -33,7 +33,7 @@ int main (int argc, char** argv) {
         std::this_thread::sleep_for(std::chrono::milliseconds(150));
         counter += 0.1;
     }
-
+/*
     CubaConfig c_config;
     IntegrandParams i_params;
 
@@ -42,6 +42,6 @@ int main (int argc, char** argv) {
     i_params.Delta = 0.0;
 
     std::cout << Incoherent::calculate_dsigma_dt(c_config, i_params)[0] << std::endl;
-
+*/
     return 0;
 }

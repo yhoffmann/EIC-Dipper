@@ -22,7 +22,7 @@ namespace SaturationModel {
         double c = DDCorrelationMatrixElements::c(x1,x2,y1,y2,xb1,xb2,yb1,yb2);
         double d = DDCorrelationMatrixElements::d(x1,x2,y1,y2,xb1,xb2,yb1,yb2);
 
-        double Sqrt = std::sqrt(4.0*b*c+std::pow(a-d,2.0));
+        double Sqrt = std::sqrt(4.0*b*c+sqr(a-d));
         double factor = (a-d+2.0/Nc*b)/Sqrt;
 
         double ret = 0.5* ( (1.0+factor)*exp((a+d+Sqrt)/2.0) + (1.0-factor)*exp((a+d-Sqrt)/2.0) );
@@ -31,7 +31,7 @@ namespace SaturationModel {
 
         if (gsl_isnan(ret)) {
             std::cerr << ret << " " << x1 << " " << x2 << " " << y1 << " " << y2 << " " << xb1 << " " << xb2 << " " << yb1 << " " << yb2 << std::endl;
-            std::cout << 4.0*b*c+std::pow(a-d,2.0) << " " << a+d << " " << factor;
+            std::cout << 4.0*b*c+sqr(a-d) << " " << a+d << " " << factor;
             std::cerr << "DipoleDipole is nan. Aborting" << std::endl;
             exit(0);
         }
