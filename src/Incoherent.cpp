@@ -16,14 +16,16 @@ namespace Incoherent {
         return 1.0/(16.0*PI*PI) * gsl_sf_bessel_J0(std::sqrt( sqr(b1-bb1)+sqr(b2-bb2) )*Delta)/(4.0*PI*PI) * NRPhoton::wave_function(r1,r2,Q,z,t_not_l) * NRPhoton::wave_function(rb1,rb2,Q,z,t_not_l) * SaturationModel::dsigma_d2b_sqr(b1+r1/2.0,b2+r2/2.0,b1-r1/2.0,b2-r2/2.0,bb1+rb1/2.0,bb2+rb2/2.0,bb1-rb1/2.0,bb2-rb2/2.0);
     }
 
-    int integrand (const int *ndim, const cubareal xx[], const int *ncomp, cubareal ff[], void *userdata) {
-        IntegrandParams* i_params = (IntegrandParams*) userdata;
+    int integrand (const int* ndim, const cubareal xx[], const int* ncomp, cubareal ff[], void* userdata) {
+        IntegrationConfig* integration_config = (IntegrationConfig*) userdata;
+
+        AIntegrandParams* A_integrand_params = (AIntegrandParams*) integration_config->integrand_params;
 
         double r_range_factor = get_r_range_factor();
-        double r_significant_range = 1.0/NRPhoton::epsilon(i_params->Q,i_params->z);
+        double r_significant_range = 1.0/NRPhoton::epsilon(A_integrand_params->Q,A_integrand_params->z);
 
-        double dbmin = i_params->min;
-        double dbmax = i_params->max;
+        double dbmin = integration_config->min;
+        double dbmax = integration_config->max;
         double phidbmin = 0.0;
         double phidbmax = 2*PI;
 
@@ -69,23 +71,26 @@ namespace Incoherent {
 
         double jacobian = r*db*B*rb*(dbmax-dbmin)*(phidbmax-phidbmin)*(rmax-rmin)*(phirmax-phirmin)*(Bmax-Bmin)*(phiBmax-phiBmin)*(rbmax-rbmin)*(phirbmax-phirbmin);
 
-        ff[0] = jacobian * Incoherent::A_integrand_function(b1,b2,r1,r2,bb1,bb2,rb1,rb2,i_params->Q,i_params->z,i_params->Delta,i_params->t_not_l);
+        ff[0] = jacobian * Incoherent::A_integrand_function(b1,b2,r1,r2,bb1,bb2,rb1,rb2,A_integrand_params->Q,A_integrand_params->z,A_integrand_params->Delta,A_integrand_params->t_not_l);
 
         return 0;
     }
 
-    std::vector<double> calculate_dsigma_dt (CubaConfig c_config, IntegrandParams i_params) {
+    std::vector<double> calculate_dsigma_dt (CubaConfig c_config, IntegrationConfig integration_config) {
         std::vector<double> ret(2);
         c_config.num_of_dims = 8;
 
-        i_params.t_not_l = true;
+        AIntegrandParams A_integrand_params = *(AIntegrandParams*) integration_config.integrand_params;
+        integration_config.integrand_params = &A_integrand_params;
 
-        ret[0] = IntegrationRoutines::cuba_integrate_one_bessel(Incoherent::integrand,c_config,i_params);
+        A_integrand_params.t_not_l = true;
+
+        ret[0] = IntegrationRoutines::cuba_integrate_one_bessel(Incoherent::integrand,c_config,integration_config);
         ret[0] *= (GeVm1Tofm*GeVm1Tofm*fm2TonB)/(16.0*PI);
 
-        i_params.t_not_l = false;
+        A_integrand_params.t_not_l = false;
 
-        ret[1] = IntegrationRoutines::cuba_integrate_one_bessel(Incoherent::integrand,c_config,i_params);
+        ret[1] = IntegrationRoutines::cuba_integrate_one_bessel(Incoherent::integrand,c_config,integration_config);
         ret[1] *= (GeVm1Tofm*GeVm1Tofm*fm2TonB)/(16.0*PI);
 
         return ret;

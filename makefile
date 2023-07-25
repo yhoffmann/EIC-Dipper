@@ -1,2 +1,2 @@
 all:
-	g++ -Wall src/main.cpp src/Coherent.cpp src/Incoherent.cpp src/IntegrationRoutines.cpp src/utilities.cpp src/GBWModel.cpp src/NRPhoton.cpp src/SaturationModel.cpp -o eic -O3 -lcuba -lm -lgsl -fopenmp
+	g++ -Wall src/*.cpp -o eic -O3 -lcuba -lm -lgsl -fopenmp

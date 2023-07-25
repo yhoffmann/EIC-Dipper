@@ -1,14 +1,8 @@
 #pragma once
 
 
-#include <stdlib.h>
-#include <math.h>
-#include <iostream>
+#include "../include/utilities.h"
 #include <cuba.h>
-#include "utilities.h"
-#include <gsl/gsl_sf.h>
-#include "constants.h"
-
 
 struct CubaConfig {
     char integrator = 'c';
@@ -34,20 +28,30 @@ struct CubaConfig {
 };
 
 
-struct IntegrandParams {
+struct AIntegrandParams {
     bool t_not_l = true;
 
     double Delta = 0.001;
     double Q = 0.3;
     const double z = 0.5;
+};
 
+
+struct GIntegrandParams {
+    double x1, x2, y1, y2;
+};
+
+
+struct IntegrationConfig {
     double min = -999;
-    double max = std::sqrt(get_b_range_factor()*2.0*BG);
+    double max = -999;
+
+    void* integrand_params; // integrand specific parameters, see above
 };
 
 
 namespace IntegrationRoutines {
-    double cuba_integrate (integrand_t integrand, CubaConfig c_config, IntegrandParams i_params);
+    double cuba_integrate (integrand_t integrand, CubaConfig cuba_config, IntegrationConfig integration_config);
 
-    double cuba_integrate_one_bessel (integrand_t integrand, CubaConfig c_config, IntegrandParams i_params);
+    double cuba_integrate_one_bessel (integrand_t integrand, CubaConfig cuba_config, IntegrationConfig integration_config);
 }

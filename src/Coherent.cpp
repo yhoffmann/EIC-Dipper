@@ -16,13 +16,15 @@ namespace Coherent {
 
 
     int integrand (const int *ndim, const cubareal xx[], const int *ncomp, cubareal ff[], void *userdata) {
-        IntegrandParams* i_params = (IntegrandParams*) userdata;
+        IntegrationConfig* integration_config = (IntegrationConfig*) userdata;
+
+        AIntegrandParams* A_integrand_params = (AIntegrandParams*) integration_config->integrand_params;
 
         double r_range_factor = get_r_range_factor();
-        double r_significant_range = 1.0/NRPhoton::epsilon(i_params->Q,i_params->z);
+        double r_significant_range = 1.0/NRPhoton::epsilon(A_integrand_params->Q,A_integrand_params->z);
 
-        double bmin = i_params->min;
-        double bmax = i_params->max;
+        double bmin = integration_config->min;
+        double bmax = integration_config->max;
         double phibmin = 0.0;
         double phibmax = 2*PI;
 
@@ -43,24 +45,27 @@ namespace Coherent {
 
         double jacobian = r*b*(bmax-bmin)*(phibmax-phibmin)*(rmax-rmin)*(phirmax-phirmin);
 
-        ff[0] = jacobian * Coherent::A_integrand_function(b1,b2,r1,r2,i_params->Q,i_params->z,i_params->Delta,i_params->t_not_l);
+        ff[0] = jacobian * Coherent::A_integrand_function(b1,b2,r1,r2,A_integrand_params->Q,A_integrand_params->z,A_integrand_params->Delta,A_integrand_params->t_not_l);
 
         return 0;
     }
 
 
-    std::vector<double> calculate_dsigma_dt (CubaConfig c_config, IntegrandParams i_params) {
+    std::vector<double> calculate_dsigma_dt (CubaConfig c_config, IntegrationConfig integration_config) {
         std::vector<double> ret(2);
         c_config.num_of_dims = 4;
 
-        i_params.t_not_l = true;
+        AIntegrandParams A_integrand_params = *(AIntegrandParams*) integration_config.integrand_params;
+        integration_config.integrand_params = &A_integrand_params;
 
-        ret[0] = IntegrationRoutines::cuba_integrate_one_bessel(Coherent::integrand,c_config,i_params);
+        A_integrand_params.t_not_l = true;
+
+        ret[0] = IntegrationRoutines::cuba_integrate_one_bessel(Coherent::integrand,c_config,integration_config);
         ret[0] = sqr(ret[0])*(GeVm1Tofm*GeVm1Tofm*fm2TonB)/(16.0*PI);
 
-        i_params.t_not_l = false;
+        A_integrand_params.t_not_l = false;
 
-        ret[1] = IntegrationRoutines::cuba_integrate_one_bessel(Coherent::integrand,c_config,i_params);
+        ret[1] = IntegrationRoutines::cuba_integrate_one_bessel(Coherent::integrand,c_config,integration_config);
         ret[1] = sqr(ret[1])*(GeVm1Tofm*GeVm1Tofm*fm2TonB)/(16.0*PI);
 
         return ret;

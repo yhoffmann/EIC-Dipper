@@ -2,6 +2,7 @@
 #include <random>
 #include <chrono>
 #include <thread>
+#include <iostream>
 
 double rng01() {
     return drand48();
@@ -33,15 +34,18 @@ int main (int argc, char** argv) {
         std::this_thread::sleep_for(std::chrono::milliseconds(150));
         counter += 0.1;
     }
-/*
-    CubaConfig c_config;
-    IntegrandParams i_params;
 
-    c_config.progress_monitor = true;
-    c_config.integrator = 'c';
-    i_params.Delta = 0.0;
+    CubaConfig cuba_config;
+    IntegrationConfig integration_config;
+    AIntegrandParams A_integrand_params;
 
-    std::cout << Incoherent::calculate_dsigma_dt(c_config, i_params)[0] << std::endl;
-*/
+    integration_config.integrand_params = &A_integrand_params;
+
+    cuba_config.progress_monitor = true;
+    cuba_config.integrator = 'c';
+    A_integrand_params.Delta = 0.0;
+
+    std::cout << GBWModel::G(-1,1,1,1) << std::endl;
+
     return 0;
 }

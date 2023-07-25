@@ -17,5 +17,5 @@ namespace Incoherent {
 
     int integrand (const int *ndim, const cubareal xx[], const int *ncomp, cubareal ff[], void *userdata);
 
-    std::vector<double> calculate_dsigma_dt (CubaConfig c_config, IntegrandParams i_params);
+    std::vector<double> calculate_dsigma_dt (CubaConfig cuba_config, IntegrationConfig integration_config);
 }
