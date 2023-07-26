@@ -10,10 +10,6 @@ double rng01() {
 
 
 int main (int argc, char** argv) {
-    
-    //std::cout << Coherent::A_integrand_function(1.20915, 0.199206, 2.82996, 1.30603,0.3,0.5,0.0,1) << std::endl;
-    std::cout << SaturationModel::DD(0.299042, -1.3952, 4.59043, -4.67101, 4.9222, 4.78085, 1.82755, 1.69059) << std::endl;
-    std::cout << 1.0/Nc/Nc*SaturationModel::DDEigen(0.299042, -1.3952, 4.59043, -4.67101, 4.9222, 4.78085, 1.82755, 1.69059) << std::endl;
 
     double counter = 0.0;
     while (false) {
@@ -44,8 +40,9 @@ int main (int argc, char** argv) {
     cuba_config.progress_monitor = true;
     cuba_config.integrator = 'c';
     A_integrand_params.Delta = 0.0;
-
-    std::cout << GBWModel::G(-1,1,1,1) << std::endl;
+    
+    std::cout << GBWModel::G(1.5211,0.178946,1.77934,-0.847651) << std::endl;
+    //std::cout << Coherent::dsigma_dt(cuba_config,integration_config)[0] << std::endl;
 
     return 0;
 }

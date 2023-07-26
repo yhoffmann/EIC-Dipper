@@ -13,9 +13,6 @@ const double e_t = 2.0/3.0;
 const double e_b = -1.0/3.0;
 const double Nc = 3.0;
 const double CF = (Nc*Nc-1.0)/(2.0*Nc);
-const double hbarc = 0.1973; //GeV fm
-const double BG = 4.0; //GeVm2 https://physics.nist.gov/cgi-bin/cuu/Value?rp
-const double sigma0 = 2.0*PI*BG; //GeVm2
 const double Qs0 = 1.0; //GeV
 const double g4 = 1.0;
 const double mu0 = 1.0;
@@ -31,6 +28,8 @@ const double epsilon = 1.0; // in GeV  // not used, see epsilonFunc
 const double sqrt_2m_c_Nc = std::sqrt(2.0*m_Q_c*Nc);
 
 // Unit conversion factors
+const double hbarc = 0.1973; //GeV fm
+
 const double fmToGeVm1 = 1.0/hbarc;
 const double GeVTofmm1 = 1.0/hbarc;
 const double GeVm1Tofm = hbarc;
@@ -38,6 +37,9 @@ const double fmm1ToGeV = hbarc;
 const double fm2TonB = 1.0e7;
 const double nBTofm2 = 1.0e-7;
 
+const double BG = 4.0; //GeVm2 https://physics.nist.gov/cgi-bin/cuu/Value?rp
+const double BGinfm2 = BG*GeVm1Tofm*GeVm1Tofm; // TODO check if units correct everywhere
+const double sigma0 = 2.0*PI*BG; //GeVm2
 
 // Integration ranges
 const double BMAX = std::sqrt(get_b_range_factor()*2.0*BG);

@@ -51,7 +51,7 @@ namespace Coherent {
     }
 
 
-    std::vector<double> calculate_dsigma_dt (CubaConfig c_config, IntegrationConfig integration_config) {
+    std::vector<double> dsigma_dt (CubaConfig c_config, IntegrationConfig integration_config) {
         std::vector<double> ret(2);
         c_config.num_of_dims = 4;
 
