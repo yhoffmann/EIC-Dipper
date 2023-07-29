@@ -20,13 +20,4 @@ inline double sqr (double x) {
 }
 
 
-inline double x (double b, double r) {
-    return b+r/2.0;
-}
-
-inline double y (double b, double r) {
-    return b-r/2.0;
-}
-
-
 double bessel_K_safe (int n, double x);
