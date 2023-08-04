@@ -1,6 +1,0 @@
-[submodule "Interpolation3D"]
-	path = Interpolation3D
-	url = https://github.com/yhoffmann/Interpolation3D
-[submodule "main"]
-	path = main
-	url = https://github.com/yhoffmann/Interpolation3D.git
