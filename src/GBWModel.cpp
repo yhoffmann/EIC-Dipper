@@ -59,7 +59,7 @@ namespace GBWModel {
     double G_by_integration (double x1, double x2, double y1, double y2) {
         CubaConfig cuba_config;
         cuba_config.num_of_dims = 2;
-        cuba_config.maxeval = 10000;
+        cuba_config.maxeval = 100000;
 
         IntegrationConfig integration_config;
         
@@ -73,7 +73,7 @@ namespace GBWModel {
 
         double ret;
 
-        ret = IntegrationRoutines::cuba_integrate(G_integrand,cuba_config,integration_config);
+        ret = IntegrationRoutines::cuba_integrate(G_integrand,cuba_config,integration_config); // TODO check unit and factors
 
         return ret;
     }
@@ -86,18 +86,23 @@ namespace GBWModel {
         double y1 = rb * cos(theta);
         double y2 = rb * sin(theta);
 
-        double ret = G(x1,x2,y1,y2);
+        double ret = G_by_integration(x1,x2,y1,y2);
 
         return ret;
     }
+
+    Interpolator3D G_ip;
 
     double G (double x1, double x2, double y1, double y2)
     {
         double r = std::sqrt(sqr(x1)+sqr(x2));
         double rb = std::sqrt(sqr(y1)+sqr(y2));
-        double theta = acos((x1*y1+x2*y2)/(r*rb));
-
-        double ret = global_G_ip.trilinear_get_value(r,rb,theta);
+        double arg = (r!=0.0 && rb!=0.0) ? (x1*y1+x2*y2)/(r*rb) : 0.0;
+        if (arg<-1.0) arg = -1.0;
+        if (arg>1.0) arg = 1.0;
+        double theta = acos(arg);
+        
+        double ret = G_ip.tricubic_get_value(r,rb,theta);
 
         return ret;
     }

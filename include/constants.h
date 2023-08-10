@@ -25,7 +25,7 @@ const double e_Q = e_c;
 const double A_Q = A_c; // in GeV3/2
 const double epsilon = 1.0; // in GeV  // not used, see epsilonFunc
 
-const double sqrt_2m_c_Nc = std::sqrt(2.0*m_Q_c*Nc);
+const double sqrt_2m_c_Nc = std::sqrt(2.0*m_Q_c*Nc); // in GeV
 
 // Unit conversion factors
 const double hbarc = 0.1973; //GeV fm
@@ -38,7 +38,7 @@ const double fm2TonB = 1.0e7;
 const double nBTofm2 = 1.0e-7;
 
 const double BG = 4.0; //GeVm2 https://physics.nist.gov/cgi-bin/cuu/Value?rp
-const double BGinfm2 = BG*GeVm1Tofm*GeVm1Tofm; // TODO check if units correct everywhere
+//const double BGinfm2 = BG*GeVm1Tofm*GeVm1Tofm;
 const double sigma0 = 2.0*PI*BG; //GeVm2
 
 // Integration ranges

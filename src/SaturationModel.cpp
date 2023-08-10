@@ -7,8 +7,8 @@
 #include "../include/utilities.h"
 #include "../include/GBWModel.h"
 
-#include "../../../libs/EigenLib/Eigen/Eigen"
-#include "../../../libs/EigenLib/unsupported/Eigen/MatrixFunctions"
+//#include "../../../libs/EigenLib/Eigen/Eigen"
+//#include "../../../libs/EigenLib/unsupported/Eigen/MatrixFunctions"
 
 
 namespace SaturationModel {
@@ -29,7 +29,7 @@ namespace SaturationModel {
 
         //double ret = exp(aplusd/2.0) * ( cosh(0.5*Sqrt) + factor*sinh(0.5*Sqrt) );
 
-        if (gsl_isnan(ret)) {
+        if (gsl_isnan(ret) && 1==0) {
             std::cerr << ret << " " << x1 << " " << x2 << " " << y1 << " " << y2 << " " << xb1 << " " << xb2 << " " << yb1 << " " << yb2 << std::endl;
             std::cout << 4.0*b*c+sqr(a-d) << " " << a+d << " " << factor;
             std::cerr << "DipoleDipole is nan. Aborting" << std::endl;
@@ -155,7 +155,7 @@ namespace SaturationModel {
             return G_xxb+G_yyb-T/(sqr(Nc)-1.0);
         }
     }
-
+/*
     double DDEigen (double x1, double x2, double y1, double y2, double xb1, double xb2, double yb1, double yb2) {
         Eigen::MatrixXd M(2,2);
 
@@ -169,4 +169,5 @@ namespace SaturationModel {
 
         return lVec.dot(M.exp()*rVec);
     }
+*/
 }

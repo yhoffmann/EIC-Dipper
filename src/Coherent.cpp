@@ -7,10 +7,12 @@
 #include "../include/GBWModel.h"
 #include "../include/NRPhoton.h"
 #include "../include/SaturationModel.h"
+#include <gsl/gsl_math.h>
+#include <iostream>
 
 
 namespace Coherent {
-    double A_integrand_function (double b1, double b2, double r1, double r2, double Q, double z, double Delta, bool t_not_l) {
+    double A_integrand_function (double b1, double b2, double r1, double r2, double Q, double z, double Delta, bool t_not_l) {        
         return 1.0/(4.0*PI) * NRPhoton::wave_function(r1,r2,Q,z,t_not_l) * gsl_sf_bessel_J0( std::sqrt(sqr(b1)+sqr(b2))*Delta )/(2.0*PI) * SaturationModel::dsigma_d2b(b1+r1/2.0,b2+r2/2.0,b1-r1/2.0,b2-r2/2.0);
     }
 

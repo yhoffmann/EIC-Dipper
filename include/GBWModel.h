@@ -2,13 +2,12 @@
 
 
 #include <cuba.h>
-#include "../../../Interpolation3D/include/Interpolator3D.h"
-
-
-extern Interpolator3D global_G_ip;
+#include "../Interpolation3D/include/Interpolator3D.h"
 
 
 namespace GBWModel {
+    extern Interpolator3D G_ip;
+
     double T_times_sigma0 (double b1, double b2);
 
     double Q_s_sqr (double b1, double b2);
