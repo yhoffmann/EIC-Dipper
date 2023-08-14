@@ -21,7 +21,7 @@ namespace Incoherent {
 
         AIntegrandParams* A_integrand_params = (AIntegrandParams*) integration_config->integrand_params;
 
-        double r_range_factor = get_r_range_factor();
+        double r_range_factor = R_RANGE_FACTOR;
         double r_significant_range = 1.0/NRPhoton::epsilon(A_integrand_params->Q,A_integrand_params->z);
 
         double dbmin = integration_config->min;
