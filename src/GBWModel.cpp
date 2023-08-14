@@ -30,7 +30,7 @@ namespace GBWModel {
     }
 
     double G_integrand_function (double u, double v, double x1, double x2, double y1, double y2) {
-        if (u==0 && v==0) { u = 1.0e-20; v = u; }
+        if (u==0 && v==0) { u = 1.0e-20; v = u; } // TODO check integration if this returns 0
         
         return sqr(BG) / 4.0 / (u*v+BG/2.0*(u+v)) * exp(-sqr(m)*(u+v)) * ( exp( -0.25 * ( u*(sqr(y1)+sqr(y2)) + v*(sqr(x1)+sqr(x2)) + BG/2.0*(sqr(x1-y1)+sqr(x2-y2)) ) / ( u*v+BG/2.0*(u+v) ) ) - 0.5 * exp( -0.25 * (sqr(x1)+sqr(x2)) / (u*v/(u+v)+BG/2.0) ) - 0.5 * exp( -0.25 * (sqr(y1)+sqr(y2)) / (u*v/(u+v)+BG/2.0) ) );
     }
@@ -102,7 +102,7 @@ namespace GBWModel {
         if (arg>1.0) arg = 1.0;
         double theta = acos(arg);
         
-        double ret = G_ip.tricubic_get_value(r,rb,theta);
+        double ret = G_ip.get_interp_value_tricubic(r,rb,theta);
 
         return ret;
     }
