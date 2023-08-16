@@ -12,8 +12,8 @@
 
 
 namespace Coherent {
-    double A_integrand_function (double b1, double b2, double r1, double r2, double Q, double z, double Delta, TransverseOrLongitudinal transverse_or_longitudinal) {        
-        return 1.0/(4.0*PI) * NRPhoton::wave_function(r1,r2,Q,z,transverse_or_longitudinal) * gsl_sf_bessel_J0( std::sqrt(sqr(b1)+sqr(b2))*Delta )/(2.0*PI) * SaturationModel::dsigma_d2b(b1+r1/2.0,b2+r2/2.0,b1-r1/2.0,b2-r2/2.0);
+    double A_integrand_function (double x1, double x2, double y1, double y2, double Q, double z, double Delta, TransverseOrLongitudinal transverse_or_longitudinal) {        
+        return 1.0/(4.0*PI) * NRPhoton::wave_function(x1-y1,x2-y2,Q,z,transverse_or_longitudinal) * gsl_sf_bessel_J0( 0.25*std::sqrt(sqr(x1+y1)+sqr(x2+y2))*Delta )/(2.0*PI) * SaturationModel::dsigma_d2b(x1,x2,y1,y2);
     }
 
 
@@ -25,29 +25,29 @@ namespace Coherent {
         double r_range_factor = R_RANGE_FACTOR;
         double r_significant_range = 1.0/NRPhoton::epsilon(A_integrand_params->Q,A_integrand_params->z);
 
-        double bmin = integration_config->min;
-        double bmax = integration_config->max;
-        double phibmin = 0.0;
-        double phibmax = 2*PI;
+        double xmin = integration_config->min;
+        double xmax = integration_config->max;
+        //double phixmin = 0.0;
+        double phixmax = 2*PI;
 
-        double rmin = 0.0;
-        double rmax = r_range_factor*r_significant_range;
-        double phirmin = 0.0;
-        double phirmax = 2.0*PI;
+        //double ymin = 0.0;
+        double ymax = r_range_factor*r_significant_range;
+        //double phiymin = 0.0;
+        double phiymax = 2.0*PI;
 
-        double b = bmin + (bmax-bmin)*xx[0];
-        double phib = phibmin + (phibmax-phibmin)*xx[1];
-        double r = rmin + (rmax-rmin)*xx[2];
-        double phir = phirmin + (phirmax-phirmin)*xx[3];
+        double x = xmax*xx[0];
+        double phix = phixmax*xx[1];
+        double y = ymax*xx[2];
+        double phiy = phiymax*xx[3];
 
-        double b1 = b*cos(phib);
-        double b2 = b*sin(phib);
-        double r1 = r*cos(phir);
-        double r2 = r*sin(phir);
+        double x1 = x*cos(phix);
+        double x2 = x*sin(phix);
+        double y1 = y*cos(phiy);
+        double y2 = y*sin(phiy);
 
-        double jacobian = r*b*(bmax-bmin)*(phibmax-phibmin)*(rmax-rmin)*(phirmax-phirmin);
+        double jacobian = x*y*xmax*phixmax*ymax*phiymax;
 
-        ff[0] = jacobian * Coherent::A_integrand_function(b1,b2,r1,r2,A_integrand_params->Q,A_integrand_params->z,A_integrand_params->Delta,A_integrand_params->transverse_or_longitudinal);
+        ff[0] = jacobian * Coherent::A_integrand_function(x1,y2,y1,y2,A_integrand_params->Q,A_integrand_params->z,A_integrand_params->Delta,A_integrand_params->transverse_or_longitudinal);
 
         return 0;
     }
@@ -57,7 +57,7 @@ namespace Coherent {
         std::vector<double> ret(2);
         c_config->num_of_dims = 4;
 
-        ((AIntegrandParams*)(integration_config->integrand_params))->transverse_or_longitudinal = T; // most readable C++ code
+        ((AIntegrandParams*)(integration_config->integrand_params))->transverse_or_longitudinal = T;
 
         ret[0] = IntegrationRoutines::cuba_integrate_one_bessel(Coherent::integrand,c_config,integration_config);
         ret[0] = sqr(ret[0])*(GeVm1Tofm*GeVm1Tofm*fm2TonB)/(16.0*PI);
