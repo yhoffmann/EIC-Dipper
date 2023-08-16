@@ -50,13 +50,13 @@ namespace Observables
 
                 if (do_coherent)
                 {
-                    std::vector<double> coherent_result = Coherent::dsigma_dt(cuba_config,integration_config);
+                    std::vector<double> coherent_result = Coherent::dsigma_dt(&cuba_config,&integration_config);
                     coherent_results[i][j][0] = coherent_result[0]; coherent_results[i][j][1] = coherent_result[1];
                 }
 
                 if (do_incoherent)
                 {
-                    std::vector<double> incoherent_result = Incoherent::dsigma_dt(cuba_config,integration_config);
+                    std::vector<double> incoherent_result = Incoherent::dsigma_dt(&cuba_config,&integration_config);
                     incoherent_results[i][j][0] = incoherent_result[0]; incoherent_results[i][j][1] = incoherent_result[1];
                 }
             }

@@ -17,11 +17,11 @@ namespace GBWModel {
         return sqr(Qs0) * T_times_sigma0(b1,b2);
     }
 
-    double G_old (double x1, double x2, double y1, double y2) {
+    double G_old (double x1, double x2, double y1, double y2) { // not needed
         return -0.25 * Q_s_sqr( (x1+y1)/2.0, (x2+y2)/2.0 ) * ( sqr(x1-y1) + sqr(x2-y2) );
     }
 
-    double Kmod (double x1, double x2, double y1, double y2) {
+    double Kmod (double x1, double x2, double y1, double y2) { // not needed
         return 4.0* ( 1.0-m*std::sqrt(sqr(x1-y1)+sqr(x2-y2))*bessel_K_safe(1,m*std::sqrt(sqr(x1-y1)+sqr(x2-y2))) ) / sqr(m) / (sqr(x1-y1)+sqr(x2-y2));
     }
 
@@ -32,7 +32,7 @@ namespace GBWModel {
     double G_integrand_function (double u, double v, double x1, double x2, double y1, double y2) {
         if (u==0 && v==0) { u = 1.0e-20; v = u; } // TODO check integration if this returns 0
         
-        return sqr(BG) / 4.0 / (u*v+BG/2.0*(u+v)) * exp(-sqr(m)*(u+v)) * ( exp( -0.25 * ( u*(sqr(y1)+sqr(y2)) + v*(sqr(x1)+sqr(x2)) + BG/2.0*(sqr(x1-y1)+sqr(x2-y2)) ) / ( u*v+BG/2.0*(u+v) ) ) - 0.5 * exp( -0.25 * (sqr(x1)+sqr(x2)) / (u*v/(u+v)+BG/2.0) ) - 0.5 * exp( -0.25 * (sqr(y1)+sqr(y2)) / (u*v/(u+v)+BG/2.0) ) );
+        return 0.25 * (u*v+BG/2.0*(u+v)) * exp(-sqr(m)*(u+v)) * ( exp( -0.25 * ( u*(sqr(y1)+sqr(y2)) + v*(sqr(x1)+sqr(x2)) + BG/2.0*(sqr(x1-y1)+sqr(x2-y2)) ) / ( u*v+BG/2.0*(u+v) ) ) - 0.5 * exp( -0.25 * (sqr(x1)+sqr(x2)) / (u*v/(u+v)+BG/2.0) ) - 0.5 * exp( -0.25 * (sqr(y1)+sqr(y2)) / (u*v/(u+v)+BG/2.0) ) );
     }
 
     int G_integrand (const int* ndim, const cubareal xx[], const int* ncomp, cubareal ff[], void* userdata) {
@@ -73,7 +73,7 @@ namespace GBWModel {
 
         double ret;
 
-        ret = IntegrationRoutines::cuba_integrate(G_integrand,cuba_config,integration_config); // TODO check unit and factors
+        ret = IntegrationRoutines::cuba_integrate(G_integrand,&cuba_config,&integration_config); // TODO check unit and factors
 
         return ret;
     }

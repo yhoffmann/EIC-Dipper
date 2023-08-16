@@ -4,8 +4,15 @@
 #include "../include/utilities.h"
 #include <cuba.h>
 
+
+enum class Integrator : unsigned char
+{
+    Cuhre, Suave
+};
+
+
 struct CubaConfig {
-    char integrator = 'c';
+    Integrator integrator = Integrator::Cuhre;
     
     int num_of_dims;
     
@@ -21,15 +28,21 @@ struct CubaConfig {
 
     bool using_bessel_integration = false;
     double bessel_tolerance = 1e-5;
-    int max_oscillations = 1e4;
+    int max_oscillations = 1e2;
     int ocillations_per_partial_sum = 3;
 
     bool progress_monitor = false;
 };
 
 
+enum TransverseOrLongitudinal : unsigned char
+{
+    T, L
+};
+
+
 struct AIntegrandParams {
-    bool t_not_l = true;
+    TransverseOrLongitudinal transverse_or_longitudinal = T;
 
     double Delta = 0.001;
     double Q = 0.3;
@@ -51,7 +64,7 @@ struct IntegrationConfig {
 
 
 namespace IntegrationRoutines {
-    double cuba_integrate (integrand_t integrand, CubaConfig cuba_config, IntegrationConfig integration_config);
+    double cuba_integrate (integrand_t integrand, CubaConfig* cuba_config, IntegrationConfig* integration_config);
 
-    double cuba_integrate_one_bessel (integrand_t integrand, CubaConfig cuba_config, IntegrationConfig integration_config);
+    double cuba_integrate_one_bessel (integrand_t integrand, CubaConfig* cuba_config, IntegrationConfig* integration_config);
 }

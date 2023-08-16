@@ -24,16 +24,6 @@ int main (int argc, char** argv)
     std::string filepath = "InterpolatorData/G";
     set_import_filepath_by_m(filepath);
 
-    CubaConfig cuba_config;
-    IntegrationConfig integration_config;
-    AIntegrandParams A_integrand_params;
-
-    integration_config.integrand_params = &A_integrand_params;
-
-    cuba_config.progress_monitor = true;
-    cuba_config.integrator = 'c';
-    A_integrand_params.Delta = 0.001;
-
 
     //dc.x_grid_spacing = "log";
     //dc.y_grid_spacing = "log";

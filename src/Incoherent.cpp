@@ -8,12 +8,12 @@
 
 
 namespace Incoherent {
-    double A_integrand_function_simple (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double z, double Delta, bool t_not_l) {
-        return 1.0/(16.0*PI*PI) * gsl_sf_bessel_J0( std::sqrt(sqr(b1-bb1)+sqr(b2-bb2))*Delta )/(4.0*PI*PI) * NRPhoton::wave_function(r1,r2,Q,z,t_not_l) * NRPhoton::wave_function(rb1,rb2,Q,z,t_not_l) * SaturationModel::dsigma_d2b(b1,b2,r1,r2) * SaturationModel::dsigma_d2b(bb1,bb2,rb1,rb2);
+    double A_integrand_function_simple (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double z, double Delta, TransverseOrLongitudinal transverse_or_longitudinal) {
+        return 1.0/(16.0*PI*PI) * gsl_sf_bessel_J0( std::sqrt(sqr(b1-bb1)+sqr(b2-bb2))*Delta )/(4.0*PI*PI) * NRPhoton::wave_function(r1,r2,Q,z,transverse_or_longitudinal) * NRPhoton::wave_function(rb1,rb2,Q,z,transverse_or_longitudinal) * SaturationModel::dsigma_d2b(b1,b2,r1,r2) * SaturationModel::dsigma_d2b(bb1,bb2,rb1,rb2);
     }
 
-    double A_integrand_function (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double z, double Delta, bool t_not_l) {
-        return 1.0/(16.0*PI*PI) * gsl_sf_bessel_J0( std::sqrt(sqr(b1-bb1)+sqr(b2-bb2))*Delta )/(4.0*PI*PI) * NRPhoton::wave_function(r1,r2,Q,z,t_not_l) * NRPhoton::wave_function(rb1,rb2,Q,z,t_not_l) * SaturationModel::dsigma_d2b_sqr(b1+r1/2.0,b2+r2/2.0,b1-r1/2.0,b2-r2/2.0,bb1+rb1/2.0,bb2+rb2/2.0,bb1-rb1/2.0,bb2-rb2/2.0);
+    double A_integrand_function (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double z, double Delta, TransverseOrLongitudinal transverse_or_longitudinal) {
+        return 1.0/(16.0*PI*PI) * gsl_sf_bessel_J0( std::sqrt(sqr(b1-bb1)+sqr(b2-bb2))*Delta )/(4.0*PI*PI) * NRPhoton::wave_function(r1,r2,Q,z,transverse_or_longitudinal) * NRPhoton::wave_function(rb1,rb2,Q,z,transverse_or_longitudinal) * SaturationModel::dsigma_d2b_sqr(b1+r1/2.0,b2+r2/2.0,b1-r1/2.0,b2-r2/2.0,bb1+rb1/2.0,bb2+rb2/2.0,bb1-rb1/2.0,bb2-rb2/2.0);
     }
 
     int integrand (const int* ndim, const cubareal xx[], const int* ncomp, cubareal ff[], void* userdata) {
@@ -71,24 +71,21 @@ namespace Incoherent {
 
         double jacobian = r*db*B*rb*(dbmax-dbmin)*(phidbmax-phidbmin)*(rmax-rmin)*(phirmax-phirmin)*(Bmax-Bmin)*(phiBmax-phiBmin)*(rbmax-rbmin)*(phirbmax-phirbmin);
 
-        ff[0] = jacobian * Incoherent::A_integrand_function(b1,b2,r1,r2,bb1,bb2,rb1,rb2,A_integrand_params->Q,A_integrand_params->z,A_integrand_params->Delta,A_integrand_params->t_not_l);
+        ff[0] = jacobian * Incoherent::A_integrand_function(b1,b2,r1,r2,bb1,bb2,rb1,rb2,A_integrand_params->Q,A_integrand_params->z,A_integrand_params->Delta,A_integrand_params->transverse_or_longitudinal);
 
         return 0;
     }
 
-    std::vector<double> dsigma_dt (CubaConfig c_config, IntegrationConfig integration_config) {
+    std::vector<double> dsigma_dt (CubaConfig* c_config, IntegrationConfig* integration_config) {
         std::vector<double> ret(2);
-        c_config.num_of_dims = 8;
+        c_config->num_of_dims = 8;
 
-        AIntegrandParams A_integrand_params = *(AIntegrandParams*) integration_config.integrand_params;
-        integration_config.integrand_params = &A_integrand_params;
-
-        A_integrand_params.t_not_l = true;
+        ((AIntegrandParams*)(integration_config->integrand_params))->transverse_or_longitudinal = T;
 
         ret[0] = IntegrationRoutines::cuba_integrate_one_bessel(Incoherent::integrand,c_config,integration_config);
         ret[0] *= (GeVm1Tofm*GeVm1Tofm*fm2TonB)/(16.0*PI);
 
-        A_integrand_params.t_not_l = false;
+        ((AIntegrandParams*)(integration_config->integrand_params))->transverse_or_longitudinal = L;
 
         ret[1] = IntegrationRoutines::cuba_integrate_one_bessel(Incoherent::integrand,c_config,integration_config);
         ret[1] *= (GeVm1Tofm*GeVm1Tofm*fm2TonB)/(16.0*PI);
