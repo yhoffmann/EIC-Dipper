@@ -16,14 +16,14 @@ const double CF = (Nc*Nc-1.0)/(2.0*Nc);
 const double Qs0 = 1.0; //GeV
 const double g4 = 1.0;
 const double mu0 = 1.0;
-const double m = 1.5;
+const double m = 0.2;
 
 const double m_Q_c = 1.275; //in GeV
 const double A_c = 0.211; //in GeV3/2
 
 const double e_Q = e_c;
 const double A_Q = A_c; // in GeV3/2
-const double epsilon = 1.0; // in GeV  // not used, see epsilonFunc
+//const double epsilon = 1.0; // in GeV  // not used, see epsilonFunc
 
 const double sqrt_2m_c_Nc = std::sqrt(2.0*m_Q_c*Nc); // in GeV
 
@@ -45,4 +45,5 @@ const double sigma0 = 2.0*PI*BG; //GeVm2
 const double B_RANGE_FACTOR = 15.0;
 const double R_RANGE_FACTOR = 20.0;
 
-const double BMAX = std::sqrt(B_RANGE_FACTOR*2.0*BG);
+const double B_MAX = std::sqrt(B_RANGE_FACTOR*2.0*BG);
+const double R_MAX = R_RANGE_FACTOR/m_Q_c;

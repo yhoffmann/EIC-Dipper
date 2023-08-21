@@ -7,7 +7,7 @@
 
 namespace NRPhoton {
     double epsilon (double Q, double z) {
-        return std::sqrt( sqr(Q)*z*(1.0-z) + sqr(m_Q_c) );
+        return std::sqrt( sqr(Q)*z*(1.0-z) + sqr(m_Q_c) ); // if this is changed, also change R_MAX in constants.h
     }
 
     double wave_function (double r1, double r2, double Q, double z, TransverseOrLongitudinal transverse_or_longitudinal) {

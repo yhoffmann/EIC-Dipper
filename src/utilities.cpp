@@ -4,7 +4,6 @@
 #include <iostream>
 #include "../include/constants.h"
 #include <fstream>
-#include "../Interpolation3D/include/Interpolator3D.h"
 #include "../include/GBWModel.h"
 #include "../include/IntegrationRoutines.h"
 
@@ -14,18 +13,12 @@ double bessel_K_safe (int n, double x) {
 }
 
 
-void set_import_filepath_by_m (std::string& filepath)
+void set_import_filepath_by_m (std::string& filepath, DataGenerationConfig* config)
 {
     std::string m_path;
-    m_path = std::to_string(int(10*m));
+    m_path = std::to_string(int(100*m));
 
-    if (m_path.size()!=2)
-    {
-        std::cerr << "m_path is not length 2! Aborting" << std::endl;
-        exit(0);
-    }
-
-    filepath = filepath+"_m_"+m_path+".dat";
+    filepath = (m_path.size()<=2) ? filepath+"_m_0"+m_path+".dat" : filepath+"_m_"+m_path+".dat";
 
     std::ifstream file_check (filepath);
 
@@ -34,7 +27,7 @@ void set_import_filepath_by_m (std::string& filepath)
         file_check.close();
         std::string answer;
 
-        std::cout << "No data for m=" << m << ". Do you want to generate that data set? (y/n)\nThe path to the new file would be " << filepath << "." << std::endl;
+        std::cout << "No data for m=" << m << ". Do you want to generate that data set? (y/n)\n(The path to the new file would be " << filepath << ". File would have size ~" << config->n_x*config->n_y*config->n_z*61.0/1.0e6 << "MB.)" << std::endl;
         bool input_accepted = false;
         while (!input_accepted)
         {
@@ -44,8 +37,7 @@ void set_import_filepath_by_m (std::string& filepath)
                 input_accepted = true;
 
                 std::cout << "Generating new data set..." << std::endl;
-                DataGenerationConfig config;
-                GBWModel::G_ip.generate_data(GBWModel::G_wrapper,&config,true);
+                GBWModel::G_ip.generate_data(GBWModel::G_wrapper,config,true);
                 GBWModel::G_ip.export_data(filepath);
             }
             else if (answer=="n")
@@ -64,5 +56,17 @@ void set_import_filepath_by_m (std::string& filepath)
     else 
     {
         file_check.close();
+        bool accepted = false;
+        while (!accepted)
+        {
+            std::cout << "File with name " << filepath << " for m=" << m << " found. Do you want to read data from that file? (y/n)" << std::endl;
+
+            std::string answer;
+
+            std::cin >> answer;
+
+            if (answer=="y") accepted = true;
+            else exit(0);
+        }
     }
 }

@@ -16,20 +16,26 @@ double rng01() {
 
 int main (int argc, char** argv)
 {
+    std::string filepath = "InterpolatorData/G";
+    DataGenerationConfig config;
+
+    //GBWModel::G_ip.generate_data(GBWModel::G_wrapper,&config,true);
+    //GBWModel::G_ip.export_data(filepath);
+
+    set_import_filepath_by_m(filepath,&config);
+
+    GBWModel::G_ip.import_data(filepath);
+
+    Observables::calculate_dsigma_dt(true,true,"Data/dsigma_dt_m_020.dat");
+/*
     double x1 = std::atof(argv[1]);
     double x2 = std::atof(argv[2]);
     double y1 = std::atof(argv[3]);
     double y2 = std::atof(argv[4]);
-
-    std::string filepath = "InterpolatorData/G";
-    set_import_filepath_by_m(filepath);
-
-
-    //dc.x_grid_spacing = "log";
-    //dc.y_grid_spacing = "log";
-    //dc.z_grid_spacing = "linear";
-
-    GBWModel::G_ip.import_data(filepath);
+    std::cout << GBWModel::G_by_integration(x1,x2,y1,y2) << std::endl;
+*/
+    //GBWModel::G_ip.generate_data(GBWModel::G_wrapper,&data_config,true);
+    //GBWModel::G_ip.export_data(filepath);
 /*
     double counter = 0.0;
     while (true) {

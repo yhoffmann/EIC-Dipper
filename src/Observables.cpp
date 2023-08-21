@@ -27,9 +27,9 @@ namespace Observables
         std::cout << "Integrating with different parameters..." << std::endl;
 
         #pragma omp parallel for schedule(static,1)
-        for (int j=0; j<Delta_vec.size(); j++)
+        for (uint j=0; j<Delta_vec.size(); j++)
         {
-            for (int i=0; i<Q_vec.size(); i++)
+            for (uint i=0; i<Q_vec.size(); i++)
             {
                 //std::cout << "#" << omp_get_thread_num() << std::endl;
                 // Prodedure monitor
@@ -42,7 +42,6 @@ namespace Observables
                 integration_config.integrand_params = &A_integrand_params;
 
                 cuba_config.progress_monitor = true;
-                cuba_config.integrator = 'c';
                 
                 // Saving Q and Delta values in struct
                 A_integrand_params.Q = Q_vec[i];

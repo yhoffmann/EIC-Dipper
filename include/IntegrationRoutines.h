@@ -37,7 +37,7 @@ struct CubaConfig {
 
 enum TransverseOrLongitudinal : unsigned char
 {
-    T, L
+    T=84, L=76
 };
 
 

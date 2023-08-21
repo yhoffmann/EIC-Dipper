@@ -8,3 +8,4 @@
 #include "NRPhoton.h"
 #include "GBWModel.h"
 #include "SaturationModel.h"
+#include "Observables.h"

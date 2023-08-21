@@ -54,7 +54,7 @@ namespace IntegrationRoutines {
 
         if (cuba_config->integrator==Integrator::Cuhre) {
             Cuhre(num_of_dim, num_of_integrals,
-                integrand, &integration_config, num_of_points,
+                integrand, integration_config, num_of_points,
                 epsrel, epsabs,
                 flags1 | flags2,
                 mineval, maxeval,
@@ -64,7 +64,7 @@ namespace IntegrationRoutines {
             );
         } else if (cuba_config->integrator==Integrator::Suave) {
             Suave(num_of_dim, num_of_integrals,
-                integrand, &integration_config, num_of_points,
+                integrand, integration_config, num_of_points,
                 epsrel, epsabs,
                 flags1 | flags2, seed,
                 mineval, maxeval,
@@ -87,7 +87,7 @@ namespace IntegrationRoutines {
 
         AIntegrandParams* A_integrand_params = (AIntegrandParams*)integration_config->integrand_params;
 
-        bool use_bessel_zeros = (gsl_sf_bessel_zero_J0(1)/A_integrand_params->Delta < 4*BMAX);
+        bool use_bessel_zeros = (gsl_sf_bessel_zero_J0(1)/A_integrand_params->Delta < 4*B_MAX); // TODO check if this is neccesary or if it even causes inaccuracies
         
         double partial_sum = 0.0;
         double total_sum = 0.0;
@@ -113,10 +113,10 @@ namespace IntegrationRoutines {
             // Assigning integration range based on Delta to hit the zeros of the J0
             if (n!=0) {
                 integration_config->min = integration_config->max;
-                integration_config->max = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(n+1)/A_integrand_params->Delta : (n+1)*BMAX;
+                integration_config->max = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(n+1)/A_integrand_params->Delta : (n+1)*B_MAX;
             } else {
                 integration_config->min = 0;
-                integration_config->max = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(1)/A_integrand_params->Delta : BMAX;
+                integration_config->max = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(1)/A_integrand_params->Delta : B_MAX;
             }
 
             current_oscillation_value = cuba_integrate(integrand, cuba_config, integration_config);
