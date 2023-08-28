@@ -28,7 +28,7 @@ struct CubaConfig {
 
     bool using_bessel_integration = false;
     double bessel_tolerance = 1e-5;
-    int max_oscillations = 1e2;
+    int max_oscillations = 2e2;
     int ocillations_per_partial_sum = 3;
 
     bool progress_monitor = false;

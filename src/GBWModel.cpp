@@ -30,15 +30,13 @@ namespace GBWModel {
     }
 
     double G_integrand_function (double u, double v, double x1, double x2, double y1, double y2) {
-        if (u==0 && v==0) { u = 1.0e-20; v = u; } // TODO check integration if this returns 0
+        if (u==0 && v==0) return 0.0; // TODO check integration if this returns 0
         
         return  exp(-sqr(m)*(u+v)) / (16.0*PI*PI*(u*v+BG/2.0*(u+v))) * ( exp( -0.25 * ( u*(sqr(y1)+sqr(y2)) + v*(sqr(x1)+sqr(x2)) + BG/2.0*(sqr(x1-y1)+sqr(x2-y2)) ) / ( u*v+BG/2.0*(u+v) ) ) - 0.5 * exp( -0.25 * (sqr(x1)+sqr(x2)) / (u*v/(u+v)+BG/2.0) ) - 0.5 * exp( -0.25 * (sqr(y1)+sqr(y2)) / (u*v/(u+v)+BG/2.0) ) ); // TODO fix this
     }
 
     int G_integrand (const int* ndim, const cubareal xx[], const int* ncomp, cubareal ff[], void* userdata) {
-        IntegrationConfig* integration_config = (IntegrationConfig*) userdata;
-        
-        GIntegrandParams* params = (GIntegrandParams*)(integration_config->integrand_params);
+        GIntegrandParams* params = (GIntegrandParams*)(((IntegrationConfig*)userdata)->integrand_params);
 
         // integration from 0, so no umin needed
         double umax = 15.0/sqr(m);
@@ -59,7 +57,7 @@ namespace GBWModel {
     double G_by_integration (double x1, double x2, double y1, double y2) {
         CubaConfig cuba_config;
         cuba_config.num_of_dims = 2;
-        cuba_config.maxeval = 5e4;
+        cuba_config.maxeval = 1e5;
 
         IntegrationConfig integration_config;
         

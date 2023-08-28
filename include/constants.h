@@ -16,7 +16,7 @@ const double CF = (Nc*Nc-1.0)/(2.0*Nc);
 const double Qs0 = 1.0; //GeV
 const double g4 = 1.0;
 const double mu0 = 1.0;
-const double m = 0.2;
+const double m = 0.4;
 
 const double m_Q_c = 1.275; //in GeV
 const double A_c = 0.211; //in GeV3/2

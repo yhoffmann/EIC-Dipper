@@ -26,7 +26,15 @@ int main (int argc, char** argv)
 
     GBWModel::G_ip.import_data(filepath);
 
-    Observables::calculate_dsigma_dt(true,true,"Data/dsigma_dt_m_020.dat");
+    std::vector<double> Q_vec = {0.05, 0.3};
+    std::vector<double> Delta_vec;
+    uint imax = 50;
+    for (uint i=0; i<imax; i++)
+    {
+        Delta_vec.push_back(3.0*double(i)/double((imax-1))+0.001);
+    }
+
+    Observables::calculate_dsigma_dt(true,false,Q_vec,Delta_vec,"Data/dsigma_dt_co_m_040_.dat");
 /*
     double x1 = std::atof(argv[1]);
     double x2 = std::atof(argv[2]);
@@ -67,7 +75,7 @@ int main (int argc, char** argv)
     #pragma omp parallel for schedule(dynamic,1)
     for (int i=0; i<imax; i++)
     {
-        double x = -10.0+20.0*double(i)/double(imax-1);
+        double x = -20.0+40.0*double(i)/double(imax-1);
         results[i][0] = x;
         results[i][1] = GBWModel::G(x,x2,y1,y2);
         results[i][2] = GBWModel::G_by_integration(x,x2,y1,y2);
@@ -75,7 +83,7 @@ int main (int argc, char** argv)
     }
 
     std::ofstream out;
-    out.open("Data/G_interpolation_vs_integration.dat");
+    out.open("Data/G_interpolation_vs_integration_m_010.dat");
     if (!out.is_open()) { std::cout << "couldnt open" << std::endl; exit(0); }
 
     for (int i=0; i<imax; i++)

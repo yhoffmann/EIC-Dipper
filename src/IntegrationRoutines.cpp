@@ -48,7 +48,7 @@ namespace IntegrationRoutines {
         luint maxeval = cuba_config->maxeval;
         int seed = cuba_config->seed;
 
-        cubareal value[num_of_integrals]{0.0}, error[num_of_integrals]{0.0}, probability[num_of_integrals]{0.0};
+        cubareal value[1]{0.0}, error[1]{0.0}, probability[1]{0.0};
 
         int num_of_regions(0), num_of_evals(0), error_status(0);
 
@@ -69,7 +69,7 @@ namespace IntegrationRoutines {
                 flags1 | flags2, seed,
                 mineval, maxeval,
                 cuba_config->n_new, cuba_config->n_min,
-                KEY, NULL, NULL,
+                FLATNESS, NULL, NULL,
                 &num_of_regions, &num_of_evals, &error_status,
                 value, error, probability
             );
@@ -99,9 +99,6 @@ namespace IntegrationRoutines {
             if (n%cuba_config->ocillations_per_partial_sum == 0) {
                 if (std::abs(partial_sum) < cuba_config->bessel_tolerance*std::abs(total_sum)) {
                     if (cuba_config->progress_monitor) std::cout << A_integrand_params->Q << " " << A_integrand_params->Delta << " " << n << " Converged " << total_sum << std::endl;
-                    break;
-                } else if ((n>0) && (std::abs(partial_sum)<1e-10) && (std::abs(total_sum)<1e-10)) {
-                    if (cuba_config->progress_monitor) std::cout << A_integrand_params->Q << " " << A_integrand_params->Delta << " " << n << " Small Value " << total_sum << std::endl;
                     break;
                 } else {
                     partial_sum = 0.0;
