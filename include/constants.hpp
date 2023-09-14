@@ -2,7 +2,7 @@
 
 
 #include <math.h>
-#include "../include/utilities.h"
+#include "../include/utilities.hpp"
 
 // DEFINING GLOBAL PARAMETERS //
 const double PI = M_PI;
@@ -14,9 +14,6 @@ const double e_b = -1.0/3.0;
 const double Nc = 3.0;
 const double CF = (Nc*Nc-1.0)/(2.0*Nc);
 const double Qs0 = 1.0; //GeV
-const double g4 = 1.0;
-const double mu0 = 1.0;
-const double m = 0.4;
 
 const double m_Q_c = 1.275; //in GeV
 const double A_c = 0.211; //in GeV3/2
@@ -47,3 +44,9 @@ const double R_RANGE_FACTOR = 20.0;
 
 const double B_MAX = std::sqrt(B_RANGE_FACTOR*2.0*BG);
 const double R_MAX = R_RANGE_FACTOR/m_Q_c;
+
+const double g2mu02_demirci = 43.22;
+const double g2mu02 = sigma0;
+
+// not exactly constant constants
+const double m = 0.2;
