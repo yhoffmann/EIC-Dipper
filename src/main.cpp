@@ -5,45 +5,54 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-#include "../include/include.h"
-#include "../Interpolation3D/include/Interpolator3D.h" // TODO change include path to the file in this directory
-
-
-double rng01() {
-    return drand48();
-}
+#include "../include/constants.hpp"
+#include "../include/utilities.hpp"
+#include "../include/GBWModel.hpp"
+#include "../Interpolation3D/include/Interpolator3D.hpp"
+#include "../Interpolation3D/easy-progress-monitor/include/ProgressMonitor.hpp"
+#include "../include/Observables.hpp"
 
 
 int main (int argc, char** argv)
 {
     std::string filepath = "InterpolatorData/G";
     DataGenerationConfig config;
+    config.n_x = 300;
+    config.n_y = 300;
+    config.n_z = 30;
+
+    config.x_max = 8.0/m;
+    config.y_max = 8.0/m;
+
+    set_import_filepath_by_m(filepath,&config);
 
     //GBWModel::G_ip.generate_data(GBWModel::G_wrapper,&config,true);
     //GBWModel::G_ip.export_data(filepath);
 
-    set_import_filepath_by_m(filepath,&config);
-
     GBWModel::G_ip.import_data(filepath);
+
+    //auto [t1,l1] = Coherent::dsigma_dt(0.3,0.4);
+    //auto [t2,l2] = Coherent::dsigma_dt_cubature(0.3,0.4);
+    //std::cout << t1 << " " << l1 << "\t" << t2 << " " << l2 << "\n";
 
     std::vector<double> Q_vec = {0.05, 0.3};
     std::vector<double> Delta_vec;
-    uint imax = 50;
+    
+    uint imax = 20;
     for (uint i=0; i<imax; i++)
     {
         Delta_vec.push_back(3.0*double(i)/double((imax-1))+0.001);
     }
 
-    Observables::calculate_dsigma_dt(true,false,Q_vec,Delta_vec,"Data/dsigma_dt_co_m_040_.dat");
+    Observables::calculate_dsigma_dt(true,true,Q_vec,Delta_vec,"Data/dsigma_dt_m_020_.dat");
+
 /*
     double x1 = std::atof(argv[1]);
     double x2 = std::atof(argv[2]);
     double y1 = std::atof(argv[3]);
     double y2 = std::atof(argv[4]);
-    std::cout << GBWModel::G_by_integration(x1,x2,y1,y2) << std::endl;
+    (void)GBWModel::G_by_integration(x1,x2,y1,y2);
 */
-    //GBWModel::G_ip.generate_data(GBWModel::G_wrapper,&data_config,true);
-    //GBWModel::G_ip.export_data(filepath);
 /*
     double counter = 0.0;
     while (true) {
@@ -75,15 +84,15 @@ int main (int argc, char** argv)
     #pragma omp parallel for schedule(dynamic,1)
     for (int i=0; i<imax; i++)
     {
-        double x = -20.0+40.0*double(i)/double(imax-1);
+        double x = -100.0+100.0*double(i)/double(imax-1);
         results[i][0] = x;
-        results[i][1] = GBWModel::G(x,x2,y1,y2);
-        results[i][2] = GBWModel::G_by_integration(x,x2,y1,y2);
+        results[i][1] = GBWModel::G(x,0.1,0.2,0.3);
+        results[i][2] = GBWModel::G_by_integration(x,0.1,0.2,0.3);
         std::cout << i << std::endl;
     }
 
     std::ofstream out;
-    out.open("Data/G_interpolation_vs_integration_m_010.dat");
+    out.open("Data/G_interpolation_vs_integration_m_040.dat");
     if (!out.is_open()) { std::cout << "couldnt open" << std::endl; exit(0); }
 
     for (int i=0; i<imax; i++)
@@ -93,8 +102,4 @@ int main (int argc, char** argv)
 
     out.close();
 */
-
-
-
-    return 0;
 }
