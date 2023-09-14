@@ -1,16 +1,17 @@
-#include "../include/Coherent.h"
+#include "../include/Coherent.hpp"
 #include <math.h>
-#include "../include/constants.h"
-#include "../include/IntegrationRoutines.h"
-#include "../include/GBWModel.h"
-#include "../include/NRPhoton.h"
-#include "../include/SaturationModel.h"
+#include "../include/constants.hpp"
+#include "../include/IntegrationRoutines.hpp"
+#include "../include/GBWModel.hpp"
+#include "../include/NRPhoton.hpp"
+#include "../include/SaturationModel.hpp"
 #include <gsl/gsl_math.h>
 #include <iostream>
 
 
 namespace Coherent {
-    double A_integrand_function (double b1, double b2, double r1, double r2, double Q, double z, double Delta, TransverseOrLongitudinal transverse_or_longitudinal) {
+    double A_integrand_function (double b1, double b2, double r1, double r2, double Q, double z, double Delta, TransverseOrLongitudinal transverse_or_longitudinal)
+    {
         double x1 = b1+r1/2.0;
         double x2 = b2+r2/2.0;
         double y1 = b1+r1/2.0;
@@ -20,13 +21,14 @@ namespace Coherent {
     }
 
 
-    int integrand (const int* ndim, const cubareal xx[], const int* ncomp, cubareal ff[], void* userdata) {
+    int integrand (const int* ndim, const cubareal xx[], const int* ncomp, cubareal ff[], void* userdata)
+    {
         IntegrationConfig* integration_config = (IntegrationConfig*)userdata;
 
         AIntegrandParams* A_integrand_params = (AIntegrandParams*)(integration_config->integrand_params);
 
-        double bmin = integration_config->min;
-        double bmax = integration_config->max;
+        double bmin = integration_config->min[0];
+        double bmax = integration_config->max[0];
         //double phibmin = 0.0;
         //double phibmax = 2.0*M_PI;
 
@@ -53,20 +55,101 @@ namespace Coherent {
     }
 
 
-    std::vector<double> dsigma_dt (CubaConfig* c_config, IntegrationConfig* integration_config) {
-        std::vector<double> ret(2);
-        c_config->num_of_dims = 4;
+    std::tuple<double,double> dsigma_dt (double Q, double Delta)
+    {
+        CubaConfig c_config;
+        c_config.progress_monitor = true;
+
+        IntegrationConfig i_config;
+        
+        AIntegrandParams params;
+        params.Q = Q;
+        params.Delta = Delta;
+
+        i_config.integrand_params = &params;
+
+        return dsigma_dt(&c_config,&i_config);
+    }
+
+
+    std::tuple<double,double> dsigma_dt (CubaConfig* c_config, IntegrationConfig* integration_config)
+    {
+        c_config->num_dims = 4;
+
+        integration_config->min = (double*)alloca(sizeof(double));
+        integration_config->max = (double*)alloca(sizeof(double));
 
         ((AIntegrandParams*)(integration_config->integrand_params))->transverse_or_longitudinal = T;
 
-        ret[0] = IntegrationRoutines::cuba_integrate_one_bessel(Coherent::integrand,c_config,integration_config);
-        ret[0] = sqr(ret[0]*GeVm1Tofm)*fm2TonB/(16.0*PI);
+        double t_ret, l_ret;
+
+        t_ret = IntegrationRoutines::cuba_integrate_one_bessel(Coherent::integrand,c_config,integration_config);
+        t_ret = sqr(t_ret*GeVm1Tofm)*fm2TonB/(16.0*PI);
 
         ((AIntegrandParams*)(integration_config->integrand_params))->transverse_or_longitudinal = L;
 
-        ret[1] = IntegrationRoutines::cuba_integrate_one_bessel(Coherent::integrand,c_config,integration_config);
-        ret[1] = sqr(ret[1]*GeVm1Tofm)*fm2TonB/(16.0*PI);
+        l_ret = IntegrationRoutines::cuba_integrate_one_bessel(Coherent::integrand,c_config,integration_config);
+        l_ret = sqr(l_ret*GeVm1Tofm)*fm2TonB/(16.0*PI);
 
-        return ret;
+        return { t_ret, l_ret };
+    }
+
+
+    int integrand_cubature (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
+    {
+        AIntegrandParams* params = ((AIntegrandParams*)(((IntegrationConfig*)userdata)->integrand_params));
+
+        ff[0] = xx[0]*xx[2]*Coherent::A_integrand_function(xx[0]*cos(xx[1]),xx[0]*sin(xx[1]),xx[2]*cos(xx[3]),xx[2]*sin(xx[3]),params->Q,params->z,params->Delta,params->transverse_or_longitudinal);
+
+        return 0;
+    }
+
+
+    std::tuple<double,double> dsigma_dt_cubature (double Q, double Delta)
+    {
+        CubatureConfig c_config;
+        c_config.progress_monitor = true;
+
+        IntegrationConfig i_config;
+        
+        AIntegrandParams params;
+        params.Q = Q;
+        params.Delta = Delta;
+
+        i_config.integrand_params = &params;
+
+        return dsigma_dt_cubature(&c_config,&i_config);
+    }
+
+
+    std::tuple<double,double> dsigma_dt_cubature (CubatureConfig* c_config, IntegrationConfig* i_config)
+    {
+        c_config->num_dims = 4;
+
+        i_config->min = (double*)alloca(4*sizeof(double));
+        i_config->max = (double*)alloca(4*sizeof(double));
+
+        i_config->min[1] = 0.0;
+        i_config->max[1] = 2.0*M_PI;
+
+        i_config->min[2] = 0.0;
+        i_config->max[2] = R_MAX;
+
+        i_config->min[3] = 0.0;
+        i_config->max[3] = 2.0*M_PI;
+
+        ((AIntegrandParams*)(i_config->integrand_params))->transverse_or_longitudinal = T;
+
+        double t_ret, l_ret;
+
+        t_ret = IntegrationRoutines::cubature_integrate_one_bessel(Coherent::integrand_cubature,c_config,i_config);
+        t_ret = sqr(t_ret*GeVm1Tofm)*fm2TonB/(16.0*PI);
+
+        ((AIntegrandParams*)(i_config->integrand_params))->transverse_or_longitudinal = L;
+
+        l_ret = IntegrationRoutines::cubature_integrate_one_bessel(Coherent::integrand_cubature,c_config,i_config);
+        l_ret = sqr(l_ret*GeVm1Tofm)*fm2TonB/(16.0*PI);
+
+        return { t_ret, l_ret };
     }
 }

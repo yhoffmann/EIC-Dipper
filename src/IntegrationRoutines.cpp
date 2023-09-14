@@ -26,20 +26,23 @@
 #define KEY 0
 
 
-#include "../include/IntegrationRoutines.h"
-#include "../include/constants.h"
 #include <stdlib.h>
 #include <iostream>
 #include <gsl/gsl_sf.h>
+#include "../include/IntegrationRoutines.hpp"
+#include "../include/constants.hpp"
+#include "../cubature/cubature.h"
 
 
-namespace IntegrationRoutines {
-    double cuba_integrate (integrand_t integrand, CubaConfig* cuba_config, IntegrationConfig* integration_config) {
+namespace IntegrationRoutines
+{
+    double cuba_integrate (integrand_t integrand, CubaConfig* cuba_config, IntegrationConfig* integration_config)
+    {
         double ret;
 
-        int num_of_dim = cuba_config->num_of_dims;
-        int num_of_integrals = 1;
-        int num_of_points = 1;
+        int num_dim = cuba_config->num_dims;
+        int num_integrals = 1;
+        int num_points = 1;
         double epsrel = cuba_config->epsrel;
         double epsabs = cuba_config->epsabs;
         int flags1 = cuba_config->flags1;
@@ -50,27 +53,27 @@ namespace IntegrationRoutines {
 
         cubareal value[1]{0.0}, error[1]{0.0}, probability[1]{0.0};
 
-        int num_of_regions(0), num_of_evals(0), error_status(0);
+        int num_regions(0), num_evals(0), error_status(0);
 
-        if (cuba_config->integrator==Integrator::Cuhre) {
-            Cuhre(num_of_dim, num_of_integrals,
-                integrand, integration_config, num_of_points,
+        if (cuba_config->integrator==CubaIntegrator::Cuhre) {
+            Cuhre(num_dim, num_integrals,
+                integrand, integration_config, num_points,
                 epsrel, epsabs,
                 flags1 | flags2,
                 mineval, maxeval,
                 KEY, NULL, NULL,
-                &num_of_regions,&num_of_evals, &error_status,
+                &num_regions,&num_evals, &error_status,
                 value, error, probability
             );
-        } else if (cuba_config->integrator==Integrator::Suave) {
-            Suave(num_of_dim, num_of_integrals,
-                integrand, integration_config, num_of_points,
+        } else if (cuba_config->integrator==CubaIntegrator::Suave) {
+            Suave(num_dim, num_integrals,
+                integrand, integration_config, num_points,
                 epsrel, epsabs,
                 flags1 | flags2, seed,
                 mineval, maxeval,
                 cuba_config->n_new, cuba_config->n_min,
                 FLATNESS, NULL, NULL,
-                &num_of_regions, &num_of_evals, &error_status,
+                &num_regions, &num_evals, &error_status,
                 value, error, probability
             );
         }
@@ -81,10 +84,8 @@ namespace IntegrationRoutines {
     }
 
 
-    double cuba_integrate_one_bessel (integrand_t integrand, CubaConfig* cuba_config, IntegrationConfig* integration_config) {
-        // for telling cuba_integrate whether to set integration range or not (here, no because range is being set in this function)
-        cuba_config->using_bessel_integration = true;
-
+    double cuba_integrate_one_bessel (integrand_t integrand, CubaConfig* cuba_config, IntegrationConfig* integration_config)
+    {
         AIntegrandParams* A_integrand_params = (AIntegrandParams*)integration_config->integrand_params;
 
         bool use_bessel_zeros = (gsl_sf_bessel_zero_J0(1)/A_integrand_params->Delta < 4*B_MAX); // TODO check if this is neccesary or if it even causes inaccuracies
@@ -94,13 +95,18 @@ namespace IntegrationRoutines {
 
         double current_oscillation_value;
 
-        for (int n=0; n<cuba_config->max_oscillations; n++) {
+        for (uint n=0; n<cuba_config->max_oscillations; n++)
+        {
             // Check if partial_sum is small compared to overall total_sum, if yes then stop integration
-            if (n%cuba_config->ocillations_per_partial_sum == 0) {
-                if (std::abs(partial_sum) < cuba_config->bessel_tolerance*std::abs(total_sum)) {
+            if (n%cuba_config->ocillations_per_partial_sum == 0)
+            {
+                if (std::abs(partial_sum) < cuba_config->bessel_tolerance*std::abs(total_sum))
+                {
                     if (cuba_config->progress_monitor) std::cout << A_integrand_params->Q << " " << A_integrand_params->Delta << " " << n << " Converged " << total_sum << std::endl;
                     break;
-                } else {
+                }
+                else
+                {
                     partial_sum = 0.0;
                 }
             }
@@ -108,12 +114,15 @@ namespace IntegrationRoutines {
             if (n == cuba_config->max_oscillations-1) std::cout << "### WARNING SLOW CONVERGENCE ###" << std::endl;
 
             // Assigning integration range based on Delta to hit the zeros of the J0
-            if (n!=0) {
-                integration_config->min = integration_config->max;
-                integration_config->max = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(n+1)/A_integrand_params->Delta : (n+1)*B_MAX;
-            } else {
-                integration_config->min = 0;
-                integration_config->max = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(1)/A_integrand_params->Delta : B_MAX;
+            if (n!=0)
+            {
+                integration_config->min[0] = integration_config->max[0];
+                integration_config->max[0] = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(n+1)/A_integrand_params->Delta : (n+1)*B_MAX;
+            }
+            else
+            {
+                integration_config->min[0] = 0.0;
+                integration_config->max[0] = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(1)/A_integrand_params->Delta : B_MAX;
             }
 
             current_oscillation_value = cuba_integrate(integrand, cuba_config, integration_config);
@@ -122,11 +131,96 @@ namespace IntegrationRoutines {
             total_sum += current_oscillation_value;
             partial_sum += current_oscillation_value;
 
-            if (cuba_config->progress_monitor) std::cout << A_integrand_params->Q << " " << A_integrand_params->Delta << " " << A_integrand_params->transverse_or_longitudinal << "\t" << n << "\t(" << integration_config->min << "," << integration_config->max << ")\t" << total_sum << "(+" << current_oscillation_value << ")" << std::endl;
+            if (cuba_config->progress_monitor) std::cout << A_integrand_params->Q << " " << A_integrand_params->Delta << " " << A_integrand_params->transverse_or_longitudinal << "\t" << n << "\t(" << integration_config->min[0] << "," << integration_config->max[0] << ")\t" << total_sum << "(+" << current_oscillation_value << ")" << std::endl;
         }
 
-        cuba_config->using_bessel_integration = false;
+        return total_sum;
+    }
 
+
+    double cubature_integrate (integrand integrand, CubatureConfig* cubature_config, IntegrationConfig* integration_config)
+    {
+        double result = 0.0;
+        double result_err = 0.0;
+
+        if (cubature_config->integrator==CubatureIntegrator::H)
+        {
+            hcubature(cubature_config->num_f_dims,
+                integrand,
+                integration_config,
+                cubature_config->num_dims,
+                integration_config->min, integration_config->max,
+                cubature_config->max_eval, cubature_config->abs_err, cubature_config->rel_err,
+                cubature_config->err_norm,
+                &result, &result_err
+            );
+        }
+        else if (cubature_config->integrator==CubatureIntegrator::P)
+        {
+            pcubature(cubature_config->num_f_dims,
+                integrand,
+                integration_config,
+                cubature_config->num_dims,
+                integration_config->min, integration_config->max,
+                cubature_config->max_eval, cubature_config->abs_err, cubature_config->rel_err,
+                cubature_config->err_norm,
+                &result, &result_err
+            );
+        }
+
+        return result;
+    }
+
+
+    double cubature_integrate_one_bessel (integrand integrand, CubatureConfig* cubature_config, IntegrationConfig* integration_config)
+    {
+        AIntegrandParams* A_integrand_params = (AIntegrandParams*)integration_config->integrand_params;
+
+        bool use_bessel_zeros = (gsl_sf_bessel_zero_J0(1)/A_integrand_params->Delta < 4*B_MAX); // TODO check if this is neccesary or if it even causes inaccuracies
+        
+        double partial_sum = 0.0;
+        double total_sum = 0.0;
+
+        double current_oscillation_value;
+
+        for (uint n=0; n<cubature_config->max_oscillations; n++)
+        {
+            // Check if partial_sum is small compared to overall total_sum, if yes then stop integration
+            if (n%cubature_config->ocillations_per_partial_sum == 0)
+            {
+                if (std::abs(partial_sum) < cubature_config->bessel_tolerance*std::abs(total_sum))
+                {
+                    if (cubature_config->progress_monitor) std::cout << A_integrand_params->Q << " " << A_integrand_params->Delta << " " << n << " Converged " << total_sum << std::endl;
+                    break;
+                }
+                else
+                {
+                    partial_sum = 0.0;
+                }
+            }
+            
+            if (n == cubature_config->max_oscillations-1) std::cout << "### WARNING SLOW CONVERGENCE ###" << std::endl;
+
+            // Assigning integration range based on Delta to hit the zeros of the J0
+            if (n!=0)
+            {
+                integration_config->min[0] = integration_config->max[0];
+                integration_config->max[0] = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(n+1)/A_integrand_params->Delta : (n+1)*B_MAX;
+            }
+            else
+            {
+                integration_config->min[0] = 0.0;
+                integration_config->max[0] = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(1)/A_integrand_params->Delta : B_MAX;
+            }
+
+            current_oscillation_value = cubature_integrate(integrand, cubature_config, integration_config);
+
+            // Adding current integration results to overall result
+            total_sum += current_oscillation_value;
+            partial_sum += current_oscillation_value;
+
+            if (cubature_config->progress_monitor) std::cout << A_integrand_params->Q << " " << A_integrand_params->Delta << " " << A_integrand_params->transverse_or_longitudinal << "\t" << n << "\t(" << integration_config->min[0] << "," << integration_config->max[0] << ")\t" << total_sum << "(+" << current_oscillation_value << ")" << std::endl;
+        }
         return total_sum;
     }
 }
