@@ -1,11 +1,11 @@
-#include "../include/utilities.h"
+#include "../include/utilities.hpp"
 
 #include <gsl/gsl_sf.h>
 #include <iostream>
-#include "../include/constants.h"
+#include "../include/constants.hpp"
 #include <fstream>
-#include "../include/GBWModel.h"
-#include "../include/IntegrationRoutines.h"
+#include "../include/GBWModel.hpp"
+#include "../include/IntegrationRoutines.hpp"
 
 double bessel_K_safe (int n, double x) {
     if (x==0) {x = 1.0e-20;}
@@ -59,7 +59,7 @@ void set_import_filepath_by_m (std::string& filepath, DataGenerationConfig* conf
         bool accepted = false;
         while (!accepted)
         {
-            std::cout << "File with name " << filepath << " for m=" << m << " found. Do you want to read data from that file? (y/n)" << std::endl;
+            std::cout << "File with name " << filepath << " for m=" << m << " found. Do you want to make that the active filepath? (y/n)" << std::endl;
 
             std::string answer;
 

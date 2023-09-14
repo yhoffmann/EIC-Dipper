@@ -1,9 +1,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include <gsl/gsl_sf.h>
-#include "../include/utilities.h"
-#include "../include/constants.h"
-#include "../include/IntegrationRoutines.h"
+#include "../include/utilities.hpp"
+#include "../include/constants.hpp"
+#include "../include/IntegrationRoutines.hpp"
 
 namespace NRPhoton {
     double epsilon (double Q, double z) {
