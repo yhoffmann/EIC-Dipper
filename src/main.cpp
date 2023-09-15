@@ -8,8 +8,8 @@
 #include "../include/constants.hpp"
 #include "../include/utilities.hpp"
 #include "../include/GBWModel.hpp"
-#include "../Interpolation3D/include/Interpolator3D.hpp"
-#include "../Interpolation3D/easy-progress-monitor/include/ProgressMonitor.hpp"
+#include "../external/Interpolation3D/include/Interpolator3D.hpp"
+#include "../external/Interpolation3D/easy-progress-monitor/include/ProgressMonitor.hpp"
 #include "../include/Observables.hpp"
 
 
@@ -34,7 +34,7 @@ int main (int argc, char** argv)
     //auto [t1,l1] = Coherent::dsigma_dt(0.3,0.4);
     //auto [t2,l2] = Coherent::dsigma_dt_cubature(0.3,0.4);
     //std::cout << t1 << " " << l1 << "\t" << t2 << " " << l2 << "\n";
-
+/*
     std::vector<double> Q_vec = {0.05, 0.3};
     std::vector<double> Delta_vec;
     
@@ -45,7 +45,7 @@ int main (int argc, char** argv)
     }
 
     Observables::calculate_dsigma_dt(true,true,Q_vec,Delta_vec,"Data/dsigma_dt_m_020_.dat");
-
+*/
 /*
     double x1 = std::atof(argv[1]);
     double x2 = std::atof(argv[2]);
@@ -78,21 +78,21 @@ int main (int argc, char** argv)
     }
 */
     
-/*
+
     const int imax = 1000;
     double results[imax][3];
     #pragma omp parallel for schedule(dynamic,1)
     for (int i=0; i<imax; i++)
     {
-        double x = -100.0+100.0*double(i)/double(imax-1);
+        double x = 100.0*double(i)/double(imax-1);
         results[i][0] = x;
-        results[i][1] = GBWModel::G(x,0.1,0.2,0.3);
-        results[i][2] = GBWModel::G_by_integration(x,0.1,0.2,0.3);
+        results[i][1] = GBWModel::G(x,0.0,0.0,0.0);
+        results[i][2] = GBWModel::G_by_integration(x,0.0,0.0,0.0);
         std::cout << i << std::endl;
     }
 
     std::ofstream out;
-    out.open("Data/G_interpolation_vs_integration_m_040.dat");
+    out.open("Data/G_interpolation_vs_integration_m_010.dat");
     if (!out.is_open()) { std::cout << "couldnt open" << std::endl; exit(0); }
 
     for (int i=0; i<imax; i++)
@@ -101,5 +101,5 @@ int main (int argc, char** argv)
     }
 
     out.close();
-*/
+
 }

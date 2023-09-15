@@ -6,7 +6,7 @@
 
 #include <gsl/gsl_sf.h>
 #include <string>
-#include "../Interpolation3D/include/Interpolator3D.hpp"
+#include "../external/Interpolation3D/include/Interpolator3D.hpp"
 
 
 typedef long unsigned int luint;

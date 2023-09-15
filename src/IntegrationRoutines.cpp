@@ -31,7 +31,7 @@
 #include <gsl/gsl_sf.h>
 #include "../include/IntegrationRoutines.hpp"
 #include "../include/constants.hpp"
-#include "../cubature/cubature.h"
+#include "../external/cubature/cubature.h"
 
 
 namespace IntegrationRoutines

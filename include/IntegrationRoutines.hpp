@@ -3,7 +3,7 @@
 
 #include <cuba.h>
 #include "../include/utilities.hpp"
-#include "../cubature/cubature.h"
+#include "../external/cubature/cubature.h"
 
 
 enum class CubaIntegrator : unsigned char

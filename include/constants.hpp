@@ -49,4 +49,4 @@ const double g2mu02_demirci = 43.22;
 const double g2mu02 = sigma0;
 
 // not exactly constant constants
-const double m = 0.2;
+const double m = 0.1;

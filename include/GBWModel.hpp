@@ -2,7 +2,7 @@
 
 
 #include <cuba.h>
-#include "../Interpolation3D/include/Interpolator3D.hpp"
+#include "../external/Interpolation3D/include/Interpolator3D.hpp"
 
 
 namespace GBWModel {
