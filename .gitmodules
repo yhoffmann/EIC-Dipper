@@ -1,9 +1,9 @@
 [submodule "Interpolation3D"]
-	path = Interpolation3D
+	path = external/Interpolation3D
 	url = https://github.com/yhoffmann/Interpolation3D.git
 [submodule "cubature"]
-	path = cubature
+	path = external/cubature
 	url = https://github.com/stevengj/cubature.git
 [submodule "Nucleus"]
-	path = Nucleus
+	path = external/Nucleus
 	url = https://github.com/yhoffmann/Nucleus.git
