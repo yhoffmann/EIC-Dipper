@@ -4,3 +4,6 @@
 [submodule "cubature"]
 	path = cubature
 	url = https://github.com/stevengj/cubature.git
+[submodule "Nucleus"]
+	path = Nucleus
+	url = https://github.com/yhoffmann/Nucleus.git
