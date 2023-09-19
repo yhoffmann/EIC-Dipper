@@ -1,6 +1,9 @@
 #pragma once
 
 
+#include "IntegrationRoutines.hpp"
+
+
 namespace NRPhoton {
     extern double ONE_DIV_EPSILON_MIN;
 
