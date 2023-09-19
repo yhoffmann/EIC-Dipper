@@ -9,12 +9,14 @@
 #include "../include/utilities.hpp"
 #include "../include/GBWModel.hpp"
 #include "../external/Interpolation3D/include/Interpolator3D.hpp"
-#include "../external/Interpolation3D/easy-progress-monitor/include/ProgressMonitor.hpp"
+#include "../external/Interpolation3D/external/easy-progress-monitor/include/ProgressMonitor.hpp"
 #include "../include/Observables.hpp"
 
 
 int main (int argc, char** argv)
 {
+    set_parameters(argc, argv);
+
     std::string filepath = "InterpolatorData/G";
     DataGenerationConfig config;
     config.n_x = 300;
@@ -23,10 +25,11 @@ int main (int argc, char** argv)
 
     config.x_max = 8.0/m;
     config.y_max = 8.0/m;
+    config.z_max = M_PI;
 
-    set_import_filepath_by_m(filepath,&config);
+    set_import_filepath_by_m(filepath, &config);
 
-    //GBWModel::G_ip.generate_data(GBWModel::G_wrapper,&config,true);
+    //GBWModel::G_ip.generate_data(GBWModel::G_wrapper, &config, true);
     //GBWModel::G_ip.export_data(filepath);
 
     GBWModel::G_ip.import_data(filepath);
@@ -34,7 +37,7 @@ int main (int argc, char** argv)
     //auto [t1,l1] = Coherent::dsigma_dt(0.3,0.4);
     //auto [t2,l2] = Coherent::dsigma_dt_cubature(0.3,0.4);
     //std::cout << t1 << " " << l1 << "\t" << t2 << " " << l2 << "\n";
-/*
+
     std::vector<double> Q_vec = {0.05, 0.3};
     std::vector<double> Delta_vec;
     
@@ -44,8 +47,8 @@ int main (int argc, char** argv)
         Delta_vec.push_back(3.0*double(i)/double((imax-1))+0.001);
     }
 
-    Observables::calculate_dsigma_dt(true,true,Q_vec,Delta_vec,"Data/dsigma_dt_m_020_.dat");
-*/
+    Observables::calculate_dsigma_dt(true,false,Q_vec,Delta_vec,"Data/dsigma_dt_m_022_.dat");
+
 /*
     double x1 = std::atof(argv[1]);
     double x2 = std::atof(argv[2]);
@@ -78,7 +81,7 @@ int main (int argc, char** argv)
     }
 */
     
-
+/*
     const int imax = 1000;
     double results[imax][3];
     #pragma omp parallel for schedule(dynamic,1)
@@ -92,7 +95,7 @@ int main (int argc, char** argv)
     }
 
     std::ofstream out;
-    out.open("Data/G_interpolation_vs_integration_m_010.dat");
+    out.open("Data/G_m_022.dat");
     if (!out.is_open()) { std::cout << "couldnt open" << std::endl; exit(0); }
 
     for (int i=0; i<imax; i++)
@@ -101,5 +104,6 @@ int main (int argc, char** argv)
     }
 
     out.close();
-
+*/
+    return 0;
 }

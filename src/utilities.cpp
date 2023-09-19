@@ -1,11 +1,12 @@
 #include "../include/utilities.hpp"
-
+#include <cstring>
 #include <gsl/gsl_sf.h>
 #include <iostream>
 #include "../include/constants.hpp"
 #include <fstream>
 #include "../include/GBWModel.hpp"
 #include "../include/IntegrationRoutines.hpp"
+#include <stdlib.h>
 
 double bessel_K_safe (int n, double x) {
     if (x==0) {x = 1.0e-20;}
@@ -69,4 +70,23 @@ void set_import_filepath_by_m (std::string& filepath, DataGenerationConfig* conf
             else exit(0);
         }
     }
+}
+
+
+void set_parameters (int argc, char** argv)
+{
+    for (int i=1; i<argc; i+=2)
+    {
+        if (i+1==argc)
+            return;
+        if (!strcmp(argv[i],"m"))
+            m = std::atof(argv[i+1]);
+        else if (!strcmp(argv[i], "Nq"))
+            Nq = std::atof(argv[i+1]);
+        else if (!strcmp(argv[i], "Delta"))
+            Delta = std::atof(argv[i+1]);
+        else if (!strcmp(argv[i], "Q"))
+            Q = std::atof(argv[i+1]);
+    }
+    return;
 }

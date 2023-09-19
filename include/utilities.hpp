@@ -1,7 +1,7 @@
 #pragma once
 
 
-#define LOG(x) std::cout << x << std::endl
+#define _LOG(x) std::cout << x << std::endl
 
 
 #include <gsl/gsl_sf.h>
@@ -22,3 +22,6 @@ double bessel_K_safe (int n, double x);
 
 
 void set_import_filepath_by_m (std::string& filepath, DataGenerationConfig* config);
+
+
+void set_parameters(int argc, char** argv);

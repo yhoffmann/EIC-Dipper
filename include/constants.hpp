@@ -6,7 +6,7 @@
 
 // DEFINING GLOBAL PARAMETERS //
 const double PI = M_PI;
-const double alpha_em = 1.0/137.036; //unit 1
+constexpr double alpha_em = 1.0/137.036; //unit 1
 const double e = std::sqrt(4.0*PI*alpha_em); //unit 1
 const double e_c = 2.0/3.0;
 const double e_t = 2.0/3.0;
@@ -34,7 +34,7 @@ const double fmm1ToGeV = hbarc;
 const double fm2TonB = 1.0e7;
 const double nBTofm2 = 1.0e-7;
 
-const double BG = 4.0; //GeVm2 https://physics.nist.gov/cgi-bin/cuu/Value?rp
+const double BG = 2.9; //GeVm2 https://physics.nist.gov/cgi-bin/cuu/Value?rp
 //const double BGinfm2 = BG*GeVm1Tofm*GeVm1Tofm;
 const double sigma0 = 2.0*PI*BG; //GeVm2
 
@@ -45,8 +45,11 @@ const double R_RANGE_FACTOR = 20.0;
 const double B_MAX = std::sqrt(B_RANGE_FACTOR*2.0*BG);
 const double R_MAX = R_RANGE_FACTOR/m_Q_c;
 
-const double g2mu02_demirci = 43.22;
+const double g2mu02_demirci = std::sqrt(43.22);
 const double g2mu02 = sigma0;
 
 // not exactly constant constants
-const double m = 0.1;
+inline double Nq = 1.0;
+inline double m = 0.22;
+inline double Delta = 0.001;
+inline double Q = 0.3;
