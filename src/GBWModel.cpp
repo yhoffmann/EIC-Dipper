@@ -45,7 +45,7 @@ namespace GBWModel {
         
         volatile double inverse_divisor = 1.0/(u*v+BG/2.0*(u+v));
 
-        return g2mu02 * exp(-sqr(m)*(u+v)) * inverse_divisor / (16.0*PI*PI) * ( exp( -0.25 * ( u*(sqr(y1)+sqr(y2)) + v*(sqr(x1)+sqr(x2)) + BG/2.0*(sqr(x1-y1)+sqr(x2-y2)) ) * inverse_divisor ) - 0.5 * exp( -0.25 * (sqr(x1)+sqr(x2)) * (u+v) * inverse_divisor ) - 0.5 * exp( -0.25 * (sqr(y1)+sqr(y2)) * (u+v) * inverse_divisor ) );
+        return Nq * CF * g2mu02_demirci * exp(-sqr(m)*(u+v)) * inverse_divisor / (16.0*PI*PI) * ( exp( -0.25 * ( u*(sqr(y1)+sqr(y2)) + v*(sqr(x1)+sqr(x2)) + BG/2.0*(sqr(x1-y1)+sqr(x2-y2)) ) * inverse_divisor ) - 0.5 * exp( -0.25 * (sqr(x1)+sqr(x2)) * (u+v) * inverse_divisor ) - 0.5 * exp( -0.25 * (sqr(y1)+sqr(y2)) * (u+v) * inverse_divisor ) );
     }
 
 
@@ -54,15 +54,12 @@ namespace GBWModel {
         GIntegrandParams* params = (GIntegrandParams*)(((IntegrationConfig*)userdata)->integrand_params);
 
         // integration from 0, so no umin needed
-        double umax = 20.0/sqr(m);
-
-        // integration from 0, so no vmin needed
-        double vmax = umax;
+        double umax = 20.0/m;
 
         double u = umax*xx[0];
-        double v = vmax*xx[1];
+        double v = umax*xx[1];
 
-        double jacobian = umax*vmax;
+        double jacobian = umax*umax;
 
         ff[0] = jacobian*G_integrand_function(u,v,params->x1,params->x2,params->y1,params->y2);
 
@@ -137,12 +134,12 @@ namespace GBWModel {
         double r = std::sqrt(sqr(x1)+sqr(x2));
         double rb = std::sqrt(sqr(y1)+sqr(y2));
         double arg = (r!=0.0 && rb!=0.0) ? (x1*y1+x2*y2)/(r*rb) : 0.0;
-        if (arg<-1.0) arg = -1.0;
-        if (arg>1.0) arg = 1.0;
+        if (arg<-1.0)
+            arg = -1.0;
+        if (arg>1.0)
+            arg = 1.0;
         double theta = acos(arg);
         
-        double ret = G_ip.get_interp_value_tricubic(r,rb,theta);
-
-        return ret;
+        return G_ip.get_interp_value_tricubic(r,rb,theta);
     }
 }
