@@ -15,16 +15,7 @@ namespace Incoherent {
 
     double A_integrand_function (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double z, double Delta, TransverseOrLongitudinal transverse_or_longitudinal)
     {
-        double x1 = b1+r1/2.0;
-        double x2 = b2+r2/2.0;
-        double y1 = b1-r1/2.0;
-        double y2 = b2-r2/2.0;
-        double xb1 = bb1+rb1/2.0;
-        double xb2 = bb2+rb2/2.0;
-        double yb1 = bb1-rb1/2.0;
-        double yb2 = bb2-rb2/2.0;
-
-        return 1.0/(64.0*M_PI*M_PI*M_PI*M_PI) * gsl_sf_bessel_J0( std::sqrt(sqr(b1-bb1)+sqr(b2-bb2))*Delta ) * NRPhoton::wave_function(r1,r2,Q,z,transverse_or_longitudinal) * NRPhoton::wave_function(rb1,rb2,Q,z,transverse_or_longitudinal) * SaturationModel::dsigma_d2b_sqr(x1,x2,y1,y2,xb1,xb2,yb1,yb2);
+        return 1.0/(64.0*M_PI*M_PI*M_PI*M_PI) * gsl_sf_bessel_J0( std::sqrt(sqr(b1-bb1)+sqr(b2-bb2))*Delta ) * NRPhoton::wave_function(r1,r2,Q,z,transverse_or_longitudinal) * NRPhoton::wave_function(rb1,rb2,Q,z,transverse_or_longitudinal) * SaturationModel::dsigma_d2b_sqr(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0, bb1+rb1/2.0, bb2+rb2/2.0, bb1-rb1/2.0, bb2-rb2/2.0);
     }
 
     int integrand (const int* ndim, const cubareal xx[], const int* ncomp, cubareal ff[], void* userdata)
@@ -128,38 +119,24 @@ namespace Incoherent {
 
     int integrand_cubature (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
     {
-        IntegrationConfig* integration_config = (IntegrationConfig*)userdata;
+        AIntegrandParams* A_integrand_params = (AIntegrandParams*)(((IntegrationConfig*)userdata)->integrand_params);
 
-        AIntegrandParams* A_integrand_params = (AIntegrandParams*)(integration_config->integrand_params);
+        double db1 = xx[0]*cos(xx[1]);
+        double db2 = xx[0]*sin(xx[1]);
+        double r1 = xx[2]*cos(xx[3]);
+        double r2 = xx[2]*sin(xx[3]);
 
-        double db = xx[0];
-        double phib = xx[1];
-        double r = xx[2];
-        double phir = xx[3];
-
-        double B = xx[4];
-        double phiB = xx[5];
-        double rb = xx[6];
-        double phirb = xx[7];
-
-        double db1 = db*cos(phib);
-        double db2 = db*sin(phib);
-        double r1 = r*cos(phir);
-        double r2 = r*sin(phir);
-
-        double B1 = B*cos(phiB);
-        double B2 = B*sin(phiB);
-        double rb1 = rb*cos(phirb);
-        double rb2 = rb*sin(phirb);
+        double B1 = xx[4]*cos(xx[5]);
+        double B2 = xx[4]*sin(xx[5]);
+        double rb1 = xx[6]*cos(xx[7]);
+        double rb2 = xx[6]*sin(xx[7]);
 
         double b1 = B1+db1/2.0;
         double b2 = B2+db2/2.0;
         double bb1 = B1-db1/2.0;
         double bb2 = B2-db2/2.0;
 
-        double jacobian = r*db*B*rb;
-
-        ff[0] = jacobian * Incoherent::A_integrand_function(b1,b2,r1,r2,bb1,bb2,rb1,rb2,A_integrand_params->Q,A_integrand_params->z,A_integrand_params->Delta,A_integrand_params->transverse_or_longitudinal);
+        ff[0] = xx[0]*xx[2]*xx[4]*xx[6] * Incoherent::A_integrand_function(b1,b2,r1,r2,bb1,bb2,rb1,rb2,A_integrand_params->Q,A_integrand_params->z,A_integrand_params->Delta,A_integrand_params->transverse_or_longitudinal);
 
         return 0;
     }
