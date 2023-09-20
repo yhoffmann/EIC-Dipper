@@ -10,14 +10,9 @@
 
 
 namespace Coherent {
-    double A_integrand_function (double b1, double b2, double r1, double r2, double Q, double z, double Delta, TransverseOrLongitudinal transverse_or_longitudinal)
+    double A_integrand_function (double b1, double b2, double r1, double r2, double Q, double z, double Delta)
     {
-        double x1 = b1+r1/2.0;
-        double x2 = b2+r2/2.0;
-        double y1 = b1+r1/2.0;
-        double y2 = b2+r2/2.0;
-
-        return 1.0/(8.0*PI*PI) * NRPhoton::wave_function(r1,r2,Q,z,transverse_or_longitudinal) * gsl_sf_bessel_J0( std::sqrt(sqr(b1)+sqr(b2))*Delta ) * SaturationModel::dsigma_d2b(x1,x2,y1,y2);
+        return 1.0/(8.0*PI*PI) * NRPhoton::wave_function(r1, r2, Q, z) * gsl_sf_bessel_J0( std::sqrt(sqr(b1)+sqr(b2))*Delta ) * SaturationModel::dsigma_d2b(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0);
     }
 
 
@@ -49,13 +44,13 @@ namespace Coherent {
 
         double jacobian = b*r*(bmax-bmin)*R_MAX*4.0*PI*PI;
 
-        ff[0] = jacobian * Coherent::A_integrand_function(b1,b2,r1,r2,A_integrand_params->Q,A_integrand_params->z,A_integrand_params->Delta,A_integrand_params->transverse_or_longitudinal);
+        ff[0] = jacobian * Coherent::A_integrand_function(b1, b2, r1, r2, A_integrand_params->Q, A_integrand_params->z, A_integrand_params->Delta);
 
         return 0;
     }
 
 
-    std::tuple<double,double> dsigma_dt (double Q, double Delta)
+    double dsigma_dt (double Q, double Delta)
     {
         CubaConfig c_config;
         c_config.progress_monitor = true;
@@ -68,30 +63,23 @@ namespace Coherent {
 
         i_config.integrand_params = &params;
 
-        return dsigma_dt(&c_config,&i_config);
+        return dsigma_dt(&c_config, &i_config);
     }
 
 
-    std::tuple<double,double> dsigma_dt (CubaConfig* c_config, IntegrationConfig* integration_config)
+    double dsigma_dt (CubaConfig* c_config, IntegrationConfig* integration_config)
     {
         c_config->num_dims = 4;
 
         integration_config->min = (double*)alloca(sizeof(double));
         integration_config->max = (double*)alloca(sizeof(double));
 
-        ((AIntegrandParams*)(integration_config->integrand_params))->transverse_or_longitudinal = T;
+        double ret;
 
-        double t_ret, l_ret;
+        ret = IntegrationRoutines::cuba_integrate_one_bessel(Coherent::integrand, c_config, integration_config);
+        ret = sqr(ret*GeVm1Tofm)*fm2TonB/(16.0*PI);
 
-        t_ret = IntegrationRoutines::cuba_integrate_one_bessel(Coherent::integrand,c_config,integration_config);
-        t_ret = sqr(t_ret*GeVm1Tofm)*fm2TonB/(16.0*PI);
-
-        ((AIntegrandParams*)(integration_config->integrand_params))->transverse_or_longitudinal = L;
-
-        l_ret = IntegrationRoutines::cuba_integrate_one_bessel(Coherent::integrand,c_config,integration_config);
-        l_ret = sqr(l_ret*GeVm1Tofm)*fm2TonB/(16.0*PI);
-
-        return { t_ret, l_ret };
+        return ret;
     }
 
 
@@ -99,13 +87,13 @@ namespace Coherent {
     {
         AIntegrandParams* params = ((AIntegrandParams*)(((IntegrationConfig*)userdata)->integrand_params));
 
-        ff[0] = xx[0]*xx[2]*Coherent::A_integrand_function(xx[0]*cos(xx[1]),xx[0]*sin(xx[1]),xx[2]*cos(xx[3]),xx[2]*sin(xx[3]),params->Q,params->z,params->Delta,params->transverse_or_longitudinal);
+        ff[0] = xx[0]*xx[2]*Coherent::A_integrand_function(xx[0]*cos(xx[1]), xx[0]*sin(xx[1]), xx[2]*cos(xx[3]), xx[2]*sin(xx[3]), params->Q, params->z, params->Delta);
 
         return 0;
     }
 
 
-    std::tuple<double,double> dsigma_dt_cubature (double Q, double Delta)
+    double dsigma_dt_cubature (double Q, double Delta)
     {
         CubatureConfig c_config;
         c_config.progress_monitor = true;
@@ -118,11 +106,11 @@ namespace Coherent {
 
         i_config.integrand_params = &params;
 
-        return dsigma_dt_cubature(&c_config,&i_config);
+        return dsigma_dt_cubature(&c_config, &i_config);
     }
 
 
-    std::tuple<double,double> dsigma_dt_cubature (CubatureConfig* c_config, IntegrationConfig* i_config)
+    double dsigma_dt_cubature (CubatureConfig* c_config, IntegrationConfig* i_config)
     {
         c_config->num_dims = 4;
 
@@ -138,18 +126,11 @@ namespace Coherent {
         i_config->min[3] = 0.0;
         i_config->max[3] = 2.0*M_PI;
 
-        ((AIntegrandParams*)(i_config->integrand_params))->transverse_or_longitudinal = T;
+        double ret;
 
-        double t_ret, l_ret;
+        ret = IntegrationRoutines::cubature_integrate_one_bessel(Coherent::integrand_cubature, c_config, i_config);
+        ret = sqr(ret*GeVm1Tofm)*fm2TonB/(16.0*PI);
 
-        t_ret = IntegrationRoutines::cubature_integrate_one_bessel(Coherent::integrand_cubature,c_config,i_config);
-        t_ret = sqr(t_ret*GeVm1Tofm)*fm2TonB/(16.0*PI);
-
-        ((AIntegrandParams*)(i_config->integrand_params))->transverse_or_longitudinal = L;
-
-        l_ret = IntegrationRoutines::cubature_integrate_one_bessel(Coherent::integrand_cubature,c_config,i_config);
-        l_ret = sqr(l_ret*GeVm1Tofm)*fm2TonB/(16.0*PI);
-
-        return { t_ret, l_ret };
+        return ret;
     }
 }

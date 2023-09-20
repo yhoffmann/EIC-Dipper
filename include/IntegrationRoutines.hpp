@@ -61,16 +61,8 @@ struct CubatureConfig
 };
 
 
-enum TransverseOrLongitudinal : unsigned char
-{
-    T='T', L='L'
-};
-
-
 struct AIntegrandParams
 {
-    TransverseOrLongitudinal transverse_or_longitudinal = T;
-
     double Delta = 0.001;
     double Q = 0.3;
     const double z = 0.5;

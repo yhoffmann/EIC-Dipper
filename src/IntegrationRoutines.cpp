@@ -131,7 +131,10 @@ namespace IntegrationRoutines
             total_sum += current_oscillation_value;
             partial_sum += current_oscillation_value;
 
-            if (cuba_config->progress_monitor) std::cout << A_integrand_params->Q << " " << A_integrand_params->Delta << " " << A_integrand_params->transverse_or_longitudinal << "\t" << n << "\t(" << integration_config->min[0] << "," << integration_config->max[0] << ")\t" << total_sum << "(+" << current_oscillation_value << ")" << std::endl;
+            if (cuba_config->progress_monitor)
+            {
+                std::cout << A_integrand_params->Q << " " << A_integrand_params->Delta << "\t" << n << "\t(" << integration_config->min[0] << "," << integration_config->max[0] << ")\t" << total_sum << "(+" << current_oscillation_value << ")" << std::endl;
+            }
         }
 
         return total_sum;
@@ -219,8 +222,12 @@ namespace IntegrationRoutines
             total_sum += current_oscillation_value;
             partial_sum += current_oscillation_value;
 
-            if (cubature_config->progress_monitor) std::cout << A_integrand_params->Q << " " << A_integrand_params->Delta << " " << A_integrand_params->transverse_or_longitudinal << "\t" << n << "\t(" << integration_config->min[0] << "," << integration_config->max[0] << ")\t" << total_sum << "(+" << current_oscillation_value << ")" << std::endl;
+            if (cubature_config->progress_monitor)
+            {
+                std::cout << A_integrand_params->Q << " " << A_integrand_params->Delta << "\t" << n << "\t(" << integration_config->min[0] << "," << integration_config->max[0] << ")\t" << total_sum << "(+" << current_oscillation_value << ")" << std::endl;
+            }
         }
+
         return total_sum;
     }
 }

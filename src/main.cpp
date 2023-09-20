@@ -38,16 +38,16 @@ int main (int argc, char** argv)
     //auto [t2,l2] = Coherent::dsigma_dt_cubature(0.3,0.4);
     //std::cout << t1 << " " << l1 << "\t" << t2 << " " << l2 << "\n";
 
-    std::vector<double> Q_vec = {0.05, 0.3};
+    std::vector<double> Q_vec = {0.05, std::sqrt(0.1)};
     std::vector<double> Delta_vec;
     
     uint imax = 20;
     for (uint i=0; i<imax; i++)
     {
-        Delta_vec.push_back(3.0*double(i)/double((imax-1))+0.001);
+        Delta_vec.push_back(2.5*double(i)/double((imax-1))+0.001);
     }
 
-    Observables::calculate_dsigma_dt(true,false,Q_vec,Delta_vec,"Data/dsigma_dt_m_022_.dat");
+    Observables::calculate_dsigma_dt(true,false,Q_vec,Delta_vec,"Data/dsigma_dt_m_022.dat");
 
 /*
     double x1 = std::atof(argv[1]);

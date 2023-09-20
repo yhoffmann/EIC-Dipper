@@ -20,8 +20,8 @@ namespace Observables
 
     void calculate_dsigma_dt (bool do_coherent, bool do_incoherent, std::vector<double> Q_vec, std::vector<double> Delta_vec, std::string filepath)
     {
-        double coherent_results[Q_vec.size()][Delta_vec.size()][2]{0.0};
-        double incoherent_results[Q_vec.size()][Delta_vec.size()][2]{0.0};
+        double coherent_results[Q_vec.size()][Delta_vec.size()];
+        double incoherent_results[Q_vec.size()][Delta_vec.size()];
 
         std::cout << "Integrating with different parameters..." << std::endl;
 
@@ -44,18 +44,10 @@ namespace Observables
                 A_integrand_params.Delta = Delta_vec[j];
 
                 if (do_coherent)
-                {
-                    auto [co_trans, co_longi] = Coherent::dsigma_dt_cubature(&c_config, &integration_config);
-                    coherent_results[i][j][0] = co_trans;
-                    coherent_results[i][j][1] = co_longi;
-                }
+                    coherent_results[i][j] = Coherent::dsigma_dt_cubature(&c_config, &integration_config);
 
                 if (do_incoherent)
-                {
-                    auto [inco_trans, inco_longi] = Incoherent::dsigma_dt_cubature(&c_config, &integration_config);
-                    incoherent_results[i][j][0] = inco_trans;
-                    incoherent_results[i][j][1] = inco_longi;
-                }
+                    incoherent_results[i][j] = Incoherent::dsigma_dt_cubature(&c_config, &integration_config);
             }
         }
 
@@ -65,7 +57,7 @@ namespace Observables
         if (!out_stream.is_open())
             exit(0);
 
-        out_stream << "#Q, Delta, Coher T,L, Incoher T,L; " << Q_vec.size() << " values of Q (for Gnuplot)" << std::endl;
+        out_stream << "#Q, Delta, Coher, Incoher; " << Q_vec.size() << " values of Q (for Gnuplot)" << std::endl;
         out_stream << "#1, 2,           3,4          5,6" << std::endl;
 
         for (luint i = 0; i < Q_vec.size(); i++)
@@ -73,7 +65,7 @@ namespace Observables
             out_stream << "\"Q=" << Q_vec[i] << " Coherent; " << B_RANGE_FACTOR << "," << R_RANGE_FACTOR << "\" \"Q=" << Q_vec[i] << " Incoherent; " << B_RANGE_FACTOR << "," << R_RANGE_FACTOR << std::endl;
             for (luint j = 0; j < Delta_vec.size(); j++)
             {
-                out_stream << Q_vec[i] << " " << Delta_vec[j] << " " << " " << coherent_results[i][j][0] << " " << coherent_results[i][j][1] << " " << incoherent_results[i][j][0] << " " << incoherent_results[i][j][1] << std::endl;
+                out_stream << Q_vec[i] << " " << Delta_vec[j] << " " << " " << coherent_results[i][j] << " " << incoherent_results[i][j] << std::endl;
             }
             out_stream << "\n" << std::endl; // Two line breaks for correct gnuplot reading // TODO check if this is necessary
         }

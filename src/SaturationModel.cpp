@@ -7,8 +7,6 @@
 #include "../include/utilities.hpp"
 #include "../include/GBWModel.hpp"
 
-// #include "../../../libs/EigenLib/Eigen/Eigen"
-// #include "../../../libs/EigenLib/unsupported/Eigen/MatrixFunctions"
 
 namespace SaturationModel
 {
