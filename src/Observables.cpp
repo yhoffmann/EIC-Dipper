@@ -5,6 +5,11 @@
 #include <iostream>
 #include <fstream>
 #include "../include/constants.hpp"
+#include <iomanip>
+#include "../include/GBWModel.hpp"
+#include "../include/EIEvent.hpp"
+#include <thread>
+
 
 namespace Observables
 {
@@ -62,7 +67,7 @@ namespace Observables
 
         for (luint i = 0; i < Q_vec.size(); i++)
         {
-            out_stream << "\"Q=" << Q_vec[i] << " Coherent; " << B_RANGE_FACTOR << "," << R_RANGE_FACTOR << "\" \"Q=" << Q_vec[i] << " Incoherent; " << B_RANGE_FACTOR << "," << R_RANGE_FACTOR << std::endl;
+            out_stream << "\"Q=" << Q_vec[i] << " Coh.; " << B_RANGE_FACTOR << "," << R_RANGE_FACTOR << "\" \"Q=" << Q_vec[i] << " Incoh.\"" << std::endl;
             for (luint j = 0; j < Delta_vec.size(); j++)
             {
                 out_stream << Q_vec[i] << " " << Delta_vec[j] << " " << " " << coherent_results[i][j] << " " << incoherent_results[i][j] << std::endl;
@@ -71,5 +76,94 @@ namespace Observables
         }
 
         out_stream.close();
+    }
+
+
+    void calculate_dsigma_dt_nucleus (uint atomic_num, uint num_samples_coherent, uint num_samples_incoherent, std::vector<double> Q_vec, std::vector<double> Delta_vec, std::string filepath)
+    {
+        double coherent_results[Q_vec.size()][Delta_vec.size()];
+        double incoherent_results[Q_vec.size()][Delta_vec.size()];
+
+        uint max_samples = std::max(num_samples_coherent, num_samples_coherent);
+
+        #pragma omp parallel for
+        for (uint j = 0; j < Delta_vec.size(); j++)
+        {
+            for (uint i = 0; i < Q_vec.size(); i++)
+            {
+                std::cout << Q_vec[i] << " " << Delta_vec[j] << std::endl;
+
+                Nucleus nucleus(atomic_num);
+
+                EIEvent ei_event(2, Q_vec[i], Delta_vec[j], nucleus);
+                EIEventCoherent ei_event_co(ei_event);
+                EIEventIncoherent ei_event_inco(ei_event);
+
+                double A_co_avg = 0.0;
+                double A_inco_avg = 0.0;
+
+                for (uint k=0; k<max_samples; k++)
+                {
+                    ei_event.sample();
+
+                    if (k<num_samples_coherent)
+                    {
+                        ei_event_co.sample();
+                        A_co_avg += ei_event_co.get_A();
+                    }
+                        
+                    if (k<num_samples_incoherent)
+                    {
+                        ei_event_inco.sample();
+                        A_inco_avg += ei_event_inco.get_A();
+                    }
+                }
+
+                A_co_avg = (num_samples_coherent) ? A_co_avg/(double)num_samples_coherent : 0.0;
+                A_inco_avg = (num_samples_incoherent) ? A_inco_avg/(double)num_samples_incoherent : 0.0;
+
+                coherent_results[i][j] = A_co_avg;
+                incoherent_results[i][j] = A_inco_avg;
+            }
+        }
+
+
+        for (uint j = 0; j < Delta_vec.size(); j++)
+        {
+            for (uint i = 0; i < Q_vec.size(); i++)
+            {
+                std::cout << Delta_vec[j] << " " << Q_vec[i] << " " << coherent_results[i][j] << " " << incoherent_results[i][j] << std::endl;
+            }
+        }
+    }
+
+
+    void calculate_G (unsigned int num_points, std::string filepath)
+    {
+        double results[num_points][3];
+        #pragma omp parallel for schedule(dynamic,1)
+        for (unsigned int i=0; i<num_points; i++)
+        {
+            double x = 100.0*double(i)/double(num_points-1);
+            results[i][0] = x;
+            results[i][1] = GBWModel::G(x, 0.0, 0.0, 0.0);
+            results[i][2] = GBWModel::G_by_integration(x, 0.0, 0.0, 0.0);
+            std::cout << i << std::endl;
+        }
+
+        std::ofstream out;
+        out.open(filepath);
+        if (!out.is_open())
+        {
+            std::cout << "couldnt open" << std::endl;
+            exit(0);
+        }
+
+        for (unsigned int i=0; i<num_points; i++)
+        {
+            out << std::setprecision(10) << results[i][0] << " " << results[i][1] << " " << results[i][2] << std::endl;
+        }
+
+        out.close();
     }
 }
