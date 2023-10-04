@@ -41,21 +41,19 @@ int main (int argc, char** argv)
     std::vector<double> Q_vec = {0.05, std::sqrt(0.1)};
     std::vector<double> Delta_vec;
     
-    uint imax = 20;
-    for (uint i=0; i<imax; i++)
+    uint n = 20;
+    double min = 0.0;
+    double max = 2.5;
+    double k = 8.0;
+    for (uint i=0; i<n; i++)
     {
-        Delta_vec.push_back(2.5*double(i)/double((imax-1))+0.001);
+        //double Delta = min+(max-min)*(double(i))/(double(n-1));
+        double Delta = min+(max-min)*( exp( M_LN2*double(i)/double(n-1)*k )-1.0 )/( std::pow(2.0, k)-1.0 );
+        Delta_vec.push_back(Delta);
     }
 
-    Observables::calculate_dsigma_dt(true,false,Q_vec,Delta_vec,"Data/dsigma_dt_m_022.dat");
+    Observables::calculate_dsigma_dt(true, true, Q_vec, Delta_vec, filepath_global);
 
-/*
-    double x1 = std::atof(argv[1]);
-    double x2 = std::atof(argv[2]);
-    double y1 = std::atof(argv[3]);
-    double y2 = std::atof(argv[4]);
-    (void)GBWModel::G_by_integration(x1,x2,y1,y2);
-*/
 /*
     double counter = 0.0;
     while (true) {
@@ -79,31 +77,6 @@ int main (int argc, char** argv)
         //std::this_thread::sleep_for(std::chrono::milliseconds(150));
         //counter += 0.1;
     }
-*/
-    
-/*
-    const int imax = 1000;
-    double results[imax][3];
-    #pragma omp parallel for schedule(dynamic,1)
-    for (int i=0; i<imax; i++)
-    {
-        double x = 100.0*double(i)/double(imax-1);
-        results[i][0] = x;
-        results[i][1] = GBWModel::G(x,0.0,0.0,0.0);
-        results[i][2] = GBWModel::G_by_integration(x,0.0,0.0,0.0);
-        std::cout << i << std::endl;
-    }
-
-    std::ofstream out;
-    out.open("Data/G_m_022.dat");
-    if (!out.is_open()) { std::cout << "couldnt open" << std::endl; exit(0); }
-
-    for (int i=0; i<imax; i++)
-    {
-        out << std::setprecision(10) << results[i][0] << " " << results[i][1] << " " << results[i][2] << std::endl;
-    }
-
-    out.close();
 */
     return 0;
 }
