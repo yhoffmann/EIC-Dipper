@@ -65,7 +65,6 @@ struct AIntegrandParams
 {
     double Delta = 0.001;
     double Q = 0.3;
-    const double z = 0.5;
 };
 
 
