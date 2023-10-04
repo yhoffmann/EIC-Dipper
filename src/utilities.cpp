@@ -38,7 +38,7 @@ void set_import_filepath_by_m (std::string& filepath, DataGenerationConfig* conf
                 input_accepted = true;
 
                 std::cout << "Generating new data set..." << std::endl;
-                GBWModel::G_ip.generate_data(GBWModel::G_wrapper,config,true);
+                GBWModel::G_ip.generate_data(GBWModel::G_wrapper, config, true);
                 GBWModel::G_ip.export_data(filepath);
             }
             else if (answer=="n")
@@ -66,7 +66,8 @@ void set_import_filepath_by_m (std::string& filepath, DataGenerationConfig* conf
 
             std::cin >> answer;
 
-            if (answer=="y") accepted = true;
+            if (answer=="y")
+                accepted = true;
             else exit(0);
         }
     }
@@ -79,14 +80,20 @@ void set_parameters (int argc, char** argv)
     {
         if (i+1==argc)
             return;
-        if (!strcmp(argv[i],"m"))
+        
+        if (!strcmp(argv[i], "m"))
             m = std::atof(argv[i+1]);
+        
         else if (!strcmp(argv[i], "Nq"))
             Nq = std::atof(argv[i+1]);
-        else if (!strcmp(argv[i], "Delta"))
-            Delta = std::atof(argv[i+1]);
-        else if (!strcmp(argv[i], "Q"))
-            Q = std::atof(argv[i+1]);
+        
+        else if (!strcmp(argv[i], "BG"))
+        {
+            BG = std::atof(argv[i+1]);
+            sigma0 = 2.0*M_PI*BG;
+        }
+        
+        else if (!strcmp(argv[i], "filepath"))
+            filepath_global = std::string(argv[i+1]);
     }
-    return;
 }
