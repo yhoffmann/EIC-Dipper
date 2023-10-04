@@ -40,8 +40,8 @@ namespace SaturationModel
 
     double DD_dilute (double x1, double x2, double y1, double y2, double xb1, double xb2, double yb1, double yb2)
     {
-        double G_xy = GBWModel::G(x1,x2,y1,y2);
-        double G_xbyb = GBWModel::G(xb1,xb2,yb1,yb2);
+        double G_xy = GBWModel::G(x1, x2, y1, y2);
+        double G_xbyb = GBWModel::G(xb1, xb2, yb1, yb2);
 
         return 1.0+G_xy+G_xbyb;
     }
@@ -49,7 +49,7 @@ namespace SaturationModel
 
     double dsigma_d2b(double x1, double x2, double y1, double y2)
     {
-        return -2.0*GBWModel::G(x1,x2,y1,y2);//2.0 * (1.0 - exp(GBWModel::G(x1, x2, y1, y2)));
+        return 2.0 * (1.0 - exp(GBWModel::G(x1, x2, y1, y2)));//-2.0*GBWModel::G(x1, x2, y1, y2);//
     }
 
 
