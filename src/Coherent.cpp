@@ -9,10 +9,11 @@
 #include <iostream>
 
 
-namespace Coherent {
-    double A_integrand_function (double b1, double b2, double r1, double r2, double Q, double z, double Delta)
+namespace Coherent
+{
+    double A_integrand_function (double b1, double b2, double r1, double r2, double Q, double Delta)
     {
-        return 1.0/(8.0*PI*PI) * NRPhoton::wave_function(r1, r2, Q, z) * gsl_sf_bessel_J0( std::sqrt(sqr(b1)+sqr(b2))*Delta ) * SaturationModel::dsigma_d2b(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0);
+        return 1.0/(4.0*PI) * NRPhoton::wave_function(r1, r2, Q) * gsl_sf_bessel_J0( std::sqrt(sqr(b1)+sqr(b2))*Delta ) * SaturationModel::dsigma_d2b(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0);
     }
 
 
@@ -24,13 +25,6 @@ namespace Coherent {
 
         double bmin = integration_config->min[0];
         double bmax = integration_config->max[0];
-        //double phibmin = 0.0;
-        //double phibmax = 2.0*M_PI;
-
-        //double rmin = 0.0;
-        //double rmax = R_MAX;
-        //double phirmin = 0.0;
-        //double phirmax = 2.0*M_PI;
 
         double b = bmin + (bmax-bmin)*xx[0];
         double phib = 2.0*PI*xx[1];
@@ -44,7 +38,7 @@ namespace Coherent {
 
         double jacobian = b*r*(bmax-bmin)*R_MAX*4.0*PI*PI;
 
-        ff[0] = jacobian * Coherent::A_integrand_function(b1, b2, r1, r2, A_integrand_params->Q, A_integrand_params->z, A_integrand_params->Delta);
+        ff[0] = jacobian * Coherent::A_integrand_function(b1, b2, r1, r2, A_integrand_params->Q, A_integrand_params->Delta);
 
         return 0;
     }
@@ -87,7 +81,7 @@ namespace Coherent {
     {
         AIntegrandParams* params = ((AIntegrandParams*)(((IntegrationConfig*)userdata)->integrand_params));
 
-        ff[0] = xx[0]*xx[2]*Coherent::A_integrand_function(xx[0]*cos(xx[1]), xx[0]*sin(xx[1]), xx[2]*cos(xx[3]), xx[2]*sin(xx[3]), params->Q, params->z, params->Delta);
+        ff[0] = xx[0]*xx[2]*Coherent::A_integrand_function(xx[0]*cos(xx[1]), xx[0]*sin(xx[1]), xx[2]*cos(xx[3]), xx[2]*sin(xx[3]), params->Q, params->Delta);
 
         return 0;
     }
@@ -126,9 +120,7 @@ namespace Coherent {
         i_config->min[3] = 0.0;
         i_config->max[3] = 2.0*M_PI;
 
-        double ret;
-
-        ret = IntegrationRoutines::cubature_integrate_one_bessel(Coherent::integrand_cubature, c_config, i_config);
+        double ret = IntegrationRoutines::cubature_integrate_one_bessel(Coherent::integrand_cubature, c_config, i_config);
         ret = sqr(ret*GeVm1Tofm)*fm2TonB/(16.0*PI);
 
         return ret;

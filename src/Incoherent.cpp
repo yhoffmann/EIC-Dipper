@@ -9,14 +9,14 @@
 
 namespace Incoherent
 {
-    double A_integrand_function_simple (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double z, double Delta)
+    double A_integrand_function_simple (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q,  double Delta)
     {
-        return 1.0/(16.0*M_PI*M_PI) * gsl_sf_bessel_J0( std::sqrt(sqr(b1-bb1)+sqr(b2-bb2))*Delta )/(4.0*PI*PI) * NRPhoton::wave_function( r1, r2, Q, z) * NRPhoton::wave_function(rb1, rb2, Q, z) * SaturationModel::dsigma_d2b(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0) * SaturationModel::dsigma_d2b(bb1+rb1/2.0, bb2+rb2/2.0, bb1-rb1/2.0, bb2-rb2/2.0);
+        return 1.0/(16.0*M_PI*M_PI) * gsl_sf_bessel_J0( std::sqrt(sqr(b1-bb1)+sqr(b2-bb2))*Delta )/(4.0*PI*PI) * NRPhoton::wave_function( r1, r2, Q) * NRPhoton::wave_function(rb1, rb2, Q) * SaturationModel::dsigma_d2b(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0) * SaturationModel::dsigma_d2b(bb1+rb1/2.0, bb2+rb2/2.0, bb1-rb1/2.0, bb2-rb2/2.0);
     }
 
-    double A_integrand_function (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double z, double Delta)
+    double A_integrand_function (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double Delta)
     {
-        return 1.0/(64.0*M_PI*M_PI*M_PI*M_PI) * gsl_sf_bessel_J0( std::sqrt(sqr(b1-bb1)+sqr(b2-bb2))*Delta ) * NRPhoton::wave_function(r1,r2,Q,z) * NRPhoton::wave_function(rb1,rb2,Q,z) * SaturationModel::dsigma_d2b_sqr(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0, bb1+rb1/2.0, bb2+rb2/2.0, bb1-rb1/2.0, bb2-rb2/2.0);
+        return 1.0/(16.0*PI*PI) * gsl_sf_bessel_J0( std::sqrt(sqr(b1-bb1)+sqr(b2-bb2))*Delta ) * NRPhoton::wave_function(r1, r2, Q) * NRPhoton::wave_function(rb1, rb2, Q) * SaturationModel::dsigma_d2b_sqr(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0, bb1+rb1/2.0, bb2+rb2/2.0, bb1-rb1/2.0, bb2-rb2/2.0);
     }
 
     int integrand (const int* ndim, const cubareal xx[], const int* ncomp, cubareal ff[], void* userdata)
@@ -72,7 +72,7 @@ namespace Incoherent
 
         double jacobian = r*db*B*rb*(dbmax-dbmin)*R_MAX*B_MAX*R_MAX*16.0*PI*PI*PI*PI;
 
-        ff[0] = jacobian * Incoherent::A_integrand_function(b1, b2, r1, r2, bb1, bb2, rb1, rb2, A_integrand_params->Q, A_integrand_params->z, A_integrand_params->Delta);
+        ff[0] = jacobian * Incoherent::A_integrand_function(b1, b2, r1, r2, bb1, bb2, rb1, rb2, A_integrand_params->Q, A_integrand_params->Delta);
 
         return 0;
     }
@@ -130,7 +130,7 @@ namespace Incoherent
         double bb1 = B1-db1/2.0;
         double bb2 = B2-db2/2.0;
 
-        ff[0] = xx[0]*xx[2]*xx[4]*xx[6] * Incoherent::A_integrand_function(b1, b2, r1, r2, bb1, bb2, rb1, rb2, A_integrand_params->Q, A_integrand_params->z, A_integrand_params->Delta);
+        ff[0] = xx[0]*xx[2]*xx[4]*xx[6] * Incoherent::A_integrand_function(b1, b2, r1, r2, bb1, bb2, rb1, rb2, A_integrand_params->Q,  A_integrand_params->Delta);
 
         return 0;
     }
@@ -181,9 +181,7 @@ namespace Incoherent
         i_config->min[7] = 0.0;
         i_config->max[7] = 2.0*M_PI;
 
-        double ret;
-
-        ret = IntegrationRoutines::cubature_integrate_one_bessel(Incoherent::integrand_cubature, c_config, i_config);
+        double ret = IntegrationRoutines::cubature_integrate_one_bessel(Incoherent::integrand_cubature, c_config, i_config);
         ret *= (GeVm1Tofm*GeVm1Tofm*fm2TonB)/(16.0*PI);
 
         return ret;
