@@ -8,6 +8,7 @@ libs:
 	g++ -c -Wall external/cubature/pcubature.c -o obj/pcubature.o -O3
 	g++ -c -Wall external/Interpolation3D/src/*.cpp -o obj/interpolation3d.o -O3 -fopenmp
 	g++ -c -Wall external/Interpolation3D/external/easy-progress-monitor/src/*.cpp -o obj/easy-progress-monitor.o -O3
+	g++ -c -Wall external/Nucleus/src/*.cpp -o obj/Nucleus.o -O3
 
 all:
 	make libs
