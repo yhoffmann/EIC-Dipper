@@ -11,9 +11,15 @@
 
 namespace Coherent
 {
+    double A_integrand_function_factor (double Q)
+    {
+        return 1.0/(4.0*PI) * NRPhoton::wave_function_factor(Q);
+    }
+
+
     double A_integrand_function (double b1, double b2, double r1, double r2, double Q, double Delta)
     {
-        return 1.0/(4.0*PI) * NRPhoton::wave_function(r1, r2, Q) * gsl_sf_bessel_J0( std::sqrt(sqr(b1)+sqr(b2))*Delta ) * SaturationModel::dsigma_d2b(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0);
+        return NRPhoton::wave_function(r1, r2, Q) * gsl_sf_bessel_J0( std::sqrt(sqr(b1)+sqr(b2))*Delta ) * SaturationModel::dsigma_d2b(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0);
     }
 
 
@@ -47,7 +53,7 @@ namespace Coherent
     double dsigma_dt (double Q, double Delta)
     {
         CubaConfig c_config;
-        c_config.progress_monitor = true;
+        c_config.progress_monitor = false;
 
         IntegrationConfig i_config;
         
@@ -70,7 +76,7 @@ namespace Coherent
 
         double ret;
 
-        ret = IntegrationRoutines::cuba_integrate_one_bessel(Coherent::integrand, c_config, integration_config);
+        ret = A_integrand_function_factor(((AIntegrandParams*)integration_config->integrand_params)->Q) * IntegrationRoutines::cuba_integrate_one_bessel(Coherent::integrand, c_config, integration_config);
         ret = sqr(ret*GeVm1Tofm)*fm2TonB/(16.0*PI);
 
         return ret;
@@ -120,9 +126,166 @@ namespace Coherent
         i_config->min[3] = 0.0;
         i_config->max[3] = 2.0*M_PI;
 
-        double ret = IntegrationRoutines::cubature_integrate_one_bessel(Coherent::integrand_cubature, c_config, i_config);
+        double ret = A_integrand_function_factor(((AIntegrandParams*)(i_config->integrand_params))->Q) * IntegrationRoutines::cubature_integrate_one_bessel(Coherent::integrand_cubature, c_config, i_config);
         ret = sqr(ret*GeVm1Tofm)*fm2TonB/(16.0*PI);
 
         return ret;
     }
 }
+
+
+namespace Coherent { namespace Demirci
+{
+    double Psi0 (double Delta, double m_sqr)
+    {
+        return 2.0 * atanh( Delta/std::sqrt( sqr(Delta)+4.0*m_sqr ) ) / (Delta * std::sqrt( sqr(Delta)+4.0*m_sqr ));
+    }
+
+
+    double Psi (double r, double phi, double lambda, double Delta, double m_sqr)
+    {
+        double sqrt = std::sqrt(-sqr(Delta*lambda) + 0.25*sqr(Delta) + m_sqr);
+
+        return cos(lambda*Delta*r*cos(phi)) * r * bessel_K_safe(1, r*sqrt)/sqrt;
+    }
+
+
+    double Z (double r, double phi, double lambda, double Delta, double m_sqr, double epsilon)
+    {
+        return r * bessel_K_safe(0, epsilon*r) * ( 2.0*cos(0.5*Delta*r*cos(phi))*Psi0(Delta, m_sqr) - Psi(r, phi, lambda, Delta, m_sqr));
+    }
+
+
+    double Z_integrand_function_factor (double Q, double Delta)
+    {
+        return NRPhoton::wave_function_factor(Q) / (4.0*PI) * g2mu02_demirci * Nq * CF / PI * exp(-RC_sqr*sqr(Delta)/2.0);
+    }
+
+
+    double Z_integrand_function(double r, double phi, double lambda, double Q, double Delta)
+    {
+        return  Z(r, phi, lambda, Delta, sqr(m), NRPhoton::epsilon(Q));
+    }
+
+
+    int integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
+    {
+        AIntegrandParams* params = (AIntegrandParams*)(((IntegrationConfig*)userdata)->integrand_params);
+
+        ff[0] = Z_integrand_function(xx[0], xx[1], xx[2], params->Q, params->Delta);
+
+        return 0;
+    }
+
+
+    double dsigma_dt (double Q, double Delta)
+    {
+        CubatureConfig c_config;
+        c_config.progress_monitor = false;
+        c_config.rel_err = 1.0e-14;
+        c_config.max_eval = 2e7;
+
+        IntegrationConfig i_config;
+        
+        AIntegrandParams params;
+        params.Q = Q;
+        params.Delta = Delta;
+
+        i_config.integrand_params = &params;
+
+        return dsigma_dt(&c_config, &i_config);
+    }
+
+
+    double dsigma_dt (CubatureConfig* c_config, IntegrationConfig* i_config)
+    {
+        c_config->num_dims = 3;
+        
+        i_config->min = (double*)alloca(3*sizeof(double));
+        i_config->max = (double*)alloca(3*sizeof(double));
+
+        i_config->min[0] = 0.0;
+        i_config->max[0] = 40.0;
+
+        i_config->min[1] = 0.0;
+        i_config->max[1] = 2.0*PI;
+
+        i_config->min[2] = 0.0;
+        i_config->max[2] = 0.5;
+
+        c_config->max_eval = 1e7;
+
+        AIntegrandParams* params = (AIntegrandParams*)(i_config->integrand_params);
+
+        double ret = Z_integrand_function_factor(params->Q, params->Delta) * IntegrationRoutines::cubature_integrate(Demirci::integrand, c_config, i_config);
+        ret = sqr(ret*GeVm1Tofm)*fm2TonB/(16.0*PI);
+
+        return ret;
+    }
+} }
+
+
+namespace Coherent { namespace GeometryAverage
+{
+    int integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
+    {
+        AIntegrandParams* params = ((AIntegrandParams*)(((IntegrationConfig*)userdata)->integrand_params));
+
+        ff[0] = xx[0]*xx[2]*Coherent::A_integrand_function(xx[0]*cos(xx[1])-params->b01, xx[0]*sin(xx[1])-params->b02, xx[2]*cos(xx[3]), xx[2]*sin(xx[3]), params->Q, params->Delta);
+
+        return 0;
+    }
+
+
+    std::tuple<double,double> A (double Q, double Delta, const Nucleus& nucleus)
+    {
+        CubatureConfig c_config;
+        c_config.progress_monitor = false;
+
+        IntegrationConfig i_config;
+        AIntegrandParams params;
+        
+        i_config.integrand_params = &params;
+        
+        params.Q = Q;
+        params.Delta = Delta;
+
+
+        double A_sum_real = 0.0;
+        double A_sum_imag = 0.0;
+        for (uint i=0, n=nucleus.get_atomic_num(); i<n; i++)
+        {
+            const double* pos = nucleus.get_nucleon_pos(i);
+
+            params.b01 = pos[0];
+            params.b02 = pos[1];
+
+            auto [real, imag] = A(&c_config, &i_config);
+
+            A_sum_real += real;
+            A_sum_imag += imag;
+        }
+
+        return {A_sum_real, A_sum_imag};
+    }
+
+
+    std::tuple<double,double> A (CubatureConfig* c_config, IntegrationConfig* i_config)
+    {
+        c_config->num_dims = 4;
+
+        i_config->min = (double*)alloca(4*sizeof(double));
+        i_config->max = (double*)alloca(4*sizeof(double));
+
+        i_config->min[1] = 0.0;
+        i_config->max[1] = 2.0*M_PI;
+
+        i_config->min[2] = 0.0;
+        i_config->max[2] = R_MAX;
+
+        i_config->min[3] = 0.0;
+        i_config->max[3] = 2.0*M_PI;
+
+        return {0.0, A_integrand_function_factor(((AIntegrandParams*)(i_config->integrand_params))->Q) * IntegrationRoutines::cubature_integrate_one_bessel(Coherent::GeometryAverage::integrand, c_config, i_config)};
+    }
+} }

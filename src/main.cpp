@@ -11,13 +11,14 @@
 #include "../external/Interpolation3D/include/Interpolator3D.hpp"
 #include "../external/Interpolation3D/external/easy-progress-monitor/include/ProgressMonitor.hpp"
 #include "../include/Observables.hpp"
+#include "../include/Coherent.hpp"
 
 
 int main (int argc, char** argv)
 {
     set_parameters(argc, argv);
 
-    std::string filepath = "InterpolatorData/G";
+    std::string filepath = "InterpolatorData/G_BG_m_022.dat";
     DataGenerationConfig config;
     config.n_x = 300;
     config.n_y = 300;
@@ -27,16 +28,15 @@ int main (int argc, char** argv)
     config.y_max = 8.0/m;
     config.z_max = M_PI;
 
-    set_import_filepath_by_m(filepath, &config);
+    //set_import_filepath_by_m(filepath, &config);
 
     //GBWModel::G_ip.generate_data(GBWModel::G_wrapper, &config, true);
     //GBWModel::G_ip.export_data(filepath);
 
     GBWModel::G_ip.import_data(filepath);
 
-    //auto [t1,l1] = Coherent::dsigma_dt(0.3,0.4);
-    //auto [t2,l2] = Coherent::dsigma_dt_cubature(0.3,0.4);
-    //std::cout << t1 << " " << l1 << "\t" << t2 << " " << l2 << "\n";
+    //std::cout << Coherent::Demirci::dsigma_dt(std::sqrt(0.1), 0.001) << " " << Coherent::dsigma_dt_cubature(std::sqrt(0.1), 0.001) << std::endl;
+
 
     std::vector<double> Q_vec = {0.05, std::sqrt(0.1)};
     std::vector<double> Delta_vec;
@@ -51,8 +51,8 @@ int main (int argc, char** argv)
         double Delta = min+(max-min)*( exp( M_LN2*double(i)/double(n-1)*k )-1.0 )/( std::pow(2.0, k)-1.0 );
         Delta_vec.push_back(Delta);
     }
-
-    Observables::calculate_dsigma_dt(true, true, Q_vec, Delta_vec, filepath_global);
+    
+    //Observables::calculate_dsigma_dt(true, false, Q_vec, Delta_vec, filepath_global);
 
 /*
     double counter = 0.0;

@@ -8,8 +8,17 @@
 #include "../include/IntegrationRoutines.hpp"
 #include <stdlib.h>
 
-double bessel_K_safe (int n, double x) {
-    if (x==0) {x = 1.0e-20;}
+
+double sqr (double x)
+{
+    return x*x;
+}
+
+
+double bessel_K_safe (int n, double x)
+{
+    if (x==0)
+        x = 1.0e-20;
     return gsl_sf_bessel_Kn(n,x);
 }
 
@@ -83,17 +92,37 @@ void set_parameters (int argc, char** argv)
         
         if (!strcmp(argv[i], "m"))
             m = std::atof(argv[i+1]);
-        
         else if (!strcmp(argv[i], "Nq"))
-            Nq = std::atof(argv[i+1]);
-        
-        else if (!strcmp(argv[i], "BG"))
         {
-            BG = std::atof(argv[i+1]);
-            sigma0 = 2.0*M_PI*BG;
+            Nq = std::atof(argv[i+1]);
+            RC_sqr = rH_sqr + (Nq-1.0)/Nq*R_sqr;
         }
-        
         else if (!strcmp(argv[i], "filepath"))
             filepath_global = std::string(argv[i+1]);
+        else if (!strcmp(argv[i], "A"))
+            A = std::atoi(argv[i+1]);
     }
+}
+
+
+void create_info_file (std::string filepath, uint seed)
+{
+    filepath += "Info_" + std::to_string(seed) + ".dat";
+
+    std::ofstream out;
+    out.open(filepath);
+    if (!out.is_open())
+    {
+        std::cerr << "Could not open given file. Aborting" << std::endl;
+        exit(648001);
+    }
+
+    out << "Nq=" << Nq << std::endl;
+    out << "m=" << m << std::endl;
+    out << "rH_sqr=" << rH_sqr << std::endl;
+    out << "R_sqr=" << R_sqr << std::endl;
+    out << "RC_sqr=" << RC_sqr << std::endl;
+    out << "A=" << A << std::endl;
+
+    out.close();
 }

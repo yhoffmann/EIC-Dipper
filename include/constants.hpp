@@ -34,9 +34,19 @@ const double fmm1ToGeV = hbarc;
 const double fm2TonB = 1.0e7;
 const double nBTofm2 = 1.0e-7;
 
+// not exactly constant constants
+inline double Nq = 1.0;
+inline double m = 0.22;
+
+inline double rH_sqr = 0.7;
+inline double R_sqr = 3.3;
+
+inline double RC_sqr = rH_sqr + (Nq-1)/Nq*R_sqr;
+
 inline double BG = 4.0; //GeVm2 https://physics.nist.gov/cgi-bin/cuu/Value?rp
-//const double BGinfm2 = BG*GeVm1Tofm*GeVm1Tofm;
 inline double sigma0 = 2.0*PI*BG; //GeVm2
+
+inline uint A = 0;
 
 // Integration ranges
 const double B_RANGE_FACTOR = 15.0;
@@ -47,7 +57,3 @@ const double R_MAX = R_RANGE_FACTOR/m_Q_c;
 
 const double g2mu02_demirci = std::sqrt(43.22);
 const double g2mu02 = sigma0;
-
-// not exactly constant constants
-inline double Nq = 1.0;
-inline double m = 0.22;

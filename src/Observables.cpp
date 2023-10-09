@@ -7,8 +7,8 @@
 #include "../include/constants.hpp"
 #include <iomanip>
 #include "../include/GBWModel.hpp"
-#include "../include/EIEvent.hpp"
 #include <thread>
+#include <unistd.h>
 
 
 namespace Observables
@@ -63,11 +63,11 @@ namespace Observables
             exit(0);
 
         out_stream << "#Q, Delta, Coher, Incoher; " << Q_vec.size() << " values of Q (for Gnuplot)" << std::endl;
-        out_stream << "#1, 2,           3,4          5,6" << std::endl;
+        out_stream << "#1, 2,           3,4" << std::endl;
 
         for (luint i = 0; i < Q_vec.size(); i++)
         {
-            out_stream << "\"Q=" << Q_vec[i] << " Coh.; " << B_RANGE_FACTOR << "," << R_RANGE_FACTOR << "\" \"Q=" << Q_vec[i] << " Incoh.\"" << std::endl;
+            out_stream << "\"Q=" << Q_vec[i] << " Coh.\"" << " " << "\"Q=" << Q_vec[i] << " Incoh.\"" << std::endl;
             for (luint j = 0; j < Delta_vec.size(); j++)
             {
                 out_stream << Q_vec[i] << " " << Delta_vec[j] << " " << " " << coherent_results[i][j] << " " << incoherent_results[i][j] << std::endl;
@@ -79,51 +79,39 @@ namespace Observables
     }
 
 
-    void calculate_dsigma_dt_nucleus (uint atomic_num, uint num_samples_coherent, uint num_samples_incoherent, std::vector<double> Q_vec, std::vector<double> Delta_vec, std::string filepath)
+    void calculate_dsigma_dt_nucleus (uint event_id, uint atomic_num, std::vector<double> Q_vec, std::vector<double> Delta_vec, std::string filepath)
     {
-        double coherent_results[Q_vec.size()][Delta_vec.size()];
+        double coherent_results_real[Q_vec.size()][Delta_vec.size()];
+        double coherent_results_imag[Q_vec.size()][Delta_vec.size()];
         double incoherent_results[Q_vec.size()][Delta_vec.size()];
 
-        uint max_samples = std::max(num_samples_coherent, num_samples_coherent);
+        if (event_id != 0)
+        {
+            std::thread::id thread_id_temp = std::this_thread::get_id();
+            std::hash<std::thread::id> hash;
+            uint thread_id = hash(thread_id_temp);
+
+            event_id = thread_id+getpid();
+        }
+
+        std::mt19937 rng(event_id);
+
+        Nucleus nucleus(rng, atomic_num);
 
         #pragma omp parallel for
         for (uint j = 0; j < Delta_vec.size(); j++)
         {
             for (uint i = 0; i < Q_vec.size(); i++)
             {
-                std::cout << Q_vec[i] << " " << Delta_vec[j] << std::endl;
+                double Q = Q_vec[i];
+                double Delta = Delta_vec[j];
 
-                Nucleus nucleus(atomic_num);
+                auto [coh_real, coh_imag] = Coherent::GeometryAverage::A(Q, Delta, nucleus);
 
-                EIEvent ei_event(2, Q_vec[i], Delta_vec[j], nucleus);
-                EIEventCoherent ei_event_co(ei_event);
-                EIEventIncoherent ei_event_inco(ei_event);
+                coherent_results_real[i][j] = coh_real;
+                coherent_results_imag[i][j] = coh_imag;
 
-                double A_co_avg = 0.0;
-                double A_inco_avg = 0.0;
-
-                for (uint k=0; k<max_samples; k++)
-                {
-                    ei_event.sample();
-
-                    if (k<num_samples_coherent)
-                    {
-                        ei_event_co.sample();
-                        A_co_avg += ei_event_co.get_A();
-                    }
-                        
-                    if (k<num_samples_incoherent)
-                    {
-                        ei_event_inco.sample();
-                        A_inco_avg += ei_event_inco.get_A();
-                    }
-                }
-
-                A_co_avg = (num_samples_coherent) ? A_co_avg/(double)num_samples_coherent : 0.0;
-                A_inco_avg = (num_samples_incoherent) ? A_inco_avg/(double)num_samples_incoherent : 0.0;
-
-                coherent_results[i][j] = A_co_avg;
-                incoherent_results[i][j] = A_inco_avg;
+                incoherent_results[i][j] = Incoherent::GeometryAverage::A(Q, Delta, nucleus);
             }
         }
 
@@ -132,7 +120,7 @@ namespace Observables
         {
             for (uint i = 0; i < Q_vec.size(); i++)
             {
-                std::cout << Delta_vec[j] << " " << Q_vec[i] << " " << coherent_results[i][j] << " " << incoherent_results[i][j] << std::endl;
+                std::cout << Delta_vec[j] << " " << Q_vec[i] << " " << coherent_results_real[i][j] << " " << coherent_results_imag[i][j] << " " << incoherent_results[i][j] << std::endl;
             }
         }
     }

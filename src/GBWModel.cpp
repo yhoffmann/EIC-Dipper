@@ -36,7 +36,7 @@ namespace GBWModel
 
     double G_mod (double x1, double x2, double y1, double y2)
     {
-        return -0.25 * exp( -(sqr(x1)+sqr(x2))/(2*BG) ) * exp( -(sqr(y1)+sqr(y2))/(2*BG) ) * ( sqr(x1-y1) + sqr(x2-y2) ) * Kmod(x1,x2,y1,y2);
+        return -0.25 * exp( -(sqr(x1)+sqr(x2))/(2.0*BG) ) * exp( -(sqr(y1)+sqr(y2))/(2.0*BG) ) * ( sqr(x1-y1) + sqr(x2-y2) ) * Kmod(x1,x2,y1,y2);
     }
 
 
@@ -47,7 +47,7 @@ namespace GBWModel
         
         volatile double inverse_divisor = 1.0/(u*v+BG/2.0*(u+v));
 
-        return Nq * CF * g2mu02_demirci * exp(-sqr(m)*(u+v)) * inverse_divisor / (16.0*PI*PI) * ( exp( -0.25 * ( u*(sqr(y1)+sqr(y2)) + v*(sqr(x1)+sqr(x2)) + BG/2.0*(sqr(x1-y1)+sqr(x2-y2)) ) * inverse_divisor ) - 0.5 * exp( -0.25 * (sqr(x1)+sqr(x2)) * (u+v) * inverse_divisor ) - 0.5 * exp( -0.25 * (sqr(y1)+sqr(y2)) * (u+v) * inverse_divisor ) );
+        return /*missing factor is in G()*/exp(-sqr(m)*(u+v)) * inverse_divisor * ( exp( -0.25 * ( u*(sqr(y1)+sqr(y2)) + v*(sqr(x1)+sqr(x2)) + BG/2.0*(sqr(x1-y1)+sqr(x2-y2)) ) * inverse_divisor ) - 0.5 * exp( -0.25 * (sqr(x1)+sqr(x2)) * (u+v) * inverse_divisor ) - 0.5 * exp( -0.25 * (sqr(y1)+sqr(y2)) * (u+v) * inverse_divisor ) );
     }
 
 
@@ -108,9 +108,9 @@ namespace GBWModel
     }
 
 
-    double G_wrapper (double r, double rb, double theta)
+    double G_wrapper (double r, double rb, double phi)
     {
-        return G_by_integration(r, 0.0, rb*cos(theta), rb*sin(theta));
+        return G_by_integration(r, 0.0, rb*cos(phi), rb*sin(phi));
     }
 
 
@@ -123,6 +123,6 @@ namespace GBWModel
         double rb = std::sqrt(sqr(y1)+sqr(y2));
         double arg = (r==0.0 || rb==0.0) ? 0.0 : (x1*y1+x2*y2)/(r*rb);
 
-        return G_ip.get_interp_value_bicubic_unilinear(r, rb, acos((float)arg));
+        return Nq * CF * g2mu02  / (16.0*PI*PI) * G_ip.get_interp_value_bicubic_unilinear(r, rb, acos((float)arg));
     }
 }

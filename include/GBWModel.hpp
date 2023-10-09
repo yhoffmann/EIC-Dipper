@@ -25,7 +25,7 @@ namespace GBWModel
 
     double G_by_integration(double x1, double x2, double y1, double y2);
 
-    double G_wrapper(double r, double rb, double theta);
+    double G_wrapper(double r, double rb, double phi);
 
     double G(double x1, double x2, double y1, double y2);
 }

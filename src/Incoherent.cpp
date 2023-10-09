@@ -5,18 +5,20 @@
 #include "../include/constants.hpp"
 #include "../include/SaturationModel.hpp"
 #include "../include/utilities.hpp"
+#include "../external/Nucleus/include/Nucleus.hpp"
 
 
 namespace Incoherent
 {
-    double A_integrand_function_simple (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q,  double Delta)
+    double A_integrand_function_factor (double Q)
     {
-        return 1.0/(16.0*M_PI*M_PI) * gsl_sf_bessel_J0( std::sqrt(sqr(b1-bb1)+sqr(b2-bb2))*Delta )/(4.0*PI*PI) * NRPhoton::wave_function( r1, r2, Q) * NRPhoton::wave_function(rb1, rb2, Q) * SaturationModel::dsigma_d2b(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0) * SaturationModel::dsigma_d2b(bb1+rb1/2.0, bb2+rb2/2.0, bb1-rb1/2.0, bb2-rb2/2.0);
+        return sqr(NRPhoton::wave_function_factor(Q)) / (16.0*PI*PI);
     }
+
 
     double A_integrand_function (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double Delta)
     {
-        return 1.0/(16.0*PI*PI) * gsl_sf_bessel_J0( std::sqrt(sqr(b1-bb1)+sqr(b2-bb2))*Delta ) * NRPhoton::wave_function(r1, r2, Q) * NRPhoton::wave_function(rb1, rb2, Q) * SaturationModel::dsigma_d2b_sqr(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0, bb1+rb1/2.0, bb2+rb2/2.0, bb1-rb1/2.0, bb2-rb2/2.0);
+        return gsl_sf_bessel_J0( std::sqrt(sqr(b1-bb1)+sqr(b2-bb2))*Delta ) * NRPhoton::wave_function(r1, r2, Q) * NRPhoton::wave_function(rb1, rb2, Q) * ( SaturationModel::dsigma_d2b_sqr(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0, bb1+rb1/2.0, bb2+rb2/2.0, bb1-rb1/2.0, bb2-rb2/2.0) - SaturationModel::dsigma_d2b(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0)*SaturationModel::dsigma_d2b(bb1+rb1/2.0, bb2+rb2/2.0, bb1-rb1/2.0, bb2-rb2/2.0) );
     }
 
     int integrand (const int* ndim, const cubareal xx[], const int* ncomp, cubareal ff[], void* userdata)
@@ -104,7 +106,7 @@ namespace Incoherent
 
         double ret;
 
-        ret = IntegrationRoutines::cuba_integrate_one_bessel(Incoherent::integrand, c_config, integration_config);
+        ret = A_integrand_function_factor(((AIntegrandParams*)(integration_config->integrand_params))->Q) * IntegrationRoutines::cuba_integrate_one_bessel(Incoherent::integrand, c_config, integration_config);
         ret *= (GeVm1Tofm*GeVm1Tofm*fm2TonB)/(16.0*PI);
 
         return ret;
@@ -153,7 +155,7 @@ namespace Incoherent
     }
 
 
-    double dsigma_dt_cubature (CubatureConfig* c_config, IntegrationConfig* i_config) // TODO include coherent here, this only calculates incoherent right now
+    double dsigma_dt_cubature (CubatureConfig* c_config, IntegrationConfig* i_config)
     {
         c_config->num_dims = 8;
 
@@ -181,9 +183,98 @@ namespace Incoherent
         i_config->min[7] = 0.0;
         i_config->max[7] = 2.0*M_PI;
 
-        double ret = IntegrationRoutines::cubature_integrate_one_bessel(Incoherent::integrand_cubature, c_config, i_config);
+        double ret = A_integrand_function_factor(((AIntegrandParams*)(i_config->integrand_params))->Q) * IntegrationRoutines::cubature_integrate_one_bessel(Incoherent::integrand_cubature, c_config, i_config);
         ret *= (GeVm1Tofm*GeVm1Tofm*fm2TonB)/(16.0*PI);
 
         return ret;
     }
 }
+
+
+namespace Coherent { namespace GeometryAverage
+{
+    int integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
+    {
+        AIntegrandParams* p = (AIntegrandParams*)(((IntegrationConfig*)userdata)->integrand_params);
+
+        double db1 = xx[0]*cos(xx[1]);
+        double db2 = xx[0]*sin(xx[1]);
+        double r1 = xx[2]*cos(xx[3]);
+        double r2 = xx[2]*sin(xx[3]);
+
+        double B1 = xx[4]*cos(xx[5]);
+        double B2 = xx[4]*sin(xx[5]);
+        double rb1 = xx[6]*cos(xx[7]);
+        double rb2 = xx[6]*sin(xx[7]);
+
+        double b1 = B1+db1/2.0;
+        double b2 = B2+db2/2.0;
+        double bb1 = B1-db1/2.0;
+        double bb2 = B2-db2/2.0;
+
+        ff[0] = xx[0]*xx[2]*xx[4]*xx[6] * Incoherent::A_integrand_function(b1-p->b01, b2-p->b02, r1, r2, bb1-p->b01, bb2-p->b02, rb1, rb2, p->Q,  p->Delta);
+
+        return 0;
+    }
+
+
+    double A (double Q, double Delta, const Nucleus& nucleus)
+    {
+        CubatureConfig c_config;
+        c_config.progress_monitor = false;
+
+        IntegrationConfig i_config;
+        AIntegrandParams params;
+        
+        i_config.integrand_params = &params;
+        
+        params.Q = Q;
+        params.Delta = Delta;
+
+
+        double A_sum = 0.0;
+        for (uint i=0, n=nucleus.get_atomic_num(); i<n; i++)
+        {
+            const double* pos = nucleus.get_nucleon_pos(i);
+
+            params.b01 = pos[0];
+            params.b02 = pos[1];
+
+            A_sum += A(&c_config, &i_config);
+        }
+
+        return A_sum;
+    }
+
+
+    double A (CubatureConfig* c_config, IntegrationConfig* i_config)
+    {
+        c_config->num_dims = 8;
+
+        i_config->min = (double*)alloca(8*sizeof(double));
+        i_config->max = (double*)alloca(8*sizeof(double));
+
+        i_config->min[1] = 0.0;
+        i_config->max[1] = 2.0*M_PI;
+
+        i_config->min[2] = 0.0;
+        i_config->max[2] = R_MAX;
+
+        i_config->min[3] = 0.0;
+        i_config->max[3] = 2.0*M_PI;
+
+        i_config->min[4] = 0.0;
+        i_config->max[4] = B_MAX;
+
+        i_config->min[5] = 0.0;
+        i_config->max[5] = 2.0*M_PI;
+
+        i_config->min[6] = 0.0;
+        i_config->max[6] = R_MAX;
+
+        i_config->min[7] = 0.0;
+        i_config->max[7] = 2.0*M_PI;
+
+        return Incoherent::A_integrand_function_factor(((AIntegrandParams*)(i_config->integrand_params))->Q) * IntegrationRoutines::cubature_integrate_one_bessel(Incoherent::GeometryAverage::integrand, c_config, i_config);
+    }
+} }

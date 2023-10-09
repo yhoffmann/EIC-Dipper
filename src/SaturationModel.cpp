@@ -49,7 +49,7 @@ namespace SaturationModel
 
     double dsigma_d2b(double x1, double x2, double y1, double y2)
     {
-        return 2.0 * (1.0 - exp(GBWModel::G(x1, x2, y1, y2)));//-2.0*GBWModel::G(x1, x2, y1, y2);//
+        return -2.0*GBWModel::G(x1, x2, y1, y2);//2.0 * (1.0 - exp(GBWModel::G(x1, x2, y1, y2)));//
     }
 
 

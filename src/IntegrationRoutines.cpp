@@ -212,12 +212,12 @@ namespace IntegrationRoutines
             if (n!=0)
             {
                 integration_config->min[0] = integration_config->max[0];
-                integration_config->max[0] = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(n+1)/A_integrand_params->Delta : (n+1)*B_MAX/2.0;
+                integration_config->max[0] = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(n+1)/A_integrand_params->Delta : (n+1)*B_MAX/4.0;
             }
             else
             {
                 integration_config->min[0] = 0.0;
-                integration_config->max[0] = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(1)/A_integrand_params->Delta : B_MAX/2.0;
+                integration_config->max[0] = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(1)/A_integrand_params->Delta : B_MAX/4.0;
             }
 
             current_oscillation_value = cubature_integrate(integrand, cubature_config, integration_config);
