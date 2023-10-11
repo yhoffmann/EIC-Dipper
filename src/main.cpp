@@ -12,6 +12,7 @@
 #include "../external/Interpolation3D/external/easy-progress-monitor/include/ProgressMonitor.hpp"
 #include "../include/Observables.hpp"
 #include "../include/Coherent.hpp"
+#include "../include/SaturationModel.hpp"
 
 
 int main (int argc, char** argv)
@@ -52,6 +53,14 @@ int main (int argc, char** argv)
         Delta_vec.push_back(Delta);
     }
     
+    std::mt19937 rng(1234);
+    Nucleus nucleus(rng, 16);
+
+    for (uint i=0, imax=1e8; i<imax; i++)
+    {
+        (void)SaturationModel::GeometryAverage::dsigma_d2b(1.0, 0.1, 0.2, 0.3, &nucleus);
+    }
+
     //Observables::calculate_dsigma_dt(true, false, Q_vec, Delta_vec, filepath_global);
 
 /*

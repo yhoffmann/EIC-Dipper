@@ -227,11 +227,17 @@ namespace Coherent { namespace Demirci
 
 namespace Coherent { namespace GeometryAverage
 {
+    double A_integrand_function (double b1, double b2, double r1, double r2, double Q, double Delta, const Nucleus* nucleus)
+    {
+        return NRPhoton::wave_function(r1, r2, Q) * gsl_sf_bessel_J0( std::sqrt(sqr(b1)+sqr(b2))*Delta ) * SaturationModel::GeometryAverage::dsigma_d2b(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0, nucleus);
+    }
+
+
     int integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
     {
         AIntegrandParams* params = ((AIntegrandParams*)(((IntegrationConfig*)userdata)->integrand_params));
 
-        ff[0] = xx[0]*xx[2]*Coherent::A_integrand_function(xx[0]*cos(xx[1])-params->b01, xx[0]*sin(xx[1])-params->b02, xx[2]*cos(xx[3]), xx[2]*sin(xx[3]), params->Q, params->Delta);
+        ff[0] = xx[0]*xx[2]*Coherent::GeometryAverage::A_integrand_function(xx[0]*cos(xx[1])-params->b01, xx[0]*sin(xx[1])-params->b02, xx[2]*cos(xx[3]), xx[2]*sin(xx[3]), params->Q, params->Delta, params->nucleus);
 
         return 0;
     }
@@ -249,24 +255,9 @@ namespace Coherent { namespace GeometryAverage
         
         params.Q = Q;
         params.Delta = Delta;
+        params.nucleus = &nucleus;
 
-
-        double A_sum_real = 0.0;
-        double A_sum_imag = 0.0;
-        for (uint i=0, n=nucleus.get_atomic_num(); i<n; i++)
-        {
-            const double* pos = nucleus.get_nucleon_pos(i);
-
-            params.b01 = pos[0];
-            params.b02 = pos[1];
-
-            auto [real, imag] = A(&c_config, &i_config);
-
-            A_sum_real += real;
-            A_sum_imag += imag;
-        }
-
-        return {A_sum_real, A_sum_imag};
+        return A(&c_config, &i_config);
     }
 
 

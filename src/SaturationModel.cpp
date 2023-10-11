@@ -61,6 +61,30 @@ namespace SaturationModel
         return 4.0 * (1.0 - D(G_xy) - D(G_xbyb) + DD(x1, x2, y1, y2, xb1, xb2, yb1, yb2));
     }
 
+
+    namespace GeometryAverage
+    {
+        double dsigma_d2b (double x1, double x2, double y1, double y2, const Nucleus* nucleus)
+        {
+            double G_sum = 0.0;
+            for (uint i=0, n=nucleus->get_atomic_num(); i<n; i++)
+            {
+                const double* B0 = nucleus->get_nucleon_pos(i);
+
+                G_sum += GBWModel::G(x1-B0[0], x2-B0[0], y1-B0[1], y2-B0[1]);
+            }
+
+            return 2.0 * ( 1.0-exp(G_sum) );//-2.0*G_sum;//
+        }
+
+
+        double dsigma_d2b_sqr (double x1, double x2, double y1, double y2, double xb1, double xb2, double yb1, double yb2, const Nucleus* nucleus)
+        {
+            return 0.0;
+        }
+    }
+
+
     namespace DDCorrelationMatrixElements
     {
         using namespace GBWModel;

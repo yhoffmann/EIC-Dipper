@@ -191,7 +191,7 @@ namespace Incoherent
 }
 
 
-namespace Coherent { namespace GeometryAverage
+namespace Incoherent { namespace GeometryAverage
 {
     int integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
     {
@@ -231,19 +231,7 @@ namespace Coherent { namespace GeometryAverage
         params.Q = Q;
         params.Delta = Delta;
 
-
-        double A_sum = 0.0;
-        for (uint i=0, n=nucleus.get_atomic_num(); i<n; i++)
-        {
-            const double* pos = nucleus.get_nucleon_pos(i);
-
-            params.b01 = pos[0];
-            params.b02 = pos[1];
-
-            A_sum += A(&c_config, &i_config);
-        }
-
-        return A_sum;
+        return 0.0;
     }
 
 
