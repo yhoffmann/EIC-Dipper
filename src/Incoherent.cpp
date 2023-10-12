@@ -231,7 +231,7 @@ namespace Incoherent { namespace GeometryAverage
         params.Q = Q;
         params.Delta = Delta;
 
-        return 0.0;
+        return A(&c_config, &i_config);
     }
 
 

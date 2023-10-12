@@ -56,11 +56,16 @@ int main (int argc, char** argv)
     std::mt19937 rng(1234);
     Nucleus nucleus(rng, 16);
 
+    for (uint i=0, imax=1e2; i<imax; i++)
+    {
+        
+    }
+/*
     for (uint i=0, imax=1e8; i<imax; i++)
     {
         (void)SaturationModel::GeometryAverage::dsigma_d2b(1.0, 0.1, 0.2, 0.3, &nucleus);
     }
-
+*/
     //Observables::calculate_dsigma_dt(true, false, Q_vec, Delta_vec, filepath_global);
 
 /*
