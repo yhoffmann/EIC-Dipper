@@ -19,7 +19,7 @@ int main (int argc, char** argv)
 {
     set_parameters(argc, argv);
 
-    std::string filepath = "InterpolatorData/G_BG_m_022.dat";
+    std::string interpolator_filepath = "";
     DataGenerationConfig config;
     config.n_x = 300;
     config.n_y = 300;
@@ -29,12 +29,12 @@ int main (int argc, char** argv)
     config.y_max = 8.0/m;
     config.z_max = M_PI;
 
-    //set_import_filepath_by_m(filepath, &config);
+    set_import_filepath_by_m(interpolator_filepath, &config);
 
     //GBWModel::G_ip.generate_data(GBWModel::G_wrapper, &config, true);
     //GBWModel::G_ip.export_data(filepath);
 
-    GBWModel::G_ip.import_data(filepath);
+    GBWModel::G_ip.import_data(interpolator_filepath);
 
     //std::cout << Coherent::Demirci::dsigma_dt(std::sqrt(0.1), 0.001) << " " << Coherent::dsigma_dt_cubature(std::sqrt(0.1), 0.001) << std::endl;
 
@@ -54,19 +54,9 @@ int main (int argc, char** argv)
     }
     
     std::mt19937 rng(1234);
-    Nucleus nucleus(rng, 16);
+    Nucleus nucleus(16, rng);
 
-    for (uint i=0, imax=1e2; i<imax; i++)
-    {
-        
-    }
-/*
-    for (uint i=0, imax=1e8; i<imax; i++)
-    {
-        (void)SaturationModel::GeometryAverage::dsigma_d2b(1.0, 0.1, 0.2, 0.3, &nucleus);
-    }
-*/
-    //Observables::calculate_dsigma_dt(true, false, Q_vec, Delta_vec, filepath_global);
+    Observables::calculate_dsigma_dt(true, false, Q_vec, Delta_vec);
 
 /*
     double counter = 0.0;

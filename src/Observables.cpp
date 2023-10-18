@@ -1,19 +1,20 @@
-#include "../include/Observables.hpp"
-#include "../include/IntegrationRoutines.hpp"
-#include "../include/Coherent.hpp"
-#include "../include/Incoherent.hpp"
 #include <iostream>
 #include <fstream>
-#include "../include/constants.hpp"
 #include <iomanip>
-#include "../include/GBWModel.hpp"
 #include <thread>
 #include <unistd.h>
+#include "../include/IntegrationRoutines.hpp"
+#include "../include/Observables.hpp"
+#include "../include/Coherent.hpp"
+#include "../include/Incoherent.hpp"
+#include "../include/constants.hpp"
+#include "../include/GBWModel.hpp"
+#include "../external/Nucleus/include/HotspotNucleus.hpp"
 
 
 namespace Observables
 {
-    void calculate_dsigma_dt (bool do_coherent, bool do_incoherent, std::string output_file)
+    void calculate_dsigma_dt (bool do_coherent, bool do_incoherent, std::string output_file = "")
     {
         std::vector<double> default_Q_vec = {0.05, 0.3};
         std::vector<double> default_Delta_vec = {0.001, 0.002, 0.005, 0.007, 0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.13, 0.17, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.7, 1.8, 1.9, 2.0, 2.3, 2.7, 3.0, 3.3, 3.7, 4.0};
@@ -79,24 +80,24 @@ namespace Observables
     }
 
 
-    void calculate_dsigma_dt_nucleus (uint event_id, uint atomic_num, std::vector<double> Q_vec, std::vector<double> Delta_vec, std::string filepath)
+    void calculate_dsigma_dt_nucleus (uint seed, uint atomic_num, std::vector<double> Q_vec, std::vector<double> Delta_vec, std::string filepath)
     {
         double coherent_results_real[Q_vec.size()][Delta_vec.size()];
         double coherent_results_imag[Q_vec.size()][Delta_vec.size()];
         double incoherent_results[Q_vec.size()][Delta_vec.size()];
 
-        if (event_id != 0)
+        if (seed != 0)
         {
             std::thread::id thread_id_temp = std::this_thread::get_id();
             std::hash<std::thread::id> hash;
             uint thread_id = hash(thread_id_temp);
 
-            event_id = thread_id+getpid();
+            seed = thread_id+getpid();
         }
 
-        std::mt19937 rng(event_id);
+        std::mt19937 rng(seed);
 
-        Nucleus nucleus(rng, atomic_num);
+        HotspotNucleus nucleus(atomic_num, 1, rng);
 
         #pragma omp parallel for
         for (uint j = 0; j < Delta_vec.size(); j++)
@@ -115,14 +116,28 @@ namespace Observables
             }
         }
 
+        if (filepath == std::string(""))
+            filepath = "Data/" + std::to_string(seed);
 
+        std::ofstream out;
+        out.open(filepath+"_Amplitude");
+        if (!out.is_open())
+            exit(648002);
+
+        out << "#Delta,   Q,        A Co real,Co imag,  A2 Inco\n";
+        
         for (uint j = 0; j < Delta_vec.size(); j++)
         {
             for (uint i = 0; i < Q_vec.size(); i++)
             {
-                std::cout << Delta_vec[j] << " " << Q_vec[i] << " " << coherent_results_real[i][j] << " " << coherent_results_imag[i][j] << " " << incoherent_results[i][j] << std::endl;
+                out << std::setprecision(7) << Delta_vec[j] << " " << Q_vec[i] << " " << coherent_results_real[i][j] << " " << coherent_results_imag[i][j] << " " << incoherent_results[i][j] << std::endl;
             }
+            out << std::endl;
         }
+
+        out.close();
+
+        create_info_file(filepath+"_Info");
     }
 
 

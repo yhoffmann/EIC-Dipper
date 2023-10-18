@@ -4,7 +4,7 @@
 #include <cuba.h>
 #include <tuple>
 #include "IntegrationRoutines.hpp"
-#include "../external/Nucleus/include/Nucleus.hpp"
+#include "../external/Nucleus/include/HotspotNucleus.hpp"
 
 
 namespace Coherent {
@@ -34,9 +34,9 @@ namespace Coherent { namespace Demirci
 
 namespace Coherent { namespace GeometryAverage
 {
-    double A_integrand_function(double b1, double b2, double r1, double r2, double Q, double Delta, const Nucleus* nucleus);
+    double A_integrand_function(double b1, double b2, double r1, double r2, double Q, double Delta, const HotspotNucleus* nucleus);
 
     int integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff);
-    std::tuple<double,double> A (double Q, double Delta, const Nucleus& nucleus);
+    std::tuple<double,double> A (double Q, double Delta, const HotspotNucleus& nucleus);
     std::tuple<double,double> A (CubatureConfig* c_config, IntegrationConfig* i_config);
 } }

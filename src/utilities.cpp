@@ -28,9 +28,14 @@ void set_import_filepath_by_m (std::string& filepath, DataGenerationConfig* conf
     std::string m_path;
     m_path = std::to_string(int(100*m));
 
-    filepath = (m_path.size()<=2) ? filepath+"_m_0"+m_path+".dat" : filepath+"_m_"+m_path+".dat";
+    filepath = "InterpolatorData/";
+
+    filepath += "_m_0"+m_path+".dat";
 
     std::ifstream file_check (filepath);
+
+    if (!config)
+        return;
 
     if (!file_check)
     {
@@ -66,19 +71,16 @@ void set_import_filepath_by_m (std::string& filepath, DataGenerationConfig* conf
     else 
     {
         file_check.close();
-        bool accepted = false;
-        while (!accepted)
-        {
-            std::cout << "File with name " << filepath << " for m=" << m << " found. Do you want to make that the active filepath? (y/n)" << std::endl;
+        std::cout << "File with name " << filepath << " for m=" << m << " found. Do you want to make that the active filepath? (y/n)" << std::endl;
 
-            std::string answer;
+        std::string answer;
 
-            std::cin >> answer;
+        std::cin >> answer;
 
-            if (answer=="y")
-                accepted = true;
-            else exit(0);
-        }
+        if (answer=="y")
+            return;
+        else
+            exit(0);
     }
 }
 
@@ -92,29 +94,32 @@ void set_parameters (int argc, char** argv)
         
         if (!strcmp(argv[i], "m"))
             m = std::atof(argv[i+1]);
+
         else if (!strcmp(argv[i], "Nq"))
         {
             Nq = std::atof(argv[i+1]);
             RC_sqr = rH_sqr + (Nq-1.0)/Nq*R_sqr;
         }
+        else if (!strcmp(argv[i], "BG"))
+            BG = std::atof(argv[i+1]);
+
         else if (!strcmp(argv[i], "filepath"))
             filepath_global = std::string(argv[i+1]);
+
         else if (!strcmp(argv[i], "A"))
             A = std::atoi(argv[i+1]);
     }
 }
 
 
-void create_info_file (std::string filepath, uint seed)
+void create_info_file (const std::string& filepath)
 {
-    filepath += "Info_" + std::to_string(seed) + ".dat";
-
     std::ofstream out;
     out.open(filepath);
     if (!out.is_open())
     {
         std::cerr << "Could not open given file. Aborting" << std::endl;
-        exit(648001);
+        exit(648003);
     }
 
     out << "Nq=" << Nq << std::endl;

@@ -31,6 +31,6 @@ namespace Incoherent { namespace DiluteApprox
 namespace Incoherent { namespace GeometryAverage
 {
     int integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff);
-    double A (double Q, double Delta, const Nucleus& nucleus);
+    double A (double Q, double Delta, const HotspotNucleus& nucleus);
     double A (CubatureConfig* c_config, IntegrationConfig* i_config);
 } }

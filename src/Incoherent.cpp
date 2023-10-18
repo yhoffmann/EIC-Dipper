@@ -1,11 +1,11 @@
-#include "../include/Incoherent.hpp"
-#include <gsl/gsl_sf.h>
 #include <gsl/gsl_math.h>
+#include <gsl/gsl_sf.h>
+#include "../include/Incoherent.hpp"
 #include "../include/NRPhoton.hpp"
 #include "../include/constants.hpp"
 #include "../include/SaturationModel.hpp"
 #include "../include/utilities.hpp"
-#include "../external/Nucleus/include/Nucleus.hpp"
+#include "../external/Nucleus/include/HotspotNucleus.hpp"
 
 
 namespace Incoherent
@@ -20,6 +20,7 @@ namespace Incoherent
     {
         return gsl_sf_bessel_J0( std::sqrt(sqr(b1-bb1)+sqr(b2-bb2))*Delta ) * NRPhoton::wave_function(r1, r2, Q) * NRPhoton::wave_function(rb1, rb2, Q) * ( SaturationModel::dsigma_d2b_sqr(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0, bb1+rb1/2.0, bb2+rb2/2.0, bb1-rb1/2.0, bb2-rb2/2.0) - SaturationModel::dsigma_d2b(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0)*SaturationModel::dsigma_d2b(bb1+rb1/2.0, bb2+rb2/2.0, bb1-rb1/2.0, bb2-rb2/2.0) );
     }
+
 
     int integrand (const int* ndim, const cubareal xx[], const int* ncomp, cubareal ff[], void* userdata)
     {
@@ -193,6 +194,11 @@ namespace Incoherent
 
 namespace Incoherent { namespace GeometryAverage
 {
+    double A_integrand_function (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double Delta, const HotspotNucleus* h_nucleus)
+    {
+        return gsl_sf_bessel_J0( std::sqrt(sqr(b1-bb1)+sqr(b2-bb2))*Delta ) * NRPhoton::wave_function(r1, r2, Q) * NRPhoton::wave_function(rb1, rb2, Q) * ( SaturationModel::GeometryAverage::dsigma_d2b_sqr(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0, bb1+rb1/2.0, bb2+rb2/2.0, bb1-rb1/2.0, bb2-rb2/2.0, h_nucleus) - SaturationModel::GeometryAverage::dsigma_d2b(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0, h_nucleus)*SaturationModel::GeometryAverage::dsigma_d2b(bb1+rb1/2.0, bb2+rb2/2.0, bb1-rb1/2.0, bb2-rb2/2.0, h_nucleus));
+    }
+
     int integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
     {
         AIntegrandParams* p = (AIntegrandParams*)(((IntegrationConfig*)userdata)->integrand_params);
@@ -212,13 +218,13 @@ namespace Incoherent { namespace GeometryAverage
         double bb1 = B1-db1/2.0;
         double bb2 = B2-db2/2.0;
 
-        ff[0] = xx[0]*xx[2]*xx[4]*xx[6] * Incoherent::A_integrand_function(b1-p->b01, b2-p->b02, r1, r2, bb1-p->b01, bb2-p->b02, rb1, rb2, p->Q,  p->Delta);
+        ff[0] = xx[0]*xx[2]*xx[4]*xx[6] * Incoherent::GeometryAverage::A_integrand_function(b1-p->b01, b2-p->b02, r1, r2, bb1-p->b01, bb2-p->b02, rb1, rb2, p->Q,  p->Delta, p->h_nucleus);
 
         return 0;
     }
 
 
-    double A (double Q, double Delta, const Nucleus& nucleus)
+    double A (double Q, double Delta, const HotspotNucleus& h_nucleus)
     {
         CubatureConfig c_config;
         c_config.progress_monitor = false;
@@ -230,6 +236,7 @@ namespace Incoherent { namespace GeometryAverage
         
         params.Q = Q;
         params.Delta = Delta;
+        params.h_nucleus = &h_nucleus;
 
         return A(&c_config, &i_config);
     }

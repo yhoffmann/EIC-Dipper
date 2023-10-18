@@ -1,8 +1,8 @@
-#include "../include/SaturationModel.hpp"
 #include <stdlib.h>
 #include <math.h>
 #include <gsl/gsl_math.h>
 #include <iostream>
+#include "../include/SaturationModel.hpp"
 #include "../include/constants.hpp"
 #include "../include/utilities.hpp"
 #include "../include/GBWModel.hpp"
@@ -87,7 +87,6 @@ namespace SaturationModel
     }
 
 
-
     namespace GeometryAverage
     {
         double dsigma_d2b (double x1, double x2, double y1, double y2, const Nucleus* nucleus)
@@ -96,6 +95,7 @@ namespace SaturationModel
             for (uint i=0, n=nucleus->get_atomic_num(); i<n; i++)
             {
                 const double* B0_ptr = nucleus->get_nucleon_pos(i);
+
                 double B0[2] = {B0_ptr[0], B0_ptr[1]};
 
                 G_sum += GBWModel::G(x1-B0[0], x2-B0[1], y1-B0[0], y2-B0[1]);
@@ -137,8 +137,6 @@ namespace SaturationModel
                 G_yyb_sum += GBWModel::G(y1_mod, y2_mod, yb1_mod, yb2_mod);
             }
             
-            
-
             double T_xy_ybxb = G_xxb_sum + G_yyb_sum - G_xyb_sum - G_xby_sum;
             double T_xxb_yby = G_xy_sum + G_xbyb_sum - G_xyb_sum - G_xby_sum;
             

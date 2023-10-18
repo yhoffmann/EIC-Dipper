@@ -4,7 +4,7 @@
 #include <cuba.h>
 #include "../include/utilities.hpp"
 #include "../external/cubature/cubature.h"
-#include "../external/Nucleus/include/Nucleus.hpp"
+#include "../external/Nucleus/include/HotspotNucleus.hpp"
 
 
 enum class CubaIntegrator : unsigned char
@@ -70,7 +70,7 @@ struct AIntegrandParams
     double b01 = 0.0;
     double b02 = 0.0;
 
-    const Nucleus* nucleus = nullptr;
+    const HotspotNucleus* h_nucleus = nullptr;
 };
 
 

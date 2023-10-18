@@ -1,12 +1,13 @@
-#include "../include/Coherent.hpp"
 #include <math.h>
+#include <gsl/gsl_math.h>
+#include <iostream>
+#include "../include/Coherent.hpp"
 #include "../include/constants.hpp"
 #include "../include/IntegrationRoutines.hpp"
 #include "../include/GBWModel.hpp"
 #include "../include/NRPhoton.hpp"
 #include "../include/SaturationModel.hpp"
-#include <gsl/gsl_math.h>
-#include <iostream>
+#include "../external/Nucleus/include/HotspotNucleus.hpp"
 
 
 namespace Coherent
@@ -227,7 +228,7 @@ namespace Coherent { namespace Demirci
 
 namespace Coherent { namespace GeometryAverage
 {
-    double A_integrand_function (double b1, double b2, double r1, double r2, double Q, double Delta, const Nucleus* nucleus)
+    double A_integrand_function (double b1, double b2, double r1, double r2, double Q, double Delta, const HotspotNucleus* nucleus)
     {
         return NRPhoton::wave_function(r1, r2, Q) * gsl_sf_bessel_J0( std::sqrt(sqr(b1)+sqr(b2))*Delta ) * SaturationModel::GeometryAverage::dsigma_d2b(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0, nucleus);
     }
@@ -237,13 +238,13 @@ namespace Coherent { namespace GeometryAverage
     {
         AIntegrandParams* params = ((AIntegrandParams*)(((IntegrationConfig*)userdata)->integrand_params));
 
-        ff[0] = xx[0]*xx[2]*Coherent::GeometryAverage::A_integrand_function(xx[0]*cos(xx[1])-params->b01, xx[0]*sin(xx[1])-params->b02, xx[2]*cos(xx[3]), xx[2]*sin(xx[3]), params->Q, params->Delta, params->nucleus);
+        ff[0] = xx[0]*xx[2]*Coherent::GeometryAverage::A_integrand_function(xx[0]*cos(xx[1])-params->b01, xx[0]*sin(xx[1])-params->b02, xx[2]*cos(xx[3]), xx[2]*sin(xx[3]), params->Q, params->Delta, params->h_nucleus);
 
         return 0;
     }
 
 
-    std::tuple<double,double> A (double Q, double Delta, const Nucleus& nucleus)
+    std::tuple<double,double> A (double Q, double Delta, const HotspotNucleus& h_nucleus)
     {
         CubatureConfig c_config;
         c_config.progress_monitor = false;
@@ -255,7 +256,7 @@ namespace Coherent { namespace GeometryAverage
         
         params.Q = Q;
         params.Delta = Delta;
-        params.nucleus = &nucleus;
+        params.h_nucleus = &h_nucleus;
 
         return A(&c_config, &i_config);
     }
