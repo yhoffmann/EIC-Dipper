@@ -1,7 +1,7 @@
 #include "../include/GBWModel.hpp"
 #include "../include/utilities.hpp"
 #include "../include/constants.hpp"
-#include <math.h>
+//#include <math.h>
 #include <iostream>
 #include <gsl/gsl_sf.h>
 #include <gsl/gsl_math.h>
@@ -45,7 +45,7 @@ namespace GBWModel
         if (u==0 && v==0)
             return 0.0;
         
-        volatile double inverse_divisor = 1.0/(u*v+BG/2.0*(u+v));
+        double inverse_divisor = 1.0/(u*v+BG/2.0*(u+v));
 
         return /*missing factor is in G()*/exp(-sqr(m)*(u+v)) * inverse_divisor * ( exp( -0.25 * ( u*(sqr(y1)+sqr(y2)) + v*(sqr(x1)+sqr(x2)) + BG/2.0*(sqr(x1-y1)+sqr(x2-y2)) ) * inverse_divisor ) - 0.5 * exp( -0.25 * (sqr(x1)+sqr(x2)) * (u+v) * inverse_divisor ) - 0.5 * exp( -0.25 * (sqr(y1)+sqr(y2)) * (u+v) * inverse_divisor ) );
     }
@@ -99,9 +99,9 @@ namespace GBWModel
         integration_config.max = (double*)alloca(2*sizeof(double));
         
         integration_config.min[0] = 0.0;
-        integration_config.min[1] = 0.0;
-        
         integration_config.max[0] = 20.0/sqr(m);
+        
+        integration_config.min[1] = 0.0;
         integration_config.max[1] = integration_config.max[0];
 
         return IntegrationRoutines::cubature_integrate(G_integrand_cubature, &cubature_config, &integration_config);
@@ -121,8 +121,10 @@ namespace GBWModel
     {
         double r = std::sqrt(sqr(x1)+sqr(x2));
         double rb = std::sqrt(sqr(y1)+sqr(y2));
-        double arg = (r==0.0 || rb==0.0) ? 0.0 : (x1*y1+x2*y2)/(r*rb);
+        float arg = (r==0.0 || rb==0.0) ? 0.0 : (x1*y1+x2*y2)/(r*rb);
 
-        return Nq * CF * g2mu02  / (16.0*PI*PI) * G_ip.get_interp_value_bicubic_unilinear(r, rb, acos((float)arg));
+        double result = NH * CF * g2mu02  / (16.0*PI*PI) * G_ip.get_interp_value_tricubic(r, rb, acos(arg));
+
+        return result;
     }
 }

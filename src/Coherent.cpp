@@ -128,6 +128,7 @@ namespace Coherent
         i_config->max[3] = 2.0*M_PI;
 
         double ret = A_integrand_function_factor(((AIntegrandParams*)(i_config->integrand_params))->Q) * IntegrationRoutines::cubature_integrate_one_bessel(Coherent::integrand_cubature, c_config, i_config);
+std::cout << ret << std::endl;
         ret = sqr(ret*GeVm1Tofm)*fm2TonB/(16.0*PI);
 
         return ret;
@@ -159,7 +160,7 @@ namespace Coherent { namespace Demirci
 
     double Z_integrand_function_factor (double Q, double Delta)
     {
-        return NRPhoton::wave_function_factor(Q) / (4.0*PI) * g2mu02_demirci * Nq * CF / PI * exp(-RC_sqr*sqr(Delta)/2.0);
+        return NRPhoton::wave_function_factor(Q) / (4.0*PI) * g2mu02_demirci * NH * CF / PI * exp(-RC_sqr*sqr(Delta)/2.0);
     }
 
 
@@ -247,7 +248,7 @@ namespace Coherent { namespace GeometryAverage
     std::tuple<double,double> A (double Q, double Delta, const HotspotNucleus& h_nucleus)
     {
         CubatureConfig c_config;
-        c_config.progress_monitor = false;
+        c_config.progress_monitor = progress_monitor_global;
 
         IntegrationConfig i_config;
         AIntegrandParams params;

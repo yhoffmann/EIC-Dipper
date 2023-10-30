@@ -20,22 +20,25 @@ int main (int argc, char** argv)
     set_parameters(argc, argv);
 
     std::string interpolator_filepath = "";
-    DataGenerationConfig config;
-    config.n_x = 300;
-    config.n_y = 300;
-    config.n_z = 30;
 
-    config.x_max = 8.0/m;
-    config.y_max = 8.0/m;
-    config.z_max = M_PI;
-
-    set_import_filepath_by_m(interpolator_filepath, &config);
-
-    //GBWModel::G_ip.generate_data(GBWModel::G_wrapper, &config, true);
-    //GBWModel::G_ip.export_data(filepath);
-
+    set_import_filepath_by_m(interpolator_filepath);
     GBWModel::G_ip.import_data(interpolator_filepath);
 
+    std::vector<double> Delta_vec = {0.001, 0.002, 0.005, 0.007, 0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.13, 0.17, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.7, 1.8, 1.9, 2.0, 2.3, 2.7, 3.0, 3.3, 3.7, 4.0};
+    for (uint i=0; i<Delta_vec.size(); i++)
+    {
+        std::cout << Delta_vec[i] << " " << Coherent::Demirci::dsigma_dt(std::sqrt(0.1), Delta_vec[i]) << std::endl;
+    }
+
+    
+    
+    //std::cout << std::get<0>(Coherent::GeometryAverage::)
+    //Observables::calculate_dsigma_dt_nucleus(A, H, 0);
+    //GBWModel::G_ip.generate_data(GBWModel::G_wrapper, &config, true);
+    //GBWModel::G_ip.export_data(filepath);
+/*
+    GBWModel::G_ip.import_data(interpolator_filepath);
+    GBWModel::G_ip.export_data(interpolator_filepath);
     //std::cout << Coherent::Demirci::dsigma_dt(std::sqrt(0.1), 0.001) << " " << Coherent::dsigma_dt_cubature(std::sqrt(0.1), 0.001) << std::endl;
 
 
@@ -52,35 +55,12 @@ int main (int argc, char** argv)
         double Delta = min+(max-min)*( exp( M_LN2*double(i)/double(n-1)*k )-1.0 )/( std::pow(2.0, k)-1.0 );
         Delta_vec.push_back(Delta);
     }
-    
-    std::mt19937 rng(1234);
-    Nucleus nucleus(16, rng);
 
-    Observables::calculate_dsigma_dt(true, false, Q_vec, Delta_vec);
+    std::mt19937 rng;
+    HotspotNucleus hn(A, H, rng);
+    //std::cout << SaturationModel::GeometryAverage::dsigma_d2b(1.0, 0.1, 0.2, 0.3, &hn) << std::endl;
+    //std::cout << std::get<0>(Coherent::GeometryAverage::A(0.31, 0.001, hn)) << std::endl;
 
-/*
-    double counter = 0.0;
-    while (true) {
-        double bx = (5+counter)*2*(rng01()-0.5);
-        double by = (5+counter)*2*(rng01()-0.5);
-        double bbx = (5+counter)*2*(rng01()-0.5);
-        double bby = (5+counter)*2*(rng01()-0.5);
-        double rx = (5+counter)*2*(rng01()-0.5);
-        double ry = (5+counter)*2*(rng01()-0.5);
-        double rbx = (5+counter)*2*(rng01()-0.5);
-        double rby = (5+counter)*2*(rng01()-0.5);
-
-        double printthis = SaturationModel::DD(bx,by,bbx,bby,rx,ry,rbx,rby);
-
-        //std::cout << bvalue << "\t" << bbvalue << "\t" << _a << "\t" << _b << "\t" << _c << "\t" << _d << "\t" << GBWModel::dsigma_dip_d2b(bx,by,rx,ry) << std::endl;
-        if (printthis>1.0 || printthis<0.0)
-        {
-            std::cout << "val " << printthis << "\n" << bx << ", " << by << ", " << bbx << ", " << bby << "," << rx << ", " << ry << ", " << rbx << ", " << rby << std::endl;
-        }
-        
-        //std::this_thread::sleep_for(std::chrono::milliseconds(150));
-        //counter += 0.1;
-    }
 */
     return 0;
 }

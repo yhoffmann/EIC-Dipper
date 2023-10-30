@@ -23,15 +23,16 @@ double bessel_K_safe (int n, double x)
 }
 
 
-void set_import_filepath_by_m (std::string& filepath, DataGenerationConfig* config)
+void set_import_filepath_by_m (std::string& filepath, const DataGenerationConfig* config)
 {
-    std::string m_path;
-    m_path = std::to_string(int(100*m));
+    std::string m_path = std::to_string( int(m*100) );
+    std::string BG_path = (BG >= 1.0) ?  std::to_string( int(BG*10) ) : "0"+std::to_string( int(BG*10) );
 
     filepath = "InterpolatorData/";
 
-    filepath += "_m_0"+m_path+".dat";
+    filepath += "G_BG_"+BG_path+"_m_0"+m_path+".dat";
 
+#ifndef _QUIET
     std::ifstream file_check (filepath);
 
     if (!config)
@@ -42,7 +43,7 @@ void set_import_filepath_by_m (std::string& filepath, DataGenerationConfig* conf
         file_check.close();
         std::string answer;
 
-        std::cout << "No data for m=" << m << ". Do you want to generate that data set? (y/n)\n(The path to the new file would be " << filepath << ". File would have size ~" << config->n_x*config->n_y*config->n_z*61.0/1.0e6 << "MB.)" << std::endl;
+        std::cout << "No data for this combination of m(=" << m << ") and BG(=" << BG << "). Do you want to generate that data set? (y/n)\n(The path to the new file would be " << filepath << ". File size would be (at most) " << (config->n_x+config->n_y+config->n_z+2+config->n_x*config->n_y*config->n_z)*17.0/1.0e6 << "MB.)" << std::endl;
         bool input_accepted = false;
         while (!input_accepted)
         {
@@ -60,7 +61,7 @@ void set_import_filepath_by_m (std::string& filepath, DataGenerationConfig* conf
                 input_accepted = true;
 
                 std::cout << "Aborting" << std::endl;
-                exit(0);
+                exit(21);
             }
             else
             {
@@ -80,8 +81,9 @@ void set_import_filepath_by_m (std::string& filepath, DataGenerationConfig* conf
         if (answer=="y")
             return;
         else
-            exit(0);
+            exit(22);
     }
+#endif
 }
 
 
@@ -89,45 +91,52 @@ void set_parameters (int argc, char** argv)
 {
     for (int i=1; i<argc; i+=2)
     {
+        if (!strcmp(argv[i], "-pm"))
+            progress_monitor_global = true;
+
         if (i+1==argc)
             return;
         
-        if (!strcmp(argv[i], "m"))
+        if (!strcmp(argv[i], "-m"))
             m = std::atof(argv[i+1]);
 
-        else if (!strcmp(argv[i], "Nq"))
+        else if (!strcmp(argv[i], "-H"))
         {
-            Nq = std::atof(argv[i+1]);
-            RC_sqr = rH_sqr + (Nq-1.0)/Nq*R_sqr;
+            H = std::atoi(argv[i+1]);
+            NH = double(H);
+            RC_sqr = rH_sqr + (NH-1.0)/NH*R_sqr;
         }
-        else if (!strcmp(argv[i], "BG"))
+        else if (!strcmp(argv[i], "-Rp2"))
+        {
+            R_sqr = std::atof(argv[i+1]);
+            RC_sqr = rH_sqr + (NH-1.0)/NH*R_sqr;
+        }
+        else if (!strcmp(argv[i], "-BG"))
             BG = std::atof(argv[i+1]);
 
-        else if (!strcmp(argv[i], "filepath"))
+        else if (!strcmp(argv[i], "-o"))
             filepath_global = std::string(argv[i+1]);
 
-        else if (!strcmp(argv[i], "A"))
+        else if (!strcmp(argv[i], "-A"))
             A = std::atoi(argv[i+1]);
+
+        else
+        {
+            std::cerr << "Invalid option. Valid flags are -pm, -m, -A, -H, -Rp2, -BG, -o" << std::endl;
+            exit(23);
+        }
     }
 }
 
 
-void create_info_file (const std::string& filepath)
+void print_infos (std::ofstream& out)
 {
-    std::ofstream out;
-    out.open(filepath);
-    if (!out.is_open())
-    {
-        std::cerr << "Could not open given file. Aborting" << std::endl;
-        exit(648003);
-    }
-
-    out << "Nq=" << Nq << std::endl;
-    out << "m=" << m << std::endl;
-    out << "rH_sqr=" << rH_sqr << std::endl;
-    out << "R_sqr=" << R_sqr << std::endl;
-    out << "RC_sqr=" << RC_sqr << std::endl;
-    out << "A=" << A << std::endl;
-
-    out.close();
+    out << "#m=" << m << std::endl;
+    out << "#BG=" << BG << std::endl;
+    out << "#A=" << A << std::endl;
+    out << "#H=" << H << std::endl;
+    out << "#NH=" << NH << std::endl;
+    out << "#rH_sqr=" << rH_sqr << std::endl;
+    out << "#R_sqr=" << R_sqr << std::endl;
+    out << "#RC_sqr=" << RC_sqr << std::endl;
 }

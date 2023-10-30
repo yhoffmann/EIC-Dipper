@@ -227,7 +227,7 @@ namespace Incoherent { namespace GeometryAverage
     double A (double Q, double Delta, const HotspotNucleus& h_nucleus)
     {
         CubatureConfig c_config;
-        c_config.progress_monitor = false;
+        c_config.progress_monitor = progress_monitor_global;
 
         IntegrationConfig i_config;
         AIntegrandParams params;

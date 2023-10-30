@@ -25,7 +25,7 @@ namespace NRPhoton
 
     double wave_function_factor (double Q)
     {
-        return std::sqrt(sqr(wave_function_factor_T) + sqr(wave_function_factor_L(Q)));
+        return std::sqrt( sqr(wave_function_factor_T) + sqr( wave_function_factor_L(Q) ) );
     }
 
 

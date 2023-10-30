@@ -2,7 +2,6 @@
 
 
 #include <math.h>
-#include "../include/utilities.hpp"
 
 // DEFINING GLOBAL PARAMETERS //
 const double PI = M_PI;
@@ -35,18 +34,19 @@ static const double fm2TonB = 1.0e7;
 static const double nBTofm2 = 1.0e-7;
 
 // not exactly constant constants
-inline double Nq = 1.0;
+inline double NH = 1.0;
 inline double m = 0.22;
 
 inline double rH_sqr = 0.7;
 inline double R_sqr = 3.3;
 
-inline double RC_sqr = rH_sqr + (Nq-1)/Nq*R_sqr;
+inline double RC_sqr = rH_sqr + (NH-1)/NH*R_sqr;
 
 inline double BG = 4.0; //GeVm2 https://physics.nist.gov/cgi-bin/cuu/Value?rp
 inline double sigma0 = 2.0*PI*BG; //GeVm2
 
-inline uint A = 0;
+inline uint A = 1;
+inline uint H = 1;
 
 // Integration ranges
 const double B_RANGE_FACTOR = 15.0;

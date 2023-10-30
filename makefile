@@ -2,9 +2,16 @@
 
 FLAGS =
 
-ifeq ($(STATIC),1)
-	FLAGS += -static
+ifeq ($(QUIET),1)
+	FLAGS += -D_QUIET
 endif
+
+ifeq ($(PCTWO),1)
+	FLAGS += -lgslcblas
+	FLAGS += -I external/cuba
+	FLAGS += -L external/cuba
+endif
+
 
 nolibs:
 	g++ $(FLAGS) -Wall src/*.cpp obj/*.o -o eic -O3 -lcuba -lm -lgsl -fopenmp
@@ -18,8 +25,8 @@ libs:
 	g++ $(FLAGS) -c -Wall external/Nucleus/src/HotspotNucleus.cpp -o obj/HotspotNucleus.o -O3
 
 all:
-	make libs STATIC=$(STATIC)
-	make nolibs STATIC=$(STATIC)
+	make libs
+	make nolibs
 
 debug:
 	g++ $(FLAGS) -g -c -Wall external/cubature/hcubature.c -o debug/obj/hcubature.o -O0
@@ -29,4 +36,4 @@ debug:
 	g++ $(FLAGS) -g -Wall src/*.cpp debug/obj/*.o -o debug/eic -O0 -lcuba -lm -lgsl -fopenmp
 
 pc2:
-	make all STATIC=1
+	make all QUIET=1 PCTWO=1

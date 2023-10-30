@@ -89,23 +89,24 @@ namespace SaturationModel
 
     namespace GeometryAverage
     {
-        double dsigma_d2b (double x1, double x2, double y1, double y2, const Nucleus* nucleus)
+        double dsigma_d2b (double x1, double x2, double y1, double y2, const HotspotNucleus* nucleus)
         {
             double G_sum = 0.0;
-            for (uint i=0, n=nucleus->get_atomic_num(); i<n; i++)
-            {
-                const double* B0_ptr = nucleus->get_nucleon_pos(i);
+            for (uint n=0, a=nucleus->get_atomic_num(); n<a; ++n)
+                for (uint i=0, nh=nucleus->get_num_hotspots_per_nucleon(); i<nh; ++i)
+                {
+                    const double* B0_ptr = nucleus->get_hotspot_pos(n, i);
 
-                double B0[2] = {B0_ptr[0], B0_ptr[1]};
+                    double B0[2] = {B0_ptr[0], B0_ptr[1]};
 
-                G_sum += GBWModel::G(x1-B0[0], x2-B0[1], y1-B0[0], y2-B0[1]);
-            }
+                    G_sum += GBWModel::G(x1-B0[0], x2-B0[1], y1-B0[0], y2-B0[1]);
+                }
 
             return 2.0 * ( 1.0-exp(G_sum) );//-2.0*G_sum;//
         }
 
 
-        double dsigma_d2b_sqr (double x1, double x2, double y1, double y2, double xb1, double xb2, double yb1, double yb2, const Nucleus* nucleus)
+        double dsigma_d2b_sqr (double x1, double x2, double y1, double y2, double xb1, double xb2, double yb1, double yb2, const HotspotNucleus* nucleus)
         {
             double G_xxb_sum = 0.0;
             double G_xy_sum = 0.0;
@@ -114,28 +115,29 @@ namespace SaturationModel
             double G_xbyb_sum = 0.0;
             double G_yyb_sum = 0.0;
 
-            for (uint i=0, n=nucleus->get_atomic_num(); i<n; i++)
-            {
-                const double* B0_ptr = nucleus->get_nucleon_pos(i);
+            for (uint n=0, a=nucleus->get_atomic_num(); n<a; ++n)
+                for (uint i=0, nh=nucleus->get_num_hotspots_per_nucleon(); i<nh; ++i)
+                {
+                    const double* B0_ptr = nucleus->get_hotspot_pos(n, i);
 
-                double B0[2] = {B0_ptr[0], B0_ptr[1]};
+                    double B0[2] = {B0_ptr[0], B0_ptr[1]};
 
-                double x1_mod = x1-B0[0];
-                double x2_mod = x2-B0[1];
-                double y1_mod = y1-B0[0];
-                double y2_mod = y2-B0[1];
-                double xb1_mod = xb1-B0[0];
-                double xb2_mod = xb2-B0[1];
-                double yb1_mod = yb1-B0[0];
-                double yb2_mod = yb2-B0[1];
+                    double x1_mod = x1-B0[0];
+                    double x2_mod = x2-B0[1];
+                    double y1_mod = y1-B0[0];
+                    double y2_mod = y2-B0[1];
+                    double xb1_mod = xb1-B0[0];
+                    double xb2_mod = xb2-B0[1];
+                    double yb1_mod = yb1-B0[0];
+                    double yb2_mod = yb2-B0[1];
 
-                G_xxb_sum += GBWModel::G(x1_mod, x2_mod, xb1_mod, xb2_mod);
-                G_xy_sum += GBWModel::G(x1_mod, x2_mod, y1_mod, y2_mod);
-                G_xyb_sum += GBWModel::G(x1_mod, x2_mod, yb1_mod, yb2_mod);
-                G_xby_sum += GBWModel::G(xb1_mod, xb2_mod, y1_mod, y2_mod);
-                G_xbyb_sum += GBWModel::G(xb1_mod, xb2_mod, yb1_mod, yb2_mod);
-                G_yyb_sum += GBWModel::G(y1_mod, y2_mod, yb1_mod, yb2_mod);
-            }
+                    G_xxb_sum += GBWModel::G(x1_mod, x2_mod, xb1_mod, xb2_mod);
+                    G_xy_sum += GBWModel::G(x1_mod, x2_mod, y1_mod, y2_mod);
+                    G_xyb_sum += GBWModel::G(x1_mod, x2_mod, yb1_mod, yb2_mod);
+                    G_xby_sum += GBWModel::G(xb1_mod, xb2_mod, y1_mod, y2_mod);
+                    G_xbyb_sum += GBWModel::G(xb1_mod, xb2_mod, yb1_mod, yb2_mod);
+                    G_yyb_sum += GBWModel::G(y1_mod, y2_mod, yb1_mod, yb2_mod);
+                }
             
             double T_xy_ybxb = G_xxb_sum + G_yyb_sum - G_xyb_sum - G_xby_sum;
             double T_xxb_yby = G_xy_sum + G_xbyb_sum - G_xyb_sum - G_xby_sum;
