@@ -81,7 +81,7 @@ namespace Incoherent
     }
 
 
-    double dsigma_dt (double Q, double Delta)
+    double dsigmadt (double Q, double Delta)
     {
         CubaConfig c_config;
         c_config.progress_monitor = true;
@@ -94,11 +94,11 @@ namespace Incoherent
 
         i_config.integrand_params = &params;
 
-        return dsigma_dt(&c_config, &i_config);
+        return dsigmadt(&c_config, &i_config);
     }
 
 
-    double dsigma_dt (CubaConfig* c_config, IntegrationConfig* integration_config) // TODO include coherent here, this only calculates incoherent right now
+    double dsigmadt (CubaConfig* c_config, IntegrationConfig* integration_config) // TODO include coherent here, this only calculates incoherent right now
     {
         c_config->num_dims = 8;
 
@@ -139,7 +139,7 @@ namespace Incoherent
     }
 
 
-    double dsigma_dt_cubature (double Q, double Delta)
+    double dsigmadt_cubature (double Q, double Delta)
     {
         CubaConfig c_config;
         c_config.progress_monitor = true;
@@ -152,11 +152,11 @@ namespace Incoherent
 
         i_config.integrand_params = &params;
 
-        return dsigma_dt(&c_config, &i_config);
+        return dsigmadt(&c_config, &i_config);
     }
 
 
-    double dsigma_dt_cubature (CubatureConfig* c_config, IntegrationConfig* i_config)
+    double dsigmadt_cubature (CubatureConfig* c_config, IntegrationConfig* i_config)
     {
         c_config->num_dims = 8;
 
@@ -224,7 +224,7 @@ namespace Incoherent { namespace GeometryAverage
     }
 
 
-    double A (double Q, double Delta, const HotspotNucleus& h_nucleus)
+    double dsigmadt_single_event (double Q, double Delta, const HotspotNucleus& h_nucleus)
     {
         CubatureConfig c_config;
         c_config.progress_monitor = progress_monitor_global;
@@ -238,11 +238,11 @@ namespace Incoherent { namespace GeometryAverage
         params.Delta = Delta;
         params.h_nucleus = &h_nucleus;
 
-        return A(&c_config, &i_config);
+        return dsigmadt_single_event(&c_config, &i_config);
     }
 
 
-    double A (CubatureConfig* c_config, IntegrationConfig* i_config)
+    double dsigmadt_single_event (CubatureConfig* c_config, IntegrationConfig* i_config)
     {
         c_config->num_dims = 8;
 
@@ -270,6 +270,8 @@ namespace Incoherent { namespace GeometryAverage
         i_config->min[7] = 0.0;
         i_config->max[7] = 2.0*M_PI;
 
-        return Incoherent::A_integrand_function_factor(((AIntegrandParams*)(i_config->integrand_params))->Q) * IntegrationRoutines::cubature_integrate_one_bessel(Incoherent::GeometryAverage::integrand, c_config, i_config);
+        double factor = Incoherent::A_integrand_function_factor( ((AIntegrandParams*)(i_config->integrand_params))->Q ) * sqr(GeVm1Tofm) * fm2TonB;
+
+        return factor*IntegrationRoutines::cubature_integrate_one_bessel(Incoherent::GeometryAverage::integrand, c_config, i_config);
     }
 } }

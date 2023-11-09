@@ -16,7 +16,7 @@ namespace Observables
 {
     void calculate_dsigma_dt (bool do_coherent, bool do_incoherent, std::string output_file = "")
     {
-        std::vector<double> default_Q_vec = {0.05, std::sqrt(0.3)};
+        std::vector<double> default_Q_vec = {0.05, std::sqrt(0.1)};
         std::vector<double> default_Delta_vec = {0.001, 0.002, 0.005, 0.007, 0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.13, 0.17, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.7, 1.8, 1.9, 2.0, 2.3, 2.7, 3.0, 3.3, 3.7, 4.0};
         // std::vector<double> DeltaRange = {1.8, 1.9, 2.0, 2.05, 2.1, 2.11, 2.12, 2.13, 2.15, 2.16, 2.17, 2.18, 2.19, 2.20, 2.21, 2.22, 2.23, 2.24, 2.25, 2.26, 2.27, 2.28, 2.29, 2.3, 2.45, 2.50, 2.55, 2.60, 2.65, 2.70, 2.75, 2.80, 2.9, 3.0};
 
@@ -27,6 +27,7 @@ namespace Observables
     void calculate_dsigma_dt (bool do_coherent, bool do_incoherent, std::vector<double> Q_vec, std::vector<double> Delta_vec, std::string filepath)
     {
         double coherent_results[Q_vec.size()][Delta_vec.size()];
+        double demirci_coherent_results[Q_vec.size()][Delta_vec.size()];
         double incoherent_results[Q_vec.size()][Delta_vec.size()];
 #ifndef _QUIET
         std::cout << "Integrating with different parameters..." << std::endl;
@@ -50,14 +51,17 @@ namespace Observables
                 A_integrand_params.Delta = Delta_vec[j];
 
                 if (do_coherent)
-                    coherent_results[i][j] = Coherent::dsigma_dt_cubature(&c_config, &integration_config);
+                    coherent_results[i][j] = Coherent::dsigmadt_cubature(&c_config, &integration_config);
 
                 if (do_incoherent)
-                    incoherent_results[i][j] = Incoherent::dsigma_dt_cubature(&c_config, &integration_config);
+                    incoherent_results[i][j] = Incoherent::dsigmadt_cubature(&c_config, &integration_config);
             }
         }
 
         std::ofstream out_stream;
+
+        if (filepath == "")
+            filepath = "Data/dsigma_dt.dat";
 
         out_stream.open(filepath);
         if (!out_stream.is_open())
@@ -114,15 +118,12 @@ namespace Observables
         {
             for (uint i = 0; i < Q_vec.size(); i++)
             {
-                double Q = Q_vec[i];
-                double Delta = Delta_vec[j];
-
-                auto [coh_real, coh_imag] = Coherent::GeometryAverage::A(Q, Delta, nucleus);
+                auto [coh_real, coh_imag] = Coherent::GeometryAverage::sqrt_dsigmadt_single_event(Q_vec[i], Delta_vec[i], nucleus);
 
                 coherent_results_real[i][j] = coh_real;
                 coherent_results_imag[i][j] = coh_imag;
 
-                incoherent_results[i][j] = Incoherent::GeometryAverage::A(Q, Delta, nucleus);
+                //incoherent_results[i][j] = Incoherent::GeometryAverage::dsigma_dt_single_event(Q_vec[i], Delta_vec[i], nucleus);
             }
         }
 

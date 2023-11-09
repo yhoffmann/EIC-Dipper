@@ -6,6 +6,10 @@ ifeq ($(QUIET),1)
 	FLAGS += -D_QUIET
 endif
 
+ifeq ($(DILUTE),1)
+	FLAGS += -D_DILUTE
+endif
+
 ifeq ($(PCTWO),1)
 	FLAGS += -lgslcblas
 	FLAGS += -I external/cuba

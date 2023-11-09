@@ -10,15 +10,13 @@
 
 namespace SaturationModel
 {
-    double D(double G)
+    inline double D(double G)
     {
+#ifndef _DILUTE
         return exp(G);
-    }
-
-
-    double D_dilute (double G)
-    {
+#else
         return 1.0+G;
+#endif
     }
 
 
@@ -38,18 +36,9 @@ namespace SaturationModel
     }
 
 
-    double DD_dilute (double x1, double x2, double y1, double y2, double xb1, double xb2, double yb1, double yb2)
-    {
-        double G_xy = GBWModel::G(x1, x2, y1, y2);
-        double G_xbyb = GBWModel::G(xb1, xb2, yb1, yb2);
-
-        return 1.0+G_xy+G_xbyb;
-    }
-
-
     double dsigma_d2b(double x1, double x2, double y1, double y2)
     {
-        return -2.0*GBWModel::G(x1, x2, y1, y2);//2.0 * (1.0 - exp(GBWModel::G(x1, x2, y1, y2)));//
+        return 2.0*( 1.0-D(NH*GBWModel::G(x1, x2, y1, y2)) );
     }
 
 
@@ -63,12 +52,13 @@ namespace SaturationModel
 
     double dsigma_d2b_sqr (double x1, double x2, double y1, double y2, double xb1, double xb2, double yb1, double yb2)
     {
-        double G_xxb = GBWModel::G(x1, x2, xb1, xb2);
-        double G_xy = GBWModel::G(x1, x2, y1, y2);
-        double G_xyb = GBWModel::G(x1, x2, yb1, yb2);
-        double G_xby = GBWModel::G(xb1, xb2, y1, y2);
-        double G_xbyb = GBWModel::G(xb1, xb2, yb1, yb2);
-        double G_yyb = GBWModel::G(y1, y2, yb1, yb2);
+        double G_xy = NH*GBWModel::G(x1, x2, y1, y2);
+        double G_xbyb = NH*GBWModel::G(xb1, xb2, yb1, yb2);
+#ifndef _DILUTE
+        double G_xxb = NH*GBWModel::G(x1, x2, xb1, xb2);
+        double G_xyb = NH*GBWModel::G(x1, x2, yb1, yb2);
+        double G_xby = NH*GBWModel::G(xb1, xb2, y1, y2);
+        double G_yyb = NH*GBWModel::G(y1, y2, yb1, yb2);
 
         double T_xy_ybxb = G_xxb + G_yyb - G_xyb - G_xby;
         double T_xxb_yby = G_xy + G_xbyb - G_xyb - G_xby;
@@ -82,8 +72,10 @@ namespace SaturationModel
         double factor = ( a-d+2.0*b ) / Sqrt;
 
         double DD = 0.5 * ( (1.0+factor) * exp( (a+d+Sqrt)/2.0 ) + (1.0-factor) * exp( (a+d-Sqrt)/2.0 ) );
-
-        return 4.0 * ( 1.0-exp(G_xy)-exp(G_xbyb)+DD );
+#else
+        double DD = G_xy*G_xbyb;
+#endif
+        return 4.0 * ( 1.0-D(G_xy)-D(G_xbyb)+DD );
     }
 
 
@@ -102,19 +94,20 @@ namespace SaturationModel
                     G_sum += GBWModel::G(x1-B0[0], x2-B0[1], y1-B0[0], y2-B0[1]);
                 }
 
-            return 2.0 * ( 1.0-exp(G_sum) );//-2.0*G_sum;//
+            return 2.0*( 1.0-D(G_sum) );
         }
 
 
         double dsigma_d2b_sqr (double x1, double x2, double y1, double y2, double xb1, double xb2, double yb1, double yb2, const HotspotNucleus* nucleus)
         {
-            double G_xxb_sum = 0.0;
             double G_xy_sum = 0.0;
+            double G_xbyb_sum = 0.0;
+    #ifndef _DILUTE
+            double G_xxb_sum = 0.0;
             double G_xyb_sum = 0.0;
             double G_xby_sum = 0.0;
-            double G_xbyb_sum = 0.0;
             double G_yyb_sum = 0.0;
-
+    #endif
             for (uint n=0, a=nucleus->get_atomic_num(); n<a; ++n)
                 for (uint i=0, nh=nucleus->get_num_hotspots_per_nucleon(); i<nh; ++i)
                 {
@@ -131,14 +124,16 @@ namespace SaturationModel
                     double yb1_mod = yb1-B0[0];
                     double yb2_mod = yb2-B0[1];
 
-                    G_xxb_sum += GBWModel::G(x1_mod, x2_mod, xb1_mod, xb2_mod);
                     G_xy_sum += GBWModel::G(x1_mod, x2_mod, y1_mod, y2_mod);
+                    G_xbyb_sum += GBWModel::G(xb1_mod, xb2_mod, yb1_mod, yb2_mod);
+            #ifndef _DILUTE
+                    G_xxb_sum += GBWModel::G(x1_mod, x2_mod, xb1_mod, xb2_mod);
                     G_xyb_sum += GBWModel::G(x1_mod, x2_mod, yb1_mod, yb2_mod);
                     G_xby_sum += GBWModel::G(xb1_mod, xb2_mod, y1_mod, y2_mod);
-                    G_xbyb_sum += GBWModel::G(xb1_mod, xb2_mod, yb1_mod, yb2_mod);
                     G_yyb_sum += GBWModel::G(y1_mod, y2_mod, yb1_mod, yb2_mod);
-                }
-            
+            #endif
+                    }
+    #ifndef _DILUTE
             double T_xy_ybxb = G_xxb_sum + G_yyb_sum - G_xyb_sum - G_xby_sum;
             double T_xxb_yby = G_xy_sum + G_xbyb_sum - G_xyb_sum - G_xby_sum;
             
@@ -151,8 +146,10 @@ namespace SaturationModel
             double factor = ( a-d+2.0*b ) / Sqrt;
 
             double DD = 0.5 * ( (1.0+factor) * exp( (a+d+Sqrt)/2.0 ) + (1.0-factor) * exp( (a+d-Sqrt)/2.0 ) );
-
-            return 4.0 * ( 1.0-exp(G_xy_sum)-exp(G_xbyb_sum)+DD );
+    #else
+            double DD = G_xy_sum*G_xbyb_sum;
+    #endif
+            return 4.0 * ( 1.0-D(G_xy_sum)-D(G_xbyb_sum)+DD );
         }
     }
 

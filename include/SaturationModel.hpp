@@ -6,10 +6,6 @@
 
 namespace SaturationModel
 {
-    double D(double G);
-
-    double D_dilute(double G);
-
     double DD(double x1, double x2, double y1, double y2, double xb1, double xb2, double yb1, double yb2);
 
     double DD_dilute(double x1, double x2, double y1, double y2, double xb1, double xb2, double yb1, double yb2);

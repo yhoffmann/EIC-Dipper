@@ -36,7 +36,7 @@ struct CubaConfig
     int n_min = 2;
 
     double bessel_tolerance = 1.0e-5;
-    uint max_oscillations = 2e2;
+    uint max_oscillations = 40;
     uint ocillations_per_partial_sum = 3;
 
     bool progress_monitor = false;
@@ -55,7 +55,7 @@ struct CubatureConfig
     error_norm err_norm = ERROR_INDIVIDUAL;
 
     double bessel_tolerance = 1.0e-5;
-    uint max_oscillations = 2e2;
+    uint max_oscillations = 40;
     uint ocillations_per_partial_sum = 3;
 
     bool progress_monitor = false;

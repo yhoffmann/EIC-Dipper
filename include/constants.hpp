@@ -3,6 +3,7 @@
 
 #include <math.h>
 
+
 // DEFINING GLOBAL PARAMETERS //
 const double PI = M_PI;
 const double alpha_em = 1.0/137.036; //unit 1
@@ -19,19 +20,18 @@ const double A_c = 0.211; //in GeV3/2
 
 const double e_Q = e_c;
 const double A_Q = A_c; // in GeV3/2
-//const double epsilon = 1.0; // in GeV  // not used, see epsilonFunc
 
 const double sqrt_2m_c_Nc = std::sqrt(2.0*m_Q_c*Nc); // in GeV
 
 // Unit conversion factors
 const double hbarc = 0.1973; //GeV fm
 
-static const double fmToGeVm1 = 1.0/hbarc;
-static const double GeVTofmm1 = 1.0/hbarc;
-static const double GeVm1Tofm = hbarc;
-static const double fmm1ToGeV = hbarc;
-static const double fm2TonB = 1.0e7;
-static const double nBTofm2 = 1.0e-7;
+const double fmToGeVm1 = 1.0/hbarc;
+const double GeVTofmm1 = 1.0/hbarc;
+const double GeVm1Tofm = hbarc;
+const double fmm1ToGeV = hbarc;
+const double fm2TonB = 1.0e7;
+const double nBTofm2 = 1.0e-7;
 
 // not exactly constant constants
 inline double NH = 1.0;
@@ -42,8 +42,7 @@ inline double R_sqr = 3.3;
 
 inline double RC_sqr = rH_sqr + (NH-1)/NH*R_sqr;
 
-inline double BG = 4.0; //GeVm2 https://physics.nist.gov/cgi-bin/cuu/Value?rp
-inline double sigma0 = 2.0*PI*BG; //GeVm2
+inline double sigma0 = 2.0*PI*RC_sqr;
 
 inline uint A = 1;
 inline uint H = 1;
@@ -52,8 +51,9 @@ inline uint H = 1;
 const double B_RANGE_FACTOR = 15.0;
 const double R_RANGE_FACTOR = 20.0;
 
-const double B_MAX = std::sqrt(B_RANGE_FACTOR*2.0*BG);
+const double B_MAX = std::sqrt(B_RANGE_FACTOR*2.0*RC_sqr);
 const double R_MAX = R_RANGE_FACTOR/m_Q_c;
 
 const double g2mu02_demirci = std::sqrt(43.22);
-const double g2mu02 = sigma0;
+const double g2mu02_factor = std::sqrt(43.22)/(2.9)*3.0;
+inline double g2mu02 = g2mu02_demirci;

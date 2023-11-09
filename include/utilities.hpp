@@ -27,7 +27,7 @@ double sqr (double x);
 double bessel_K_safe (int n, double x);
 
 
-void set_import_filepath_by_m (std::string& filepath, const DataGenerationConfig* config = &default_data_generation_config);
+void set_import_filepath_by_parameters (std::string& filepath, const DataGenerationConfig* config = &default_data_generation_config);
 
 
 inline std::string filepath_global = "";

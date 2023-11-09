@@ -12,7 +12,7 @@ namespace GBWModel
 {
     double T_times_sigma0 (double b1, double b2)
     {
-        return exp( -( sqr(b1)+sqr(b2) )/(2.0*BG) );
+        return exp( -( sqr(b1)+sqr(b2) )/(2.0*rH_sqr) );
     }
 
 
@@ -36,7 +36,7 @@ namespace GBWModel
 
     double G_mod (double x1, double x2, double y1, double y2)
     {
-        return -0.25 * exp( -(sqr(x1)+sqr(x2))/(2.0*BG) ) * exp( -(sqr(y1)+sqr(y2))/(2.0*BG) ) * ( sqr(x1-y1) + sqr(x2-y2) ) * Kmod(x1,x2,y1,y2);
+        return -0.25 * exp( -(sqr(x1)+sqr(x2))/(2.0*rH_sqr) ) * exp( -(sqr(y1)+sqr(y2))/(2.0*rH_sqr) ) * ( sqr(x1-y1) + sqr(x2-y2) ) * Kmod(x1,x2,y1,y2);
     }
 
 
@@ -45,9 +45,9 @@ namespace GBWModel
         if (u==0 && v==0)
             return 0.0;
         
-        double inverse_divisor = 1.0/(u*v+BG/2.0*(u+v));
+        double inverse_divisor = 1.0/(u*v+rH_sqr/2.0*(u+v));
 
-        return /*missing factor is in G()*/exp(-sqr(m)*(u+v)) * inverse_divisor * ( exp( -0.25 * ( u*(sqr(y1)+sqr(y2)) + v*(sqr(x1)+sqr(x2)) + BG/2.0*(sqr(x1-y1)+sqr(x2-y2)) ) * inverse_divisor ) - 0.5 * exp( -0.25 * (sqr(x1)+sqr(x2)) * (u+v) * inverse_divisor ) - 0.5 * exp( -0.25 * (sqr(y1)+sqr(y2)) * (u+v) * inverse_divisor ) );
+        return /*missing factor is in G()*/exp(-sqr(m)*(u+v)) * inverse_divisor * ( exp( -0.25 * ( u*(sqr(y1)+sqr(y2)) + v*(sqr(x1)+sqr(x2)) + rH_sqr/2.0*(sqr(x1-y1)+sqr(x2-y2)) ) * inverse_divisor ) - 0.5 * exp( -0.25 * (sqr(x1)+sqr(x2)) * (u+v) * inverse_divisor ) - 0.5 * exp( -0.25 * (sqr(y1)+sqr(y2)) * (u+v) * inverse_divisor ) );
     }
 
 
@@ -123,7 +123,7 @@ namespace GBWModel
         double rb = std::sqrt(sqr(y1)+sqr(y2));
         float arg = (r==0.0 || rb==0.0) ? 0.0 : (x1*y1+x2*y2)/(r*rb);
 
-        double result = NH * CF * g2mu02  / (16.0*PI*PI) * G_ip.get_interp_value_tricubic(r, rb, acos(arg));
+        double result = CF * g2mu02  / (16.0*PI*PI) * G_ip.get_interp_value_bicubic_unilinear(r, rb, acos(arg));
 
         return result;
     }
