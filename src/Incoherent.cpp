@@ -141,7 +141,7 @@ namespace Incoherent
 
     double dsigmadt_cubature (double Q, double Delta)
     {
-        CubaConfig c_config;
+        CubatureConfig c_config;
         c_config.progress_monitor = true;
 
         IntegrationConfig i_config;
@@ -152,7 +152,7 @@ namespace Incoherent
 
         i_config.integrand_params = &params;
 
-        return dsigmadt(&c_config, &i_config);
+        return dsigmadt_cubature(&c_config, &i_config);
     }
 
 
@@ -192,11 +192,11 @@ namespace Incoherent
 }
 
 
-namespace Incoherent { namespace GeometryAverage
+namespace Incoherent { namespace Sampled
 {
     double A_integrand_function (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double Delta, const HotspotNucleus* h_nucleus)
     {
-        return gsl_sf_bessel_J0( std::sqrt(sqr(b1-bb1)+sqr(b2-bb2))*Delta ) * NRPhoton::wave_function(r1, r2, Q) * NRPhoton::wave_function(rb1, rb2, Q) * ( SaturationModel::GeometryAverage::dsigma_d2b_sqr(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0, bb1+rb1/2.0, bb2+rb2/2.0, bb1-rb1/2.0, bb2-rb2/2.0, h_nucleus) - SaturationModel::GeometryAverage::dsigma_d2b(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0, h_nucleus)*SaturationModel::GeometryAverage::dsigma_d2b(bb1+rb1/2.0, bb2+rb2/2.0, bb1-rb1/2.0, bb2-rb2/2.0, h_nucleus));
+        return gsl_sf_bessel_J0( std::sqrt(sqr(b1-bb1)+sqr(b2-bb2))*Delta ) * NRPhoton::wave_function(r1, r2, Q) * NRPhoton::wave_function(rb1, rb2, Q) * ( SaturationModel::Sampled::dsigma_d2b_sqr(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0, bb1+rb1/2.0, bb2+rb2/2.0, bb1-rb1/2.0, bb2-rb2/2.0, h_nucleus) - SaturationModel::Sampled::dsigma_d2b(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0, h_nucleus)*SaturationModel::Sampled::dsigma_d2b(bb1+rb1/2.0, bb2+rb2/2.0, bb1-rb1/2.0, bb2-rb2/2.0, h_nucleus));
     }
 
     int integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
@@ -218,7 +218,7 @@ namespace Incoherent { namespace GeometryAverage
         double bb1 = B1-db1/2.0;
         double bb2 = B2-db2/2.0;
 
-        ff[0] = xx[0]*xx[2]*xx[4]*xx[6] * Incoherent::GeometryAverage::A_integrand_function(b1-p->b01, b2-p->b02, r1, r2, bb1-p->b01, bb2-p->b02, rb1, rb2, p->Q,  p->Delta, p->h_nucleus);
+        ff[0] = xx[0]*xx[2]*xx[4]*xx[6] * Incoherent::Sampled::A_integrand_function(b1, b2, r1, r2, bb1, bb2, rb1, rb2, p->Q,  p->Delta, p->h_nucleus);
 
         return 0;
     }
@@ -270,8 +270,8 @@ namespace Incoherent { namespace GeometryAverage
         i_config->min[7] = 0.0;
         i_config->max[7] = 2.0*M_PI;
 
-        double factor = Incoherent::A_integrand_function_factor( ((AIntegrandParams*)(i_config->integrand_params))->Q ) * sqr(GeVm1Tofm) * fm2TonB;
+        double factor = Incoherent::A_integrand_function_factor( ((AIntegrandParams*)(i_config->integrand_params))->Q ) * sqr(GeVm1Tofm) * fm2TonB / (16.0*PI);
 
-        return factor*IntegrationRoutines::cubature_integrate_one_bessel(Incoherent::GeometryAverage::integrand, c_config, i_config);
+        return factor*IntegrationRoutines::cubature_integrate_one_bessel(Incoherent::Sampled::integrand, c_config, i_config);
     }
 } }

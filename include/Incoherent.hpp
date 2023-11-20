@@ -20,7 +20,7 @@ namespace Incoherent {
 }
 
 
-namespace Incoherent { namespace GeometryAverage
+namespace Incoherent { namespace Sampled
 {
     int integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff);
     double dsigmadt_single_event (double Q, double Delta, const HotspotNucleus& nucleus);

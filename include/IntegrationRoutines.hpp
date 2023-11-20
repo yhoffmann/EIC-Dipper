@@ -67,9 +67,6 @@ struct AIntegrandParams
     double Delta = 0.001;
     double Q = 0.3;
 
-    double b01 = 0.0;
-    double b02 = 0.0;
-
     const HotspotNucleus* h_nucleus = nullptr;
 };
 

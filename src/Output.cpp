@@ -4,7 +4,7 @@
 #include <thread>
 #include <unistd.h>
 #include "../include/IntegrationRoutines.hpp"
-#include "../include/Observables.hpp"
+#include "../include/Output.hpp"
 #include "../include/Coherent.hpp"
 #include "../include/Incoherent.hpp"
 #include "../include/constants.hpp"
@@ -12,22 +12,22 @@
 #include "../external/Nucleus/include/HotspotNucleus.hpp"
 
 
-namespace Observables
+namespace Output
 {
-    void calculate_dsigma_dt (bool do_coherent, bool do_incoherent, std::string output_file = "")
+    void dsigmadt (bool do_coherent, bool do_incoherent, std::string output_file = "")
     {
-        std::vector<double> default_Q_vec = {0.05, std::sqrt(0.1)};
+        std::vector<double> default_Q_vec = {/*0.05, */std::sqrt(0.1)};
         std::vector<double> default_Delta_vec = {0.001, 0.002, 0.005, 0.007, 0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.13, 0.17, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.7, 1.8, 1.9, 2.0, 2.3, 2.7, 3.0, 3.3, 3.7, 4.0};
         // std::vector<double> DeltaRange = {1.8, 1.9, 2.0, 2.05, 2.1, 2.11, 2.12, 2.13, 2.15, 2.16, 2.17, 2.18, 2.19, 2.20, 2.21, 2.22, 2.23, 2.24, 2.25, 2.26, 2.27, 2.28, 2.29, 2.3, 2.45, 2.50, 2.55, 2.60, 2.65, 2.70, 2.75, 2.80, 2.9, 3.0};
 
-        calculate_dsigma_dt(do_coherent, do_incoherent, default_Q_vec, default_Delta_vec, output_file);
+        dsigmadt(do_coherent, do_incoherent, default_Q_vec, default_Delta_vec, output_file);
     }
     
 
-    void calculate_dsigma_dt (bool do_coherent, bool do_incoherent, std::vector<double> Q_vec, std::vector<double> Delta_vec, std::string filepath)
+    void dsigmadt (bool do_coherent, bool do_incoherent, std::vector<double> Q_vec, std::vector<double> Delta_vec, std::string filepath)
     {
         double coherent_results[Q_vec.size()][Delta_vec.size()];
-        double demirci_coherent_results[Q_vec.size()][Delta_vec.size()];
+        //double demirci_coherent_results[Q_vec.size()][Delta_vec.size()];
         double incoherent_results[Q_vec.size()][Delta_vec.size()];
 #ifndef _QUIET
         std::cout << "Integrating with different parameters..." << std::endl;
@@ -84,30 +84,33 @@ namespace Observables
     }
 
 
-    void calculate_dsigma_dt_nucleus (uint atomic_num, uint num_hotspots, uint seed, std::string filepath)
+    uint get_unique_process_id()
+    {
+        std::thread::id thread_id_temp = std::this_thread::get_id();
+        std::hash<std::thread::id> hash;
+
+        return hash(thread_id_temp)*getpid();
+    }
+
+
+    void dsigmadt_nucleus (uint atomic_num, uint num_hotspots, uint seed, std::string filepath)
     {
         std::vector<double> default_Q_vec = {0.05, std::sqrt(0.1)};
         std::vector<double> default_Delta_vec = {0.001, 0.002, 0.005, 0.007, 0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.13, 0.17, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.7, 1.8, 1.9, 2.0, 2.3, 2.7, 3.0, 3.3, 3.7, 4.0};
         // std::vector<double> DeltaRange = {1.8, 1.9, 2.0, 2.05, 2.1, 2.11, 2.12, 2.13, 2.15, 2.16, 2.17, 2.18, 2.19, 2.20, 2.21, 2.22, 2.23, 2.24, 2.25, 2.26, 2.27, 2.28, 2.29, 2.3, 2.45, 2.50, 2.55, 2.60, 2.65, 2.70, 2.75, 2.80, 2.9, 3.0};
 
-        calculate_dsigma_dt_nucleus(atomic_num, num_hotspots, seed, default_Q_vec, default_Delta_vec, filepath);
+        dsigmadt_nucleus(atomic_num, num_hotspots, seed, default_Q_vec, default_Delta_vec, filepath);
     }
 
 
-    void calculate_dsigma_dt_nucleus (uint atomic_num, uint num_hotspots, uint seed, std::vector<double> Q_vec, std::vector<double> Delta_vec, std::string filepath)
+    void dsigmadt_nucleus (uint atomic_num, uint num_hotspots, uint seed, std::vector<double> Q_vec, std::vector<double> Delta_vec, std::string filepath)
     {
         double coherent_results_real[Q_vec.size()][Delta_vec.size()];
         double coherent_results_imag[Q_vec.size()][Delta_vec.size()];
         double incoherent_results[Q_vec.size()][Delta_vec.size()];
 
-        if (seed == 0)
-        {
-            std::thread::id thread_id_temp = std::this_thread::get_id();
-            std::hash<std::thread::id> hash;
-            uint thread_id = hash(thread_id_temp);
-
-            seed = thread_id*getpid();
-        }
+        if (seed==0)
+            seed = get_unique_process_id();
 
         std::mt19937 rng(seed);
 
@@ -118,17 +121,21 @@ namespace Observables
         {
             for (uint i = 0; i < Q_vec.size(); i++)
             {
-                auto [coh_real, coh_imag] = Coherent::GeometryAverage::sqrt_dsigmadt_single_event(Q_vec[i], Delta_vec[i], nucleus);
+                auto [coh_real, coh_imag] = Coherent::Sampled::sqrt_dsigmadt_single_event(Q_vec[i], Delta_vec[j], nucleus);
 
                 coherent_results_real[i][j] = coh_real;
                 coherent_results_imag[i][j] = coh_imag;
 
-                //incoherent_results[i][j] = Incoherent::GeometryAverage::dsigma_dt_single_event(Q_vec[i], Delta_vec[i], nucleus);
+                incoherent_results[i][j] = Incoherent::Sampled::dsigmadt_single_event(Q_vec[i], Delta_vec[j], nucleus);
             }
         }
 
         if (filepath == std::string(""))
-            filepath = "Data/raw/" + std::to_string(seed);
+    #ifndef _DILUTE
+            filepath = "Data/raw/dense/" + std::to_string(seed);
+    #else
+            filepath = "Data/raw/dilute/" + std::to_string(seed);
+    #endif
         else filepath += std::to_string(seed);
 
         std::ofstream out;
@@ -154,7 +161,7 @@ namespace Observables
     }
 
 
-    void calculate_G (unsigned int num_points, std::string filepath)
+    void G (unsigned int num_points, std::string filepath)
     {
         double results[num_points][3];
         #pragma omp parallel for schedule(dynamic,1)
@@ -183,5 +190,56 @@ namespace Observables
         }
 
         out.close();
+    }
+
+
+    void hotspot_nucleus_thickness_1d (uint atomic_num, uint num_hotspots_per_nucleon, uint num_samples, uint num_points, uint seed, std::string filepath)
+    {
+        if (seed==0)
+            seed = get_unique_process_id();
+
+        std::mt19937 rng(seed);
+
+        HotspotNucleus hn(atomic_num, num_hotspots_per_nucleon, rng);
+
+        double* thickness = new double [num_points];
+        double* x = new double [num_points];
+        if (thickness==nullptr || x==nullptr)
+            exit(24);
+
+        double x_max = hn.get_mean_bulk_radius()+10.0*hn.get_mean_surface_diffusiveness(), x_min = -x_max;
+        double inverse_x_divisor = 1.0/double(num_points-1);
+        for (uint i=0; i<num_points; i++)
+        {
+            thickness[i] = 0.0;
+            x[i] = x_min+(x_max-x_min)*double(i)*inverse_x_divisor;
+        }
+        
+        for (uint i=0; i<num_samples; i++)
+        {
+            for (uint j=0; j<num_points; j++)
+            {
+                thickness[j] += hn.get_hotspot_thickness(x[j], 0.0);
+            }
+            hn.sample_nucleon_pos();
+        }
+
+        double inverse_thickness_divisor = 1.0/double(num_samples);
+        for (uint i=0; i<num_points; i++)
+            thickness[i] *= inverse_thickness_divisor;
+
+        if (filepath=="")
+            filepath = "Data/hotspot_nucleus_thickness_1d.dat";
+
+        std::ofstream out(filepath);
+        if (!out.is_open())
+            exit(20);
+
+        for (uint i=0; i<num_points; i++)
+            out << x[i] << " " << thickness[i] << std::endl;
+
+        out.close();
+
+        delete[] thickness;
     }
 }

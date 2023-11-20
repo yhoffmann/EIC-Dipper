@@ -160,7 +160,7 @@ namespace Coherent { namespace Demirci
 
     double Z_integrand_function_factor (double Q, double Delta)
     {
-        return NRPhoton::wave_function_factor(Q) / (4.0*PI) * g2mu02_demirci * NH * CF / PI * exp(-RC_sqr*sqr(Delta)/2.0);
+        return NRPhoton::wave_function_factor(Q) / (4.0*PI) * g2mu02 * NH * CF / PI * exp(-RC_sqr*sqr(Delta)/2.0);
     }
 
 
@@ -227,19 +227,19 @@ namespace Coherent { namespace Demirci
 } }
 
 
-namespace Coherent { namespace GeometryAverage
+namespace Coherent { namespace Sampled
 {
     double A_integrand_function (double b1, double b2, double r1, double r2, double Q, double Delta, const HotspotNucleus* nucleus)
     {
-        return NRPhoton::wave_function(r1, r2, Q) * gsl_sf_bessel_J0( std::sqrt(sqr(b1)+sqr(b2))*Delta ) * SaturationModel::GeometryAverage::dsigma_d2b(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0, nucleus);
+        return NRPhoton::wave_function(r1, r2, Q) * gsl_sf_bessel_J0(std::sqrt(sqr(b1)+sqr(b2))*Delta) * SaturationModel::Sampled::dsigma_d2b(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0, nucleus);
     }
 
 
     int integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
     {
-        AIntegrandParams* params = ((AIntegrandParams*)(((IntegrationConfig*)userdata)->integrand_params));
+        AIntegrandParams* params = (AIntegrandParams*)(((IntegrationConfig*)userdata)->integrand_params);
 
-        ff[0] = xx[0]*xx[2]*Coherent::GeometryAverage::A_integrand_function(xx[0]*cos(xx[1])-params->b01, xx[0]*sin(xx[1])-params->b02, xx[2]*cos(xx[3]), xx[2]*sin(xx[3]), params->Q, params->Delta, params->h_nucleus);
+        ff[0] = xx[0]*xx[2]*Coherent::Sampled::A_integrand_function(xx[0]*cos(xx[1]), xx[0]*sin(xx[1]), xx[2]*cos(xx[3]), xx[2]*sin(xx[3]), params->Q, params->Delta, params->h_nucleus);
 
         return 0;
     }
@@ -279,8 +279,8 @@ namespace Coherent { namespace GeometryAverage
         i_config->min[3] = 0.0;
         i_config->max[3] = 2.0*M_PI;
 
-        double factor = Coherent::A_integrand_function_factor( ((AIntegrandParams*)(i_config->integrand_params))->Q ) * GeVm1Tofm * std::sqrt(fm2TonB);
+        double factor = Coherent::A_integrand_function_factor( ((AIntegrandParams*)(i_config->integrand_params))->Q ) * GeVm1Tofm * std::sqrt(fm2TonB) / (4.0*M_SQRTPI);
 
-        return {factor*0.0, factor*IntegrationRoutines::cubature_integrate_one_bessel(Coherent::GeometryAverage::integrand, c_config, i_config)};
+        return {factor*0.0, factor*IntegrationRoutines::cubature_integrate_one_bessel(Coherent::Sampled::integrand, c_config, i_config)};
     }
 } }

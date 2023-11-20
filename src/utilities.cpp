@@ -7,6 +7,8 @@
 #include <gsl/gsl_math.h>
 #include <iostream>
 #include <fstream>
+#include <sstream>
+#include <string>
 #include <stdlib.h>
 
 
@@ -72,6 +74,7 @@ void set_import_filepath_by_parameters (std::string& filepath, const DataGenerat
     }
     else 
     {
+        return; // the rest below is not needed anymore
         file_check.close();
         std::cout << "File with name " << filepath << " for m=" << m << " found. Do you want to make that the active filepath? (y/n)" << std::endl;
 
@@ -90,7 +93,7 @@ void set_import_filepath_by_parameters (std::string& filepath, const DataGenerat
 
 void set_parameters (int argc, char** argv)
 {
-    std::string error_message = "Invalid option. Valid flags are\n"
+    const std::string error_message = "Invalid option. Valid flags are\n"
                 "[-pm] (progress monitor)\n"
                 "[-m <gluon mass>]\n"
                 "[-A <atomic number>]\n"
@@ -101,52 +104,62 @@ void set_parameters (int argc, char** argv)
 
     for (int i=1; i<argc; i+=2)
     {
-        if (!strcmp(argv[i], "-pm"))
+        std::istringstream flag(argv[i]);
+
+        if (flag.str()=="-pm")
         {
             progress_monitor_global = true;
             --i;
             continue;
         }
-        else if (i+1==argc)
+
+        if (i+1==argc)
         {
             std::cerr << error_message << std::endl;
             exit(23);
         }
-        else if (!strcmp(argv[i], "-o"))
+
+        std::istringstream arg(argv[i+1]);
+        std::string arg_string;
+        if (flag.str()=="-o" && (arg >> arg_string))
         {
-            filepath_global = std::string(argv[i+1]);
+            filepath_global = arg_string;
             continue;
         }
 
-        if (std::atof(argv[i+1])==0.0 && std::atoi(argv[i+1])==0)
+        double arg_number;
+
+        if ( !(arg >> arg_number) || !arg.eof() )
         {
-            std::cerr << "Please enter a valid number other than 0" << std::endl;
+            std::cerr << "You entered \"" << arg.str() << "\". Please enter a valid argument for the flag." << std::endl;
             std::cerr << error_message << std::endl;
             exit(23);
         }
 
-        if (!strcmp(argv[i], "-m"))
-            m = std::atof(argv[i+1]);
-        else if (!strcmp(argv[i], "-H"))
+        if (flag.str()=="-m")
+            m = arg_number;
+        
+        else if (flag.str()=="-H")
         {
-            H = std::atoi(argv[i+1]);
-            NH = double(H);
+            H = std::round(arg_number);
+            NH = arg_number;
             RC_sqr = rH_sqr + (NH-1.0)/NH*R_sqr;
-            g2mu02 = g2mu02_factor*rH_sqr/NH;
+            g2mu02 = g2mu02_factor*RC_sqr/NH;
         }
-        else if (!strcmp(argv[i], "-rH2"))
+        else if (flag.str()=="-rH2")
         {
-            rH_sqr = std::atof(argv[i+1]);
+            rH_sqr = arg_number;
             RC_sqr = rH_sqr + (NH-1.0)/NH*R_sqr;
-            g2mu02 = g2mu02_factor*rH_sqr/NH;
+            g2mu02 = g2mu02_factor*RC_sqr/NH;
         }
-        else if (!strcmp(argv[i], "-Rp2"))
+        else if (flag.str()=="-Rp2")
         {
-            R_sqr = std::atof(argv[i+1]);
+            R_sqr = arg_number;
             RC_sqr = rH_sqr + (NH-1.0)/NH*R_sqr;
         }
-        else if (!strcmp(argv[i], "-A"))
-            A = std::atoi(argv[i+1]);
+        else if (flag.str()=="-A")
+            A = std::round(arg_number);
+        
         else
         {
             std::cerr << error_message << std::endl;

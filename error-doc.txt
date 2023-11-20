@@ -3,3 +3,4 @@
 21, program aborted because interpolator data file could not be found (user chose "no" when asked to generate new data set)
 22, user chose "no" when asked whether to load interpolatordata from that path
 23, unknown command line flag
+24, bad alloc

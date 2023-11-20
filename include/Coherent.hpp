@@ -33,7 +33,7 @@ namespace Coherent { namespace Demirci
 } }
 
 
-namespace Coherent { namespace GeometryAverage
+namespace Coherent { namespace Sampled
 {
     double A_integrand_function(double b1, double b2, double r1, double r2, double Q, double Delta, const HotspotNucleus* nucleus);
 

@@ -123,7 +123,7 @@ namespace GBWModel
         double rb = std::sqrt(sqr(y1)+sqr(y2));
         float arg = (r==0.0 || rb==0.0) ? 0.0 : (x1*y1+x2*y2)/(r*rb);
 
-        double result = CF * g2mu02  / (16.0*PI*PI) * G_ip.get_interp_value_bicubic_unilinear(r, rb, acos(arg));
+        double result = g2mu02  / (16.0*PI*PI) * G_ip.get_interp_value_tricubic(r, rb, acos(arg));
 
         return result;
     }
