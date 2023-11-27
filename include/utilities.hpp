@@ -10,6 +10,7 @@
 #include <thread>
 #include "constants.hpp"
 #include "../external/Interpolation3D/include/Interpolator3D.hpp"
+#include "../external/Nucleus/include/HotspotNucleus.hpp"
 
 
 const DataGenerationConfig default_data_generation_config { .x_max = 8.0/m, .y_max = 8.0/m, .n_z = 40 };
@@ -40,4 +41,6 @@ inline std::mt19937 rng;
 inline std::uniform_real_distribution<double> dist_01 = std::uniform_real_distribution<double>();
 
 
-void print_infos (std::ofstream& out);
+void print_infos (std::ofstream& out, uint seed);
+
+void print_infos (std::ofstream& out, uint seed, const HotspotNucleus& nucleus);

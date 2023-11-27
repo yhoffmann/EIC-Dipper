@@ -97,7 +97,7 @@ namespace Coherent
     double dsigmadt_cubature (double Q, double Delta)
     {
         CubatureConfig c_config;
-        c_config.progress_monitor = true;
+        c_config.progress_monitor = progress_monitor_global;
 
         IntegrationConfig i_config;
         

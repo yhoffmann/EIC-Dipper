@@ -144,18 +144,19 @@ void set_parameters (int argc, char** argv)
             H = std::round(arg_number);
             NH = arg_number;
             RC_sqr = rH_sqr + (NH-1.0)/NH*R_sqr;
-            g2mu02 = g2mu02_factor*RC_sqr/NH;
+            //g2mu02 = g2mu02_factor*RC_sqr/NH;
         }
         else if (flag.str()=="-rH2")
         {
             rH_sqr = arg_number;
             RC_sqr = rH_sqr + (NH-1.0)/NH*R_sqr;
-            g2mu02 = g2mu02_factor*RC_sqr/NH;
+            //g2mu02 = g2mu02_factor*RC_sqr/NH;
         }
         else if (flag.str()=="-Rp2")
         {
             R_sqr = arg_number;
             RC_sqr = rH_sqr + (NH-1.0)/NH*R_sqr;
+            //g2mu02 = g2mu02_factor*RC_sqr/NH;
         }
         else if (flag.str()=="-A")
             A = std::round(arg_number);
@@ -169,13 +170,30 @@ void set_parameters (int argc, char** argv)
 }
 
 
-void print_infos (std::ofstream& out)
+void print_infos (std::ofstream& out, uint seed)
 {
     out << "#m=" << m << std::endl;
     out << "#A=" << A << std::endl;
     out << "#H=" << H << std::endl;
-    out << "#NH=" << NH << std::endl;
     out << "#rH2=" << rH_sqr << std::endl;
     out << "#Rp2=" << R_sqr << std::endl;
     out << "#RC2=" << RC_sqr << std::endl;
+    out << "#Seed=" << seed << std::endl;
+}
+
+
+void print_infos (std::ofstream& out, uint seed, const HotspotNucleus& nucleus)
+{
+    print_infos(out, seed);
+
+    for (uint n=0, n_max=nucleus.get_atomic_num(); n<n_max; n++)
+    {
+        out << "#Nucleon " << n << std::endl;
+        for (uint i=0, i_max=nucleus.get_num_hotspots_per_nucleon(); i<i_max; i++)
+        {
+            const double* hotspot_pos = nucleus.get_hotspot_pos(n, i);
+
+            out << "#" << hotspot_pos[0] << " " << hotspot_pos[1] << std::endl;
+        }
+    }
 }

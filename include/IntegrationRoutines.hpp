@@ -54,7 +54,7 @@ struct CubatureConfig
     double rel_err = 1.0e-6;
     error_norm err_norm = ERROR_INDIVIDUAL;
 
-    double bessel_tolerance = 1.0e-5;
+    double bessel_tolerance = 1.0e-4;
     uint max_oscillations = 40;
     uint ocillations_per_partial_sum = 3;
 

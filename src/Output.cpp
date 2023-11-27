@@ -95,8 +95,8 @@ namespace Output
 
     void dsigmadt_nucleus (uint atomic_num, uint num_hotspots, uint seed, std::string filepath)
     {
-        std::vector<double> default_Q_vec = {0.05, std::sqrt(0.1)};
-        std::vector<double> default_Delta_vec = {0.001, 0.002, 0.005, 0.007, 0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.13, 0.17, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.7, 1.8, 1.9, 2.0, 2.3, 2.7, 3.0, 3.3, 3.7, 4.0};
+        std::vector<double> default_Q_vec = {std::sqrt(0.1)};
+        std::vector<double> default_Delta_vec = {0.001, 0.002, 0.005, 0.007, 0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.13, 0.17, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.3, 2.6, 2.9, 3.2, 3.5, 3.8, 4.1};
         // std::vector<double> DeltaRange = {1.8, 1.9, 2.0, 2.05, 2.1, 2.11, 2.12, 2.13, 2.15, 2.16, 2.17, 2.18, 2.19, 2.20, 2.21, 2.22, 2.23, 2.24, 2.25, 2.26, 2.27, 2.28, 2.29, 2.3, 2.45, 2.50, 2.55, 2.60, 2.65, 2.70, 2.75, 2.80, 2.9, 3.0};
 
         dsigmadt_nucleus(atomic_num, num_hotspots, seed, default_Q_vec, default_Delta_vec, filepath);
@@ -144,7 +144,7 @@ namespace Output
         if (!out.is_open())
             exit(20);
 
-        print_infos(out);
+        print_infos(out, seed, nucleus);
 
         out << "##Delta,   Q,        A Co real,Co imag,  A2 Inco\n";
         

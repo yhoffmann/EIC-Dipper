@@ -116,15 +116,12 @@ namespace GBWModel
 
     Interpolator3D G_ip;
 
-
     double G (double x1, double x2, double y1, double y2)
     {
         double r = std::sqrt(sqr(x1)+sqr(x2));
         double rb = std::sqrt(sqr(y1)+sqr(y2));
         float arg = (r==0.0 || rb==0.0) ? 0.0 : (x1*y1+x2*y2)/(r*rb);
 
-        double result = g2mu02  / (16.0*PI*PI) * G_ip.get_interp_value_tricubic(r, rb, acos(arg));
-
-        return result;
+        return CF * g2mu02 / (16.0*PI*PI) * G_ip.get_interp_value_tricubic(r, rb, acos(arg));
     }
 }
