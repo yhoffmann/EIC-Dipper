@@ -8,8 +8,6 @@
 namespace GBWModel
 {
     extern Interpolator3D G_ip;
-
-    extern Interpolator3D G_dilute_ip;
     
     double T_times_sigma0(double b1, double b2);
 
