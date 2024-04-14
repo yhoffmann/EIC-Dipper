@@ -10,6 +10,8 @@
 #include <sstream>
 #include <string>
 #include <stdlib.h>
+#include <unistd.h>
+#include <time.h>
 
 
 double sqr (double x)
@@ -34,7 +36,6 @@ void set_import_filepath_by_parameters (std::string& filepath, const DataGenerat
     filepath = "InterpolatorData/";
 
     filepath += "G_rH2_"+rH_sqr_path+"_m_0"+m_path+".dat";
-
 #ifndef _QUIET
     std::ifstream file_check (filepath);
 
@@ -46,7 +47,7 @@ void set_import_filepath_by_parameters (std::string& filepath, const DataGenerat
         file_check.close();
         std::string answer;
 
-        std::cout << "No data for this combination of m(=" << m << ") and rH2(=" << rH_sqr << "). Do you want to generate that data set? (y/n)\n(The path to the new file would be " << filepath << ". File size would be (at most) " << (config->n_x+config->n_y+config->n_z+2+config->n_x*config->n_y*config->n_z)*17.0/1.0e6 << "MB.)" << std::endl;
+        std::cout << "No data for this combination of m(=" << m << ") and rH2(=" << rH_sqr << "). Do you want to generate that data set? (y/n)\n(The path to the new file would be " << filepath << ". File size would be (at most) " << (config->nx+config->ny+config->nz+2+config->nx*config->ny*config->nz)*17.0/1.0e6 << "MB.)" << std::endl;
         bool input_accepted = false;
         while (!input_accepted)
         {
@@ -74,7 +75,7 @@ void set_import_filepath_by_parameters (std::string& filepath, const DataGenerat
     }
     else 
     {
-        return; // the rest below is not needed anymore
+        return;
         file_check.close();
         std::cout << "File with name " << filepath << " for m=" << m << " found. Do you want to make that the active filepath? (y/n)" << std::endl;
 
@@ -121,6 +122,7 @@ void set_parameters (int argc, char** argv)
 
         std::istringstream arg(argv[i+1]);
         std::string arg_string;
+
         if (flag.str()=="-o" && (arg >> arg_string))
         {
             filepath_global = arg_string;
@@ -131,7 +133,7 @@ void set_parameters (int argc, char** argv)
 
         if ( !(arg >> arg_number) || !arg.eof() )
         {
-            std::cerr << "You entered \"" << arg.str() << "\". Please enter a valid argument for the flag." << std::endl;
+            std::cerr << "You entered the argument \"" << arg.str() << "\" for the option " << "\"" << flag.str() << "\". Either the option or the argument are invalid." << std::endl;
             std::cerr << error_message << std::endl;
             exit(23);
         }
@@ -141,7 +143,7 @@ void set_parameters (int argc, char** argv)
         
         else if (flag.str()=="-H")
         {
-            H = std::round(arg_number);
+            H = uint(std::round(arg_number));
             NH = arg_number;
             RC_sqr = rH_sqr + (NH-1.0)/NH*R_sqr;
             //g2mu02 = g2mu02_factor*RC_sqr/NH;
@@ -159,7 +161,7 @@ void set_parameters (int argc, char** argv)
             //g2mu02 = g2mu02_factor*RC_sqr/NH;
         }
         else if (flag.str()=="-A")
-            A = std::round(arg_number);
+            A = uint(std::round(arg_number));
         
         else
         {
@@ -191,9 +193,22 @@ void print_infos (std::ofstream& out, uint seed, const HotspotNucleus& nucleus)
         out << "#Nucleon " << n << std::endl;
         for (uint i=0, i_max=nucleus.get_num_hotspots_per_nucleon(); i<i_max; i++)
         {
-            const double* hotspot_pos = nucleus.get_hotspot_pos(n, i);
+            HotspotPos hotspot_pos = *nucleus.get_hotspot_pos(n, i);
 
-            out << "#" << hotspot_pos[0] << " " << hotspot_pos[1] << std::endl;
+            out << "#" << hotspot_pos.x << " " << hotspot_pos.y << std::endl;
         }
     }
+}
+
+
+uint get_unique_seed()
+{
+    std::thread::id thread_id_temp = std::this_thread::get_id();
+    std::hash<std::thread::id> hash;
+
+    uint seed = hash(thread_id_temp)*getpid()/time(0);
+    if (seed==0)
+        seed = hash(thread_id_temp)*getpid()-time(0);
+
+    return seed;
 }
