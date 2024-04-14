@@ -39,10 +39,10 @@ namespace SaturationModel
         double T_xy_ybxb = G_xxb + G_yyb - G_xyb - G_xby;
         double T_xxb_yby = G_xy + G_xbyb - G_xyb - G_xby;
         
-        double a = G_xy + G_xbyb - T_xy_ybxb / (sqr(Nc)-1.0);
-        double b = T_xy_ybxb / (2.0*CF);
-        double c = T_xxb_yby / (2.0*CF);
-        double d = G_xxb + G_yyb - T_xxb_yby / (sqr(Nc)-1.0);
+        double a = G_xy + G_xbyb - T_xy_ybxb*Ncsqrm1_inverse;
+        double b = T_xy_ybxb*twoCF_inverse;
+        double c = T_xxb_yby*twoCF_inverse;
+        double d = G_xxb + G_yyb - T_xxb_yby*Ncsqrm1_inverse;
 
         double Sqrt = std::sqrt( 4.0*b*c + sqr(a-d) );
         double factor = ( a-d+2.0*b ) / Sqrt;
@@ -71,10 +71,10 @@ namespace SaturationModel
         double T_xy_ybxb = G_xxb + G_yyb - G_xyb - G_xby;
         double T_xxb_yby = G_xy + G_xbyb - G_xyb - G_xby;
         
-        double a = G_xy + G_xbyb - T_xy_ybxb / (sqr(Nc)-1.0);
-        double b = T_xy_ybxb / (2.0*CF);
-        double c = T_xxb_yby / (2.0*CF);
-        double d = G_xxb + G_yyb - T_xxb_yby / (sqr(Nc)-1.0);
+        double a = G_xy + G_xbyb - T_xy_ybxb*Ncsqrm1_inverse;
+        double b = T_xy_ybxb*twoCF_inverse;
+        double c = T_xxb_yby*twoCF_inverse;
+        double d = G_xxb + G_yyb - T_xxb_yby*Ncsqrm1_inverse;
 
         double Sqrt = std::sqrt( 4.0*b*c + sqr(a-d) );
 if (Sqrt == 0.0) std::cout << x1 << " " << x2 << " " << y1 << " " << y2 << " " << xb1 << " " << xb2 << " " << yb1 << " " << yb2 << "\n" << G_xy << " " << G_xbyb << " " << G_xxb << " " << G_xyb << " " << G_xby << " " << G_yyb << "\n" << a << " " << b << " " << c << " " << d << std::endl;
@@ -98,11 +98,9 @@ if (Sqrt == 0.0) std::cout << x1 << " " << x2 << " " << y1 << " " << y2 << " " <
             for (uint n=0, a=nucleus->get_atomic_num(); n<a; ++n)
                 for (uint i=0, nh=nucleus->get_num_hotspots_per_nucleon(); i<nh; ++i)
                 {
-                    const double* B0_ptr = nucleus->get_hotspot_pos(n, i);
+                    HotspotPos b0 = *nucleus->get_hotspot_pos(n, i);
 
-                    double B0[2] = {B0_ptr[0], B0_ptr[1]};
-
-                    G_sum += GBWModel::G(x1-B0[0], x2-B0[1], y1-B0[0], y2-B0[1]);
+                    G_sum += GBWModel::G(x1-b0.x, x2-b0.y, y1-b0.x, y2-b0.y);
                 }
 
             return 2.0*( 1.0-D(G_sum) );
@@ -121,18 +119,16 @@ if (Sqrt == 0.0) std::cout << x1 << " " << x2 << " " << y1 << " " << y2 << " " <
             for (uint n=0, a=nucleus->get_atomic_num(); n<a; ++n)
                 for (uint i=0, nh=nucleus->get_num_hotspots_per_nucleon(); i<nh; ++i)
                 {
-                    const double* B0_ptr = nucleus->get_hotspot_pos(n, i);
+                    HotspotPos b0 = *nucleus->get_hotspot_pos(n, i);
 
-                    double B0[2] = {B0_ptr[0], B0_ptr[1]};
-
-                    double x1_mod = x1-B0[0];
-                    double x2_mod = x2-B0[1];
-                    double y1_mod = y1-B0[0];
-                    double y2_mod = y2-B0[1];
-                    double xb1_mod = xb1-B0[0];
-                    double xb2_mod = xb2-B0[1];
-                    double yb1_mod = yb1-B0[0];
-                    double yb2_mod = yb2-B0[1];
+                    double x1_mod = x1-b0.x;
+                    double x2_mod = x2-b0.y;
+                    double y1_mod = y1-b0.x;
+                    double y2_mod = y2-b0.y;
+                    double xb1_mod = xb1-b0.x;
+                    double xb2_mod = xb2-b0.y;
+                    double yb1_mod = yb1-b0.x;
+                    double yb2_mod = yb2-b0.y;
 
                     G_xy_sum += GBWModel::G(x1_mod, x2_mod, y1_mod, y2_mod);
                     G_xbyb_sum += GBWModel::G(xb1_mod, xb2_mod, yb1_mod, yb2_mod);
@@ -145,10 +141,10 @@ if (Sqrt == 0.0) std::cout << x1 << " " << x2 << " " << y1 << " " << y2 << " " <
             double T_xy_ybxb = G_xxb_sum + G_yyb_sum - G_xyb_sum - G_xby_sum;
             double T_xxb_yby = G_xy_sum + G_xbyb_sum - G_xyb_sum - G_xby_sum;
             
-            double a = G_xy_sum + G_xbyb_sum - T_xy_ybxb / (sqr(Nc)-1.0);
-            double b = T_xy_ybxb / (2.0*CF);
-            double c = T_xxb_yby / (2.0*CF);
-            double d = G_xxb_sum + G_yyb_sum - T_xxb_yby / (sqr(Nc)-1.0);
+            double a = G_xy_sum + G_xbyb_sum - T_xy_ybxb*Ncsqrm1_inverse;
+            double b = T_xy_ybxb*twoCF_inverse;
+            double c = T_xxb_yby*twoCF_inverse;
+            double d = G_xxb_sum + G_yyb_sum - T_xxb_yby*Ncsqrm1_inverse;
 
             double Sqrt = std::sqrt( 4.0*b*c + sqr(a-d) );
             double factor = ( a-d+2.0*b ) / Sqrt;
@@ -176,18 +172,16 @@ if (Sqrt == 0.0) std::cout << x1 << " " << x2 << " " << y1 << " " << y2 << " " <
             for (uint n=0, a=nucleus->get_atomic_num(); n<a; ++n)
                 for (uint i=0, nh=nucleus->get_num_hotspots_per_nucleon(); i<nh; ++i)
                 {
-                    const double* B0_ptr = nucleus->get_hotspot_pos(n, i);
+                    HotspotPos b0 = *nucleus->get_hotspot_pos(n, i);
 
-                    double B0[2] = {B0_ptr[0], B0_ptr[1]};
-
-                    double x1_mod = x1-B0[0];
-                    double x2_mod = x2-B0[1];
-                    double y1_mod = y1-B0[0];
-                    double y2_mod = y2-B0[1];
-                    double xb1_mod = xb1-B0[0];
-                    double xb2_mod = xb2-B0[1];
-                    double yb1_mod = yb1-B0[0];
-                    double yb2_mod = yb2-B0[1];
+                    double x1_mod = x1-b0.x;
+                    double x2_mod = x2-b0.y;
+                    double y1_mod = y1-b0.x;
+                    double y2_mod = y2-b0.y;
+                    double xb1_mod = xb1-b0.x;
+                    double xb2_mod = xb2-b0.y;
+                    double yb1_mod = yb1-b0.x;
+                    double yb2_mod = yb2-b0.y;
             #ifndef _DILUTE
                     G_xy_sum += GBWModel::G(x1_mod, x2_mod, y1_mod, y2_mod);
                     G_xbyb_sum += GBWModel::G(xb1_mod, xb2_mod, yb1_mod, yb2_mod);
@@ -200,11 +194,11 @@ if (Sqrt == 0.0) std::cout << x1 << " " << x2 << " " << y1 << " " << y2 << " " <
     #ifndef _DILUTE
             double T_xy_ybxb = G_xxb_sum + G_yyb_sum - G_xyb_sum - G_xby_sum;
             double T_xxb_yby = G_xy_sum + G_xbyb_sum - G_xyb_sum - G_xby_sum;
-            
-            double a = G_xy_sum + G_xbyb_sum - T_xy_ybxb / (sqr(Nc)-1.0);
-            double b = T_xy_ybxb / (2.0*CF);
-            double c = T_xxb_yby / (2.0*CF);
-            double d = G_xxb_sum + G_yyb_sum - T_xxb_yby / (sqr(Nc)-1.0);
+
+            double a = G_xy_sum + G_xbyb_sum - T_xy_ybxb*Ncsqrm1_inverse;
+            double b = T_xy_ybxb*twoCF_inverse;
+            double c = T_xxb_yby*twoCF_inverse;
+            double d = G_xxb_sum + G_yyb_sum - T_xxb_yby*Ncsqrm1_inverse;
 
             double Sqrt = std::sqrt( 4.0*b*c + sqr(a-d) );
             double factor = ( a-d+2.0*b ) / Sqrt;
