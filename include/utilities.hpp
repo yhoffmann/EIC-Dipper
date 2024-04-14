@@ -13,7 +13,7 @@
 #include "../external/Nucleus/include/HotspotNucleus.hpp"
 
 
-const DataGenerationConfig default_data_generation_config { .x_max = 8.0/m, .y_max = 8.0/m, .n_z = 40 };
+const DataGenerationConfig default_data_generation_config { .x_max = 8.0/m, .y_max = 8.0/m, .nz = 40 };
 
 
 inline bool progress_monitor_global = false;
@@ -44,3 +44,6 @@ inline std::uniform_real_distribution<double> dist_01 = std::uniform_real_distri
 void print_infos (std::ofstream& out, uint seed);
 
 void print_infos (std::ofstream& out, uint seed, const HotspotNucleus& nucleus);
+
+
+uint get_unique_seed();
