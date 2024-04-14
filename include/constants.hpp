@@ -57,3 +57,10 @@ const double R_MAX = R_RANGE_FACTOR/m_Q_c;
 const double g2mu02_demirci = std::sqrt(43.22);
 const double g2mu02_factor = g2mu02_demirci/(2.9)*3.0;
 inline double g2mu02 = g2mu02_demirci;
+
+// useful consts for speed
+const double Ncsqrm1 = Nc*Nc-1.0;
+const double Ncsqrm1_inverse = 1.0/Ncsqrm1;
+const double twoNc = 2.0*Nc;
+const double twoNc_inverse = 1.0/twoNc;
+const double twoCF_inverse = 1.0/(2.0*CF);
