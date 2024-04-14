@@ -84,15 +84,6 @@ namespace Output
     }
 
 
-    uint get_unique_process_id()
-    {
-        std::thread::id thread_id_temp = std::this_thread::get_id();
-        std::hash<std::thread::id> hash;
-
-        return hash(thread_id_temp)*getpid();
-    }
-
-
     void dsigmadt_nucleus (uint atomic_num, uint num_hotspots, uint seed, std::string filepath)
     {
         std::vector<double> default_Q_vec = {std::sqrt(0.1)};
@@ -110,7 +101,7 @@ namespace Output
         double incoherent_results[Q_vec.size()][Delta_vec.size()];
 
         if (seed==0)
-            seed = get_unique_process_id();
+            seed = get_unique_seed();
 
         std::mt19937 rng(seed);
 
@@ -196,14 +187,14 @@ namespace Output
     void hotspot_nucleus_thickness_1d (uint atomic_num, uint num_hotspots_per_nucleon, uint num_samples, uint num_points, uint seed, std::string filepath)
     {
         if (seed==0)
-            seed = get_unique_process_id();
+            seed = get_unique_seed();
 
         std::mt19937 rng(seed);
 
         HotspotNucleus hn(atomic_num, num_hotspots_per_nucleon, rng);
 
-        double* thickness = new double [num_points];
-        double* x = new double [num_points];
+        double* thickness = new(std::nothrow) double [num_points];
+        double* x = new(std::nothrow) double [num_points];
         if (thickness==nullptr || x==nullptr)
             exit(24);
 
@@ -241,5 +232,6 @@ namespace Output
         out.close();
 
         delete[] thickness;
+        delete[] x;
     }
 }
