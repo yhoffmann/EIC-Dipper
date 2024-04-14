@@ -180,7 +180,7 @@ namespace IntegrationRoutines
     }
 
 
-    double cubature_integrate_one_bessel (integrand integrand, CubatureConfig* cubature_config, IntegrationConfig* integration_config)
+    double cubature_integrate_one_bessel (integrand integrand, CubatureConfig* cubature_config, IntegrationConfig* integration_config, bool integrating_incoherent)
     {
         AIntegrandParams* A_integrand_params = (AIntegrandParams*)integration_config->integrand_params;
 
@@ -196,10 +196,11 @@ namespace IntegrationRoutines
             // Check if partial_sum is small compared to overall total_sum, if yes then stop integration
             if (n%cubature_config->ocillations_per_partial_sum == 0)
             {
-                if (std::abs(partial_sum) < cubature_config->bessel_tolerance*std::abs(total_sum))
+                if (std::abs(partial_sum)<cubature_config->bessel_tolerance*std::abs(total_sum) && (n+1)>cubature_config->min_oscillations)
                 {
                     if (cubature_config->progress_monitor)
                         std::cout << A_integrand_params->Q << " " << A_integrand_params->Delta << " " << n << " Converged " << total_sum << std::endl;
+                    
                     break;
                 }
                 else
@@ -207,25 +208,40 @@ namespace IntegrationRoutines
                     partial_sum = 0.0;
                 }
             }
+            
             if (n == cubature_config->max_oscillations-1 && cubature_config->progress_monitor)
                 std::cout << "### WARNING SLOW CONVERGENCE ###" << std::endl;
-            // Assigning integration range based on Delta to hit the zeros of the J0
+
             if (n!=0)
             {
                 integration_config->min[0] = integration_config->max[0];
                 integration_config->max[0] = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(n+1)/A_integrand_params->Delta : (n+1)*B_MAX/4.0;
+
+                integration_config->max[2] = std::max(integration_config->max[2], integration_config->max[0]);
+                if (integrating_incoherent)
+                {
+                    integration_config->max[4] = std::max(integration_config->max[4], integration_config->max[0]);
+                    integration_config->max[6] = std::max(integration_config->max[6], integration_config->max[0]);
+                }
             }
             else
             {
                 integration_config->min[0] = 0.0;
                 integration_config->max[0] = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(1)/A_integrand_params->Delta : B_MAX/4.0;
+
+                integration_config->max[2] = std::max(integration_config->max[2], integration_config->max[0]);
+                if (integrating_incoherent)
+                {
+                    integration_config->max[4] = std::max(integration_config->max[4], integration_config->max[0]);
+                    integration_config->max[6] = std::max(integration_config->max[6], integration_config->max[0]);
+                }
             }
 
             current_oscillation_value = cubature_integrate(integrand, cubature_config, integration_config);
 
-            // Adding current integration results to overall result
             total_sum += current_oscillation_value;
             partial_sum += current_oscillation_value;
+            
             if (cubature_config->progress_monitor)
             {
                 std::cout << A_integrand_params->Q << " " << A_integrand_params->Delta << "\t" << n << "\t"<< (use_bessel_zeros ? "bessel zero" : "") <<"(" << integration_config->min[0] << "," << integration_config->max[0] << ")\t" << total_sum << "(+" << current_oscillation_value << ")" << std::endl;

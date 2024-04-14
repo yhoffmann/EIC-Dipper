@@ -55,6 +55,7 @@ struct CubatureConfig
     error_norm err_norm = ERROR_INDIVIDUAL;
 
     double bessel_tolerance = 1.0e-4;
+    uint min_oscillations = 5;
     uint max_oscillations = 40;
     uint ocillations_per_partial_sum = 3;
 
@@ -65,7 +66,9 @@ struct CubatureConfig
 struct AIntegrandParams
 {
     double Delta = 0.001;
-    double Q = 0.3;
+    double Q = std::sqrt(0.1);
+
+    bool is_incoherent = false;
 
     const HotspotNucleus* h_nucleus = nullptr;
 };
@@ -92,5 +95,5 @@ namespace IntegrationRoutines
     double cuba_integrate_one_bessel(integrand_t integrand, CubaConfig* cuba_config, IntegrationConfig* integration_config);
 
     double cubature_integrate(integrand integrand, CubatureConfig* cubature_config, IntegrationConfig* integration_config);
-    double cubature_integrate_one_bessel(integrand integrand, CubatureConfig* cubature_config, IntegrationConfig* integration_config);
+    double cubature_integrate_one_bessel(integrand integrand, CubatureConfig* cubature_config, IntegrationConfig* integration_config, bool integrating_incoherent = false);
 }
