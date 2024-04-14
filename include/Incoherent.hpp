@@ -20,6 +20,21 @@ namespace Incoherent {
 }
 
 
+namespace Incoherent { namespace Demirci
+{
+    double one_connected_factor (double Q);
+    double two_connected_factor (double Q);
+
+    double K_integrand_function (double k, double phik, double kb, double phikb, double A, double Delta, double m2, double epsilon2);
+
+    int one_connected_integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff);
+    int two_connected_integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff);
+
+    double color_fluctuations (double Q, double Delta);
+    double color_fluctuations (CubatureConfig* c_config, IntegrationConfig* i_config);
+} }
+
+
 namespace Incoherent { namespace Sampled
 {
     int integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff);
