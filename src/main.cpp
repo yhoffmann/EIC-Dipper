@@ -7,6 +7,8 @@
 #include <iomanip>
 #include <unistd.h>
 #include <tuple>
+#include <thread>
+#include <future>
 #include "../include/constants.hpp"
 #include "../include/utilities.hpp"
 #include "../include/GBWModel.hpp"
@@ -31,16 +33,20 @@ int main (int argc, char** argv)
     set_parameters(argc, argv);
     
     std::string interpolator_filepath = "";
-
     set_import_filepath_by_parameters(interpolator_filepath);
 
-    GBWModel::G_ip.import_data(interpolator_filepath);
+    //GBWModel::G_ip.import_data(interpolator_filepath);
+    GBWModel::G_ip.import_data("InterpolatorData/G_rH2_290_m_022.dat");
 
-    Output::dsigmadt_nucleus(A, H, 0);
+    //Output::hotspot_nucleus_thickness_1d(A, H, 1e5, 1e3, 0, filepath_global);
+/*
+    std::mt19937 rng(1392);
+    HotspotNucleus hn(A, H, rng);
+    std::cout << Incoherent::Sampled::dsigmadt_single_event(std::sqrt(0.1), std::sqrt(1.0e-8), hn) << std::endl;
 
     //for (uint i=0, imax=10; i<imax; i++)
         //std::cout << (SaturationModel::dsigma_d2b_sqr(double(i)/10.0, 0.0, 0.0, -double(i)/10.0-4.0, -double(i)/7.0, 0.0, 0.0, double(i)/4.0) - SaturationModel::dsigma_d2b(double(i)/10.0, 0.0, 0.0, -double(i)/10.0-4.0)*SaturationModel::dsigma_d2b(-double(i)/7.0, 0.0, 0.0, double(i)/4.0))- SaturationModel::dsigma_d2b_sqr_reduced(double(i)/10.0, 0.0, 0.0, -double(i)/10.0-4.0, -double(i)/7.0, 0.0, 0.0, double(i)/4.0) << std::endl;
-
+*/
 /*
     uint seed = 580800416;
     std::mt19937 rng(seed);
@@ -109,28 +115,89 @@ int main (int argc, char** argv)
 
     std::cout << "Average of values is " << avg << ". So sqr of avg is " << avg*avg << ".\nAvg of squares is " << avg_of_sqrs << std::endl;
 */
-    //std::cout << Coherent::Demirci::dsigma_dt(std::sqrt(0.1), 0.001) << std::endl;
-    //std::cout << Coherent::dsigma_dt_cubature(std::sqrt(0.1), 0.001) << std::endl;
+    std::vector<double> Q_vec = {std::sqrt(0.1)};
+    std::vector<double> Delta_vec;
 
-    //std::vector<double> Q_vec = {std::sqrt(0.1)};
-    //std::vector<double> Delta_vec;
-    //for (uint i=0, imax=20; i<imax; ++i)
-    //{
-    //    Delta_vec.push_back( 1.0*double(i)/double(imax-1)+1.0001 );
-    //}
+    uint imax = 16;
 
-    //std::cout << Incoherent::dsigmadt_cubature(std::sqrt(0.1), 0.001) << std::endl;
+    double results[imax];
+    double results2[imax];
 
-    //std::cout << SaturationModel::dsigma_d2b_sqr(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0) << std::endl;
+    for (uint i=0; i<imax; ++i)
+    {
+       Delta_vec.push_back( std::sqrt(2.5)*double(i)/double(imax-1)+0.0001 );
+    }
 
-    //std::ofstream out(filepath_global);
-    //for (uint i=0, imax=Delta_vec.size(); i<imax; ++i)
-    //    out << Delta_vec[i] << " " << Coherent::Demirci::dsigmadt(Q_vec[0], Delta_vec[i]) << std::endl;
-    //out.close();
+    #pragma omp parallel for ordered
+    for (uint i=0; i<imax; ++i)
+    {
+       results[i] = Coherent::Demirci::dsigmadt(Q_vec[0], Delta_vec[i]);
+       results2[i] = Coherent::dsigmadt_cubature(Q_vec[0], Delta_vec[i]);
+       std::cout << i << "\n";
+    }
 
-    //Output::dsigmadt(true, true, filepath_global);
+    // #pragma omp parallel for ordered
+    // for (uint i=0; i<imax; ++i)
+    // {
+    //    results[i] = Incoherent::Demirci::color_fluctuations(Q_vec[0], Delta_vec[i]);
+    //    results2[i] = Incoherent::dsigmadt_cubature(Q_vec[0], Delta_vec[i]);
+    //    std::cout << i << "\n";
+    // }
+    
+    if (filepath_global == "")
+        filepath_global = "Data/test-output-fixed-int-range.dat";
+    std::ofstream out(filepath_global);
+    
+    for (uint i=0; i<imax; i++)
+        out << Q_vec[0] << " " << Delta_vec[i] << " " << results[i] << " " << results2[i] << std::endl;
+    
+    out.close();
 
-    //Output::hotspot_nucleus_thickness_1d(A, H, 1e5, 1e3, 0, filepath_global);
+    // double Q = std::sqrt(0.1);
+    // double Delta = 1.0;
+
+    // const uint num_runs = 0;
+    // double results[num_runs];
+
+    // uint seed = get_unique_seed();
+
+    // #pragma omp parallel for ordered
+    // for (uint i=0; i<num_runs; ++i)
+    // {
+    //     std::mt19937 rng(seed+i);
+    //     HotspotNucleus hn(1, 3, rng);
+
+    //     results[i] = Incoherent::Sampled::dsigmadt_single_event(Q, Delta, hn);
+
+    //     std::cout << i << "\n";
+    // }
+
+    // double sample_avg = 0.0;
+    // for (uint i=0; i<num_runs; ++i)
+    //     sample_avg += results[i]/double(num_runs);
+
+    // std::future<double> demirci_fut = std::async
+    // (
+    //     std::launch::async,
+    //     [](double Q, double Delta){ return Incoherent::Demirci::color_fluctuations(Q, Delta); },
+    //     Q, Delta
+    // );
+    // std::future<double> analytical_hotspot_avg_fut = std::async
+    // (
+    //     std::launch::async,
+    //     [](double Q, double Delta) { return Incoherent::dsigmadt_cubature(Q, Delta); },
+    //     Q, Delta
+    // );
+
+    // double demirci = demirci_fut.get();
+    // double analytical_hotspot_avg = analytical_hotspot_avg_fut.get();
+
+    // // std::cout << "seed " << seed << std::endl;
+    // std::cout <<
+    //     "Color Fluctuations"
+    //     /*"\nSampling avg " << sample_avg <<*/
+    //     "\nAnalytical hotspot avg " << analytical_hotspot_avg <<
+    //     "\nDemirci color fluc " << demirci << std::endl;
 
     return 0;
 }
