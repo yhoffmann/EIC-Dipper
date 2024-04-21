@@ -1,6 +1,7 @@
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_sf.h>
 #include "../include/Incoherent.hpp"
+#include "../include/Coherent.hpp"
 #include "../include/NRPhoton.hpp"
 #include "../include/constants.hpp"
 #include "../include/SaturationModel.hpp"
@@ -232,6 +233,18 @@ namespace Incoherent { namespace Demirci
     }
 
 
+    double one_disconnected (double Q, double Delta)
+    {
+        return Coherent::Demirci::dsigmadt(Q, Delta) / exp(-sqr(Delta)*(rH_sqr+(3.0-1.0)/3.0*R_sqr)) / 3.0 * ( exp(-sqr(Delta)*rH_sqr)-exp(-sqr(Delta)*(rH_sqr+(3.0-1.0)/3.0*R_sqr)) );
+    }
+
+
+    double two_disconnected (double Q, double Delta)
+    {
+        return Coherent::Demirci::dsigmadt(Q, Delta) / exp(-sqr(Delta)*(rH_sqr+(3.0-1.0)/3.0*R_sqr)) / 3.0 * 2.0 * ( exp(-sqr(Delta)*(rH_sqr+R_sqr))-exp(-sqr(Delta)*(rH_sqr+(3.0-1.0)/3.0*R_sqr)) );
+    }
+
+
     double color_fluctuations (double Q, double Delta)
     {
         AIntegrandParams p;
@@ -274,10 +287,21 @@ namespace Incoherent { namespace Demirci
         i_config->max = max;
 
         double one_connected_result = one_connected_factor( ((AIntegrandParams*)(i_config->integrand_params))->Q ) * IntegrationRoutines::cubature_integrate(one_connected_integrand, c_config, i_config);
-        
         double two_connected_result = two_connected_factor( ((AIntegrandParams*)(i_config->integrand_params))->Q ) * IntegrationRoutines::cubature_integrate(two_connected_integrand, c_config, i_config);
 
         return (one_connected_result+two_connected_result) * sqr(GeVm1Tofm) * fm2TonB;
+    }
+
+    
+    double hotspot_fluctuations (double Q, double Delta)
+    {
+        return one_disconnected(Q, Delta) + two_disconnected(Q, Delta);
+    }
+
+
+    double dsigmadt (double Q, double Delta)
+    {
+        return color_fluctuations(Q, Delta) + hotspot_fluctuations(Q, Delta);
     }
 } }
 

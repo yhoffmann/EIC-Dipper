@@ -30,8 +30,15 @@ namespace Incoherent { namespace Demirci
     int one_connected_integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff);
     int two_connected_integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff);
 
+    double one_disconnected (double Q, double Delta);
+    double two_disconnected (double Q, double Delta);
+
     double color_fluctuations (double Q, double Delta);
     double color_fluctuations (CubatureConfig* c_config, IntegrationConfig* i_config);
+
+    double hotspot_fluctuations (double Q, double Delta);
+
+    double dsigmadt (double Q, double Delta);
 } }
 
 
