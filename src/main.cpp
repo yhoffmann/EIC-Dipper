@@ -38,6 +38,10 @@ int main (int argc, char** argv)
     //GBWModel::G_ip.import_data(interpolator_filepath);
     GBWModel::G_ip.import_data("InterpolatorData/G_rH2_290_m_022.dat");
 
+    
+
+    //std::cout << SaturationModel::dsigma_d2b_sqr_reduced(0.1, 0.2, 0.3, -0.4, 0.5, 0.6, -0.7, -0.8) << " " << SaturationModel::dsigma_d2b_sqr(0.1, 0.2, 0.3, -0.4, 0.5, 0.6, -0.7, -0.8) - SaturationModel::dsigma_d2b(0.1, 0.2, 0.3, -0.4)*SaturationModel::dsigma_d2b(0.5, 0.6, -0.7, -0.8) << std::endl;
+
     //Output::hotspot_nucleus_thickness_1d(A, H, 1e5, 1e3, 0, filepath_global);
 /*
     std::mt19937 rng(1392);
@@ -115,6 +119,8 @@ int main (int argc, char** argv)
 
     std::cout << "Average of values is " << avg << ". So sqr of avg is " << avg*avg << ".\nAvg of squares is " << avg_of_sqrs << std::endl;
 */
+
+
     std::vector<double> Q_vec = {std::sqrt(0.1)};
     std::vector<double> Delta_vec;
 
@@ -125,33 +131,37 @@ int main (int argc, char** argv)
 
     for (uint i=0; i<imax; ++i)
     {
-       Delta_vec.push_back( std::sqrt(2.5)*double(i)/double(imax-1)+0.0001 );
-    }
-
-    #pragma omp parallel for ordered
-    for (uint i=0; i<imax; ++i)
-    {
-       results[i] = Coherent::Demirci::dsigmadt(Q_vec[0], Delta_vec[i]);
-       results2[i] = Coherent::dsigmadt_cubature(Q_vec[0], Delta_vec[i]);
-       std::cout << i << "\n";
+       Delta_vec.push_back( std::sqrt(8.0)*double(i)/double(imax-1)+0.0001 );
     }
 
     // #pragma omp parallel for ordered
     // for (uint i=0; i<imax; ++i)
     // {
-    //    results[i] = Incoherent::Demirci::color_fluctuations(Q_vec[0], Delta_vec[i]);
-    //    results2[i] = Incoherent::dsigmadt_cubature(Q_vec[0], Delta_vec[i]);
+    //    results[i] = Coherent::Demirci::dsigmadt(Q_vec[0], Delta_vec[i]);
+    //    results2[i] = Coherent::dsigmadt_cubature(Q_vec[0], Delta_vec[i]);
     //    std::cout << i << "\n";
     // }
+
+    #pragma omp parallel for ordered
+    for (uint i=0; i<imax; ++i)
+    {
+       results[i] = Incoherent::Demirci::dsigmadt(Q_vec[0], Delta_vec[i]);
+       results2[i] = Incoherent::dsigmadt_cubature(Q_vec[0], Delta_vec[i]);
+       std::cout << i << "\n";
+    }
     
     if (filepath_global == "")
-        filepath_global = "Data/test-output-fixed-int-range.dat";
+        filepath_global = "Data/inco-dilute-demirci-new.dat";
     std::ofstream out(filepath_global);
     
     for (uint i=0; i<imax; i++)
         out << Q_vec[0] << " " << Delta_vec[i] << " " << results[i] << " " << results2[i] << std::endl;
     
     out.close();
+
+    //std::cout << Incoherent::dsigmadt_cubature(std::sqrt(0.1), std::sqrt(8.0)*double(2)/double(15)+0.0001) << std::endl;
+
+
 
     // double Q = std::sqrt(0.1);
     // double Delta = 1.0;
