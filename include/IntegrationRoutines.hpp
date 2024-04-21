@@ -95,5 +95,5 @@ namespace IntegrationRoutines
     double cuba_integrate_one_bessel(integrand_t integrand, CubaConfig* cuba_config, IntegrationConfig* integration_config);
 
     double cubature_integrate(integrand integrand, CubatureConfig* cubature_config, IntegrationConfig* integration_config);
-    double cubature_integrate_one_bessel(integrand integrand, CubatureConfig* cubature_config, IntegrationConfig* integration_config, bool integrating_incoherent = false);
+    double cubature_integrate_one_bessel(integrand integrand, CubatureConfig* cubature_config, IntegrationConfig* integration_config);
 }
