@@ -45,6 +45,9 @@ namespace SaturationModel
         double d = G_xxb + G_yyb - T_xxb_yby*Ncsqrm1_inverse;
 
         double Sqrt = std::sqrt( 4.0*b*c + sqr(a-d) );
+        if (Sqrt == 0.0)
+            return exp(0.5*(a+d));
+            
         double factor = ( a-d+2.0*b ) / Sqrt;
 
         double DD = 0.5 * ( (1.0+factor) * exp( (a+d+Sqrt)/2.0 ) + (1.0-factor) * exp( (a+d-Sqrt)/2.0 ) );
@@ -77,7 +80,9 @@ namespace SaturationModel
         double d = G_xxb + G_yyb - T_xxb_yby*Ncsqrm1_inverse;
 
         double Sqrt = std::sqrt( 4.0*b*c + sqr(a-d) );
-if (Sqrt == 0.0) std::cout << x1 << " " << x2 << " " << y1 << " " << y2 << " " << xb1 << " " << xb2 << " " << yb1 << " " << yb2 << "\n" << G_xy << " " << G_xbyb << " " << G_xxb << " " << G_xyb << " " << G_xby << " " << G_yyb << "\n" << a << " " << b << " " << c << " " << d << std::endl;
+        if (Sqrt == 0.0)
+            return exp(0.5*(a+d));
+            
         double factor = ( a-d+2.0*b ) / Sqrt;
 
         double DD = 0.5 * ( (1.0+factor) * exp( (a+d+Sqrt)/2.0 ) + (1.0-factor) * exp( (a+d-Sqrt)/2.0 ) );
@@ -147,6 +152,9 @@ if (Sqrt == 0.0) std::cout << x1 << " " << x2 << " " << y1 << " " << y2 << " " <
             double d = G_xxb_sum + G_yyb_sum - T_xxb_yby*Ncsqrm1_inverse;
 
             double Sqrt = std::sqrt( 4.0*b*c + sqr(a-d) );
+            if (Sqrt == 0.0)
+                return exp(0.5*(a+d));
+
             double factor = ( a-d+2.0*b ) / Sqrt;
 
             double DD = 0.5 * ( (1.0+factor) * exp( (a+d+Sqrt)/2.0 ) + (1.0-factor) * exp( (a+d-Sqrt)/2.0 ) );
@@ -201,6 +209,9 @@ if (Sqrt == 0.0) std::cout << x1 << " " << x2 << " " << y1 << " " << y2 << " " <
             double d = G_xxb_sum + G_yyb_sum - T_xxb_yby*Ncsqrm1_inverse;
 
             double Sqrt = std::sqrt( 4.0*b*c + sqr(a-d) );
+            if (Sqrt == 0.0)
+                return exp(0.5*(a+d));
+
             double factor = ( a-d+2.0*b ) / Sqrt;
 
             double DD = 0.5 * ( (1.0+factor) * exp( (a+d+Sqrt)/2.0 ) + (1.0-factor) * exp( (a+d-Sqrt)/2.0 ) );
