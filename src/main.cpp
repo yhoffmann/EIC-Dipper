@@ -145,11 +145,19 @@ int main (int argc, char** argv)
     #pragma omp parallel for ordered
     for (uint i=0; i<imax; ++i)
     {
+<<<<<<< HEAD
         // results[i] = Incoherent::Demirci::dsigmadt(Q_vec[0], Delta_vec[i]);
         // results2[i] = Incoherent::dsigmadt_cubature(Q_vec[0], Delta_vec[i]);
         
         results[i] = Incoherent::Demirci::color_fluctuations(Q_vec[0], Delta_vec[i]);
         results2[i] = Incoherent::Demirci::hotspot_fluctuations(Q_vec[0], Delta_vec[i]);
+=======
+        results[i] = Incoherent::Demirci::dsigmadt(Q_vec[0], Delta_vec[i]);
+        results2[i] = Incoherent::dsigmadt_cubature(Q_vec[0], Delta_vec[i]);
+        
+        // results[i] = Incoherent::Demirci::color_fluctuations(Q_vec[0], Delta_vec[i]);
+        // results2[i] = Incoherent::Demirci::hotspot_fluctuations(Q_vec[0], Delta_vec[i]);
+>>>>>>> d72db2d783d4f8f14078095ba613d7bde6ed62f8
         
         std::cout << i << "\n";
     }
