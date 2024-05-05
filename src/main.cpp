@@ -124,14 +124,14 @@ int main (int argc, char** argv)
     std::vector<double> Q_vec = {std::sqrt(0.1)};
     std::vector<double> Delta_vec;
 
-    uint imax = 16;
+    uint imax = 32;
 
     double results[imax];
     double results2[imax];
 
     for (uint i=0; i<imax; ++i)
     {
-       Delta_vec.push_back( std::sqrt(8.0)*double(i)/double(imax-1)+0.0001 );
+        Delta_vec.push_back( std::sqrt(8.0)*double(i)/double(imax-1)+0.0001 );
     }
 
     // #pragma omp parallel for ordered
@@ -145,9 +145,13 @@ int main (int argc, char** argv)
     #pragma omp parallel for ordered
     for (uint i=0; i<imax; ++i)
     {
-       results[i] = Incoherent::Demirci::dsigmadt(Q_vec[0], Delta_vec[i]);
-       results2[i] = Incoherent::dsigmadt_cubature(Q_vec[0], Delta_vec[i]);
-       std::cout << i << "\n";
+        // results[i] = Incoherent::Demirci::dsigmadt(Q_vec[0], Delta_vec[i]);
+        // results2[i] = Incoherent::dsigmadt_cubature(Q_vec[0], Delta_vec[i]);
+        
+        results[i] = Incoherent::Demirci::color_fluctuations(Q_vec[0], Delta_vec[i]);
+        results2[i] = Incoherent::Demirci::hotspot_fluctuations(Q_vec[0], Delta_vec[i]);
+        
+        std::cout << i << "\n";
     }
     
     if (filepath_global == "")
