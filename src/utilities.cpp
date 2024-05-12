@@ -95,7 +95,7 @@ void set_import_filepath_by_parameters (std::string& filepath, const DataGenerat
 void set_parameters (int argc, char** argv)
 {
     const std::string error_message = "Invalid option. Valid flags are\n"
-                "[-pm] (progress monitor)\n"
+                "[-p] (progress monitor)\n"
                 "[-m <gluon mass>]\n"
                 "[-A <atomic number>]\n"
                 "[-H <number of hotspots per nucleon>]\n"
@@ -107,7 +107,7 @@ void set_parameters (int argc, char** argv)
     {
         std::istringstream flag(argv[i]);
 
-        if (flag.str()=="-pm")
+        if (flag.str()=="-p")
         {
             progress_monitor_global = true;
             --i;

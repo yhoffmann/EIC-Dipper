@@ -49,7 +49,7 @@ struct CubatureConfig
 
     uint num_dims = 2;
     uint num_f_dims = 1;
-    size_t max_eval = 1e7;
+    size_t max_eval = 1e8;
     double abs_err = 1.0e-14;
     double rel_err = 1.0e-6;
     error_norm err_norm = ERROR_INDIVIDUAL;

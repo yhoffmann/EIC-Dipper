@@ -13,7 +13,7 @@ namespace Incoherent
 {
     double A_integrand_function_factor (double Q)
     {
-        return sqr(NRPhoton::wave_function_factor(Q)) / (16.0*PI*PI);
+        return NRPhoton::wave_function_factor(Q) / (4.0*PI);
     }
 
 
@@ -108,7 +108,7 @@ namespace Incoherent
 
         double ret;
 
-        ret = A_integrand_function_factor(((AIntegrandParams*)(integration_config->integrand_params))->Q) * IntegrationRoutines::cuba_integrate_one_bessel(Incoherent::integrand, c_config, integration_config);
+        ret = sqr(A_integrand_function_factor(((AIntegrandParams*)(integration_config->integrand_params))->Q)) * IntegrationRoutines::cuba_integrate_one_bessel(Incoherent::integrand, c_config, integration_config);
         ret *= (GeVm1Tofm*GeVm1Tofm*fm2TonB)/(16.0*PI);
 
         return ret;
@@ -117,7 +117,7 @@ namespace Incoherent
 
     int integrand_cubature (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
     {
-        AIntegrandParams* A_integrand_params = (AIntegrandParams*)(((IntegrationConfig*)userdata)->integrand_params);
+        AIntegrandParams* p = (AIntegrandParams*)userdata;
 
         double db1 = xx[0]*cos(xx[1]);
         double db2 = xx[0]*sin(xx[1]);
@@ -134,7 +134,7 @@ namespace Incoherent
         double bb1 = B1-db1/2.0;
         double bb2 = B2-db2/2.0;
 
-        ff[0] = xx[0]*xx[2]*xx[4]*xx[6] * Incoherent::A_integrand_function(b1, b2, r1, r2, bb1, bb2, rb1, rb2, A_integrand_params->Q,  A_integrand_params->Delta);
+        ff[0] = xx[0]*xx[2]*xx[4]*xx[6] * Incoherent::A_integrand_function(b1, b2, r1, r2, bb1, bb2, rb1, rb2, p->Q, p->Delta);
 
         return 0;
     }
@@ -187,7 +187,7 @@ namespace Incoherent
         i_config->min[7] = 0.0;
         i_config->max[7] = 2.0*M_PI;
 
-        double ret = A_integrand_function_factor(((AIntegrandParams*)(i_config->integrand_params))->Q) * IntegrationRoutines::cubature_integrate_one_bessel(Incoherent::integrand_cubature, c_config, i_config);
+        double ret = sqr(A_integrand_function_factor(((AIntegrandParams*)(i_config->integrand_params))->Q)) * IntegrationRoutines::cubature_integrate_one_bessel(Incoherent::integrand_cubature, c_config, i_config);
         ret *= (GeVm1Tofm*GeVm1Tofm*fm2TonB)/(16.0*PI);
 
         return ret;

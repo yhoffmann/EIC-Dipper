@@ -37,24 +37,14 @@ namespace Output
         {
             for (uint i = 0; i < Q_vec.size(); i++)
             {
+        #ifndef _QUIET
                 std::cout << Q_vec[i] << " " << Delta_vec[j] << std::endl;
-
-                CubatureConfig c_config;
-                IntegrationConfig integration_config;
-                AIntegrandParams A_integrand_params;
-
-                integration_config.integrand_params = &A_integrand_params;
-
-                c_config.progress_monitor = true;
-
-                A_integrand_params.Q = Q_vec[i];
-                A_integrand_params.Delta = Delta_vec[j];
-
+        #endif
                 if (do_coherent)
-                    coherent_results[i][j] = Coherent::dsigmadt_cubature(&c_config, &integration_config);
+                    coherent_results[i][j] = Coherent::dsigmadt_test(Q_vec[i], Delta_vec[j]);
 
                 if (do_incoherent)
-                    incoherent_results[i][j] = Incoherent::dsigmadt_cubature(&c_config, &integration_config);
+                    incoherent_results[i][j] = Incoherent::dsigmadt_cubature(Q_vec[i], Delta_vec[j]);
             }
         }
 

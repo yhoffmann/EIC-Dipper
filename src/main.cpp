@@ -38,7 +38,10 @@ int main (int argc, char** argv)
     //GBWModel::G_ip.import_data(interpolator_filepath);
     GBWModel::G_ip.import_data("InterpolatorData/G_rH2_290_m_022.dat");
 
-    
+    // std::cout << Coherent::dsigmadt(std::sqrt(0.1), 1.5) << std::endl;
+    // std::cout << Coherent::dsigmadt_test(std::sqrt(0.1), 1.5) << std::endl;
+
+    //std::cout << Coherent::dsigmadt(std::sqrt(0.1), 0.0001) << "\n" << Incoherent::dsigmadt_cubature(std::sqrt(0.1), 0.0001) << std::endl;
 
     //std::cout << SaturationModel::dsigma_d2b_sqr_reduced(0.1, 0.2, 0.3, -0.4, 0.5, 0.6, -0.7, -0.8) << " " << SaturationModel::dsigma_d2b_sqr(0.1, 0.2, 0.3, -0.4, 0.5, 0.6, -0.7, -0.8) - SaturationModel::dsigma_d2b(0.1, 0.2, 0.3, -0.4)*SaturationModel::dsigma_d2b(0.5, 0.6, -0.7, -0.8) << std::endl;
 
@@ -91,7 +94,7 @@ int main (int argc, char** argv)
     }
 
     
-    std::cout << Q << " " << Delta << "\ncross section, demirci\n" << Coherent::Demirci::dsigmadt(Q, Delta) << "\nmine\n" << Coherent::dsigmadt_cubature(Q, Delta) << "\nsampled\n" << sqr( std::get<1>(Coherent::Sampled::sqrt_dsigmadt_single_event(Q, Delta, hn)) ) << std::endl;
+    std::cout << Q << " " << Delta << "\ncross section, demirci\n" << Coherent::Demirci::dsigmadt(Q, Delta) << "\nmine\n" << Coherent::dsigmadt(Q, Delta) << "\nsampled\n" << sqr( std::get<1>(Coherent::Sampled::sqrt_dsigmadt_single_event(Q, Delta, hn)) ) << std::endl;
 */
 /*
     double Q = std::sqrt(0.1);
@@ -134,42 +137,36 @@ int main (int argc, char** argv)
         Delta_vec.push_back( std::sqrt(8.0)*double(i)/double(imax-1)+0.0001 );
     }
 
+    Output::dsigmadt(true, false, Q_vec, Delta_vec, filepath_global);
+
+    // // #pragma omp parallel for ordered
+    // // for (uint i=0; i<imax; ++i)
+    // // {
+    // //    results[i] = Coherent::Demirci::dsigmadt(Q_vec[0], Delta_vec[i]);
+    // //    results2[i] = Coherent::dsigmadt(Q_vec[0], Delta_vec[i]);
+    // //    std::cout << i << "\n";
+    // // }
+
     // #pragma omp parallel for ordered
     // for (uint i=0; i<imax; ++i)
     // {
-    //    results[i] = Coherent::Demirci::dsigmadt(Q_vec[0], Delta_vec[i]);
-    //    results2[i] = Coherent::dsigmadt_cubature(Q_vec[0], Delta_vec[i]);
-    //    std::cout << i << "\n";
+    //     results[i] = Incoherent::Demirci::dsigmadt(Q_vec[0], Delta_vec[i]);
+    //     results2[i] = Incoherent::dsigmadt_cubature(Q_vec[0], Delta_vec[i]);
+        
+    //     // results[i] = Incoherent::Demirci::color_fluctuations(Q_vec[0], Delta_vec[i]);
+    //     // results2[i] = Incoherent::Demirci::hotspot_fluctuations(Q_vec[0], Delta_vec[i]);
+        
+    //     std::cout << i << "\n";
     // }
-
-    #pragma omp parallel for ordered
-    for (uint i=0; i<imax; ++i)
-    {
-<<<<<<< HEAD
-        // results[i] = Incoherent::Demirci::dsigmadt(Q_vec[0], Delta_vec[i]);
-        // results2[i] = Incoherent::dsigmadt_cubature(Q_vec[0], Delta_vec[i]);
-        
-        results[i] = Incoherent::Demirci::color_fluctuations(Q_vec[0], Delta_vec[i]);
-        results2[i] = Incoherent::Demirci::hotspot_fluctuations(Q_vec[0], Delta_vec[i]);
-=======
-        results[i] = Incoherent::Demirci::dsigmadt(Q_vec[0], Delta_vec[i]);
-        results2[i] = Incoherent::dsigmadt_cubature(Q_vec[0], Delta_vec[i]);
-        
-        // results[i] = Incoherent::Demirci::color_fluctuations(Q_vec[0], Delta_vec[i]);
-        // results2[i] = Incoherent::Demirci::hotspot_fluctuations(Q_vec[0], Delta_vec[i]);
->>>>>>> d72db2d783d4f8f14078095ba613d7bde6ed62f8
-        
-        std::cout << i << "\n";
-    }
     
-    if (filepath_global == "")
-        filepath_global = "Data/inco-dilute-demirci-new.dat";
-    std::ofstream out(filepath_global);
+    // if (filepath_global == "")
+    //     filepath_global = "Data/inco-dilute-demirci-new.dat";
+    // std::ofstream out(filepath_global);
     
-    for (uint i=0; i<imax; i++)
-        out << Q_vec[0] << " " << Delta_vec[i] << " " << results[i] << " " << results2[i] << std::endl;
+    // for (uint i=0; i<imax; i++)
+    //     out << Q_vec[0] << " " << Delta_vec[i] << " " << results[i] << " " << results2[i] << std::endl;
     
-    out.close();
+    // out.close();
 
     //std::cout << Incoherent::dsigmadt_cubature(std::sqrt(0.1), std::sqrt(8.0)*double(2)/double(15)+0.0001) << std::endl;
 

@@ -155,7 +155,7 @@ namespace IntegrationRoutines
         {
             hcubature(cubature_config->num_f_dims,
                 integrand,
-                integration_config,
+                integration_config->integrand_params,
                 cubature_config->num_dims,
                 integration_config->min, integration_config->max,
                 cubature_config->max_eval, cubature_config->abs_err, cubature_config->rel_err,
@@ -167,7 +167,7 @@ namespace IntegrationRoutines
         {
             pcubature(cubature_config->num_f_dims,
                 integrand,
-                integration_config,
+                integration_config->integrand_params,
                 cubature_config->num_dims,
                 integration_config->min, integration_config->max,
                 cubature_config->max_eval, cubature_config->abs_err, cubature_config->rel_err,
@@ -196,7 +196,7 @@ namespace IntegrationRoutines
             // Check if partial_sum is small compared to overall total_sum, if yes then stop integration
             if (n%cubature_config->ocillations_per_partial_sum == 0)
             {
-                if (std::abs(partial_sum)<cubature_config->bessel_tolerance*std::abs(total_sum) && (n+1)>cubature_config->min_oscillations)
+                if (std::abs(partial_sum) < cubature_config->bessel_tolerance*std::abs(total_sum) && (n+1) > cubature_config->min_oscillations)
                 {
                     if (cubature_config->progress_monitor)
                         std::cout << p->Q << " " << p->Delta << " " << n << " Converged " << total_sum << std::endl;
@@ -208,33 +208,23 @@ namespace IntegrationRoutines
                     partial_sum = 0.0;
                 }
             }
-            
-            if (n == cubature_config->max_oscillations-1 && cubature_config->progress_monitor)
-                std::cout << "### WARNING SLOW CONVERGENCE ###" << std::endl;
 
             if (n!=0)
             {
                 integration_config->min[0] = integration_config->max[0];
                 integration_config->max[0] = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(n+1)/p->Delta : (n+1)*B_MAX/4.0;
-
-                integration_config->max[2] = std::max(integration_config->max[2], integration_config->max[0]);
-                if (p->is_incoherent)
-                {
-                    integration_config->max[4] = std::max(integration_config->max[4], integration_config->max[0]);
-                    integration_config->max[6] = std::max(integration_config->max[6], integration_config->max[0]);
-                }
             }
-            else
+            else // if n == 0
             {
                 integration_config->min[0] = 0.0;
                 integration_config->max[0] = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(1)/p->Delta : B_MAX/4.0;
-
-                integration_config->max[2] = std::max(integration_config->max[2], integration_config->max[0]);
-                if (p->is_incoherent)
-                {
-                    integration_config->max[4] = std::max(integration_config->max[4], integration_config->max[0]);
-                    integration_config->max[6] = std::max(integration_config->max[6], integration_config->max[0]);
-                }
+            }
+            
+            integration_config->max[2] = std::max(integration_config->max[2], integration_config->max[0]);
+            if (p->is_incoherent)
+            {
+                integration_config->max[4] = std::max(integration_config->max[4], integration_config->max[0]);
+                integration_config->max[6] = std::max(integration_config->max[6], integration_config->max[0]);
             }
 
             current_oscillation_value = cubature_integrate(integrand, cubature_config, integration_config);
@@ -245,6 +235,10 @@ namespace IntegrationRoutines
             if (cubature_config->progress_monitor)
             {
                 std::cout << p->Q << " " << p->Delta << "\t" << n << "\t"<< (use_bessel_zeros ? "bessel zero" : "") <<"(" << integration_config->min[0] << "," << integration_config->max[0] << ")\t" << total_sum << "(+" << current_oscillation_value << ")" << std::endl;
+
+                if (n == cubature_config->max_oscillations-1)
+                    std::cout << "### WARNING SLOW CONVERGENCE ###" << std::endl;
+
             }
         }
 
