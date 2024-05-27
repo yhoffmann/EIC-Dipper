@@ -65,7 +65,9 @@ struct CubatureConfig
 
 struct AIntegrandParams
 {
-    double Delta = 0.001;
+    double Delta1 = 0.001;
+    double Delta2 = 0.0;
+    double phi = 0.0;
     double Q = std::sqrt(0.1);
 
     bool is_incoherent = false;
@@ -95,5 +97,5 @@ namespace IntegrationRoutines
     double cuba_integrate_one_bessel(integrand_t integrand, CubaConfig* cuba_config, IntegrationConfig* integration_config);
 
     double cubature_integrate(integrand integrand, CubatureConfig* cubature_config, IntegrationConfig* integration_config);
-    double cubature_integrate_one_bessel(integrand integrand, CubatureConfig* cubature_config, IntegrationConfig* integration_config);
+    double cubature_integrate_zeros(integrand integrand, CubatureConfig* cubature_config, IntegrationConfig* integration_config, double (*zeros)(uint n));
 }

@@ -14,81 +14,124 @@
 
 namespace Output
 {
+    double get_default_Q()
+    {
+        return std::sqrt(0.1);
+    }
+
+    std::vector<double> get_default_Delta_vec()
+    {
+        return std::vector<double>{0.001, 0.002, 0.005, 0.007, 0.01, 0.03, 0.05, 0.07, 0.08, 0.09, 0.12, 0.16, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.3, 2.7, 3.0, 3.3, 3.7, 4.0}; // {0.001, 0.01, 0.04, 0.08, 0.12, 0.2, 0.4, 0.6, 0.8, 1.0, 1.4, 1.8, 2.3, 3.0, 4.0}; //
+    }
+
+    std::vector<double> get_default_phi_vec()
+    {
+        std::vector<double> default_phi_vec;
+        uint num_angles = 8;
+        for (uint i=0; i<num_angles; i++)
+            default_phi_vec.push_back(PI*double(i)/double(num_angles)); // no num_angles-1 because we do not want to reach 2pi
+
+        return default_phi_vec;
+    }
+
     void dsigmadt (bool do_coherent, bool do_incoherent, std::string output_file = "")
     {
-        std::vector<double> default_Q_vec = {/*0.05, */std::sqrt(0.1)};
-        std::vector<double> default_Delta_vec = {0.001, 0.002, 0.005, 0.007, 0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.13, 0.17, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.7, 1.8, 1.9, 2.0, 2.3, 2.7, 3.0, 3.3, 3.7, 4.0};
-        // std::vector<double> DeltaRange = {1.8, 1.9, 2.0, 2.05, 2.1, 2.11, 2.12, 2.13, 2.15, 2.16, 2.17, 2.18, 2.19, 2.20, 2.21, 2.22, 2.23, 2.24, 2.25, 2.26, 2.27, 2.28, 2.29, 2.3, 2.45, 2.50, 2.55, 2.60, 2.65, 2.70, 2.75, 2.80, 2.9, 3.0};
+        double default_Q = get_default_Q();
+        std::vector<double> default_Delta_vec = get_default_Delta_vec();
+        std::vector<double> default_phi_vec = get_default_phi_vec();
 
-        dsigmadt(do_coherent, do_incoherent, default_Q_vec, default_Delta_vec, output_file);
+        dsigmadt(do_coherent, do_incoherent, default_Q, default_Delta_vec, default_phi_vec, output_file);
     }
     
 
-    void dsigmadt (bool do_coherent, bool do_incoherent, std::vector<double> Q_vec, std::vector<double> Delta_vec, std::string filepath)
+    void dsigmadt (bool do_coherent, bool do_incoherent, double Q, std::vector<double> Delta_vec, std::vector<double> phi_vec, std::string filepath)
     {
-        double coherent_results[Q_vec.size()][Delta_vec.size()];
-        //double demirci_coherent_results[Q_vec.size()][Delta_vec.size()];
-        double incoherent_results[Q_vec.size()][Delta_vec.size()];
+        if (phi_vec.size()==0)
+            phi_vec = get_default_phi_vec();
+
+        double coherent_results[Delta_vec.size()][phi_vec.size()];
+        double coherent_avg[Delta_vec.size()];
+
+        double incoherent_results[Delta_vec.size()][phi_vec.size()];
+        double incoherent_avg[Delta_vec.size()];
 #ifndef _QUIET
         std::cout << "Integrating with different parameters..." << std::endl;
 #endif
         #pragma omp parallel for schedule(static, 1)
-        for (uint j = 0; j < Delta_vec.size(); j++)
+        for (uint i=0; i<Delta_vec.size(); i++)
         {
-            for (uint i = 0; i < Q_vec.size(); i++)
+            coherent_avg[i] = 0.0;
+            incoherent_avg[i] = 0.0;
+
+            for (uint j=0, jmax=phi_vec.size(); j<jmax; j++)
             {
-        #ifndef _QUIET
-                std::cout << Q_vec[i] << " " << Delta_vec[j] << std::endl;
-        #endif
+                if (progress_monitor_global)
+                    std::cout << Q << " " << Delta_vec[i] << " " << phi_vec[j] << std::endl;
+
                 if (do_coherent)
-                    coherent_results[i][j] = Coherent::dsigmadt_test(Q_vec[i], Delta_vec[j]);
+                {
+                    coherent_results[i][j] = Coherent::dsigmadt_test(Q, Delta_vec[i], phi_vec[j]);
+                    coherent_avg[i] += coherent_results[i][j]/double(jmax);
+                }
 
                 if (do_incoherent)
-                    incoherent_results[i][j] = Incoherent::dsigmadt_cubature(Q_vec[i], Delta_vec[j]);
+                {
+                    incoherent_results[i][j] = Incoherent::dsigmadt_cubature(Q, Delta_vec[i], phi_vec[j]);
+                    incoherent_avg[i] += incoherent_results[i][j]/double(jmax);
+                }
             }
         }
 
-        std::ofstream out_stream;
+        std::ofstream out;
 
         if (filepath == "")
             filepath = "Data/dsigma_dt.dat";
 
-        out_stream.open(filepath);
-        if (!out_stream.is_open())
+        out.open(filepath);
+        if (!out.is_open())
             exit(20);
 
-        out_stream << "#Q, Delta, Coher, Incoher; " << Q_vec.size() << " values of Q (for Gnuplot)" << std::endl;
-        out_stream << "#1, 2,           3,4" << std::endl;
+        out << "#Q, Delta, Coher, Incoher; " << std::endl;
+        out << "#1, 2,           3,4" << std::endl;
+        out.flush();
 
-        for (luint i = 0; i < Q_vec.size(); i++)
+        for (uint i=0; i<Delta_vec.size(); i++)
+            out << std::setprecision(7) << Delta_vec[i] << " " << Q << " " << coherent_avg[i] << " " << incoherent_avg[i] << std::endl;
+        out << std::endl;
+
+        out.close();
+        out.open(filepath + ".all");
+        if (!out.is_open())
+            exit(20);
+
+        for (uint i=0; i<Delta_vec.size(); i++)
         {
-            out_stream << "\"Q=" << Q_vec[i] << " Coh.\"" << " " << "\"Q=" << Q_vec[i] << " Incoh.\"" << std::endl;
-            for (luint j = 0; j < Delta_vec.size(); j++)
-            {
-                out_stream << Q_vec[i] << " " << Delta_vec[j] << " " << " " << coherent_results[i][j] << " " << incoherent_results[i][j] << std::endl;
-            }
-            out_stream << "\n" << std::endl; // Two line breaks for correct gnuplot reading // TODO check if this is necessary
+            out << std::setprecision(7) << Delta_vec[i] << " " << Q << "   ";
+            for (uint j=0; j<phi_vec.size(); j++)
+                out << std::setprecision(7) << phi_vec[j] << " " << coherent_results[i][j] << " " << incoherent_results[i][j] << "   ";
+            out << std::endl;
         }
+        out << std::endl;
 
-        out_stream.close();
+        out.close();
     }
 
 
     void dsigmadt_nucleus (uint atomic_num, uint num_hotspots, uint seed, std::string filepath)
     {
-        std::vector<double> default_Q_vec = {std::sqrt(0.1)};
-        std::vector<double> default_Delta_vec = {0.001, 0.002, 0.005, 0.007, 0.01, 0.02, 0.04, 0.06, 0.08, 0.1, 0.13, 0.17, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.3, 2.6, 2.9, 3.2, 3.5, 3.8, 4.1};
-        // std::vector<double> DeltaRange = {1.8, 1.9, 2.0, 2.05, 2.1, 2.11, 2.12, 2.13, 2.15, 2.16, 2.17, 2.18, 2.19, 2.20, 2.21, 2.22, 2.23, 2.24, 2.25, 2.26, 2.27, 2.28, 2.29, 2.3, 2.45, 2.50, 2.55, 2.60, 2.65, 2.70, 2.75, 2.80, 2.9, 3.0};
+        double default_Q = get_default_Q();
+        std::vector<double> default_Delta_vec = get_default_Delta_vec();
+        std::vector<double> default_phi_vec = get_default_phi_vec();
 
-        dsigmadt_nucleus(atomic_num, num_hotspots, seed, default_Q_vec, default_Delta_vec, filepath);
+        dsigmadt_nucleus(atomic_num, num_hotspots, seed, default_Q, default_Delta_vec, default_phi_vec, filepath);
     }
 
 
-    void dsigmadt_nucleus (uint atomic_num, uint num_hotspots, uint seed, std::vector<double> Q_vec, std::vector<double> Delta_vec, std::string filepath)
+    void dsigmadt_nucleus (uint atomic_num, uint num_hotspots, uint seed, double Q, std::vector<double> Delta_vec, std::vector<double> phi_vec, std::string filepath)
     {
-        double coherent_results_real[Q_vec.size()][Delta_vec.size()];
-        double coherent_results_imag[Q_vec.size()][Delta_vec.size()];
-        double incoherent_results[Q_vec.size()][Delta_vec.size()];
+        double coherent_results_real[Delta_vec.size()][phi_vec.size()];
+        double coherent_results_imag[Delta_vec.size()][phi_vec.size()];
+        double incoherent_results[Delta_vec.size()][phi_vec.size()];
 
         if (seed==0)
             seed = get_unique_seed();
@@ -98,18 +141,16 @@ namespace Output
         HotspotNucleus nucleus(atomic_num, num_hotspots, rng);
 
         #pragma omp parallel for
-        for (uint j = 0; j < Delta_vec.size(); j++)
-        {
-            for (uint i = 0; i < Q_vec.size(); i++)
+        for (uint i=0; i<Delta_vec.size(); i++)
+            for (uint j=0; j<phi_vec.size(); j++)
             {
-                auto [coh_real, coh_imag] = Coherent::Sampled::sqrt_dsigmadt_single_event(Q_vec[i], Delta_vec[j], nucleus);
+                auto [coh_real, coh_imag] = Coherent::Sampled::sqrt_dsigmadt_single_event(Q, Delta_vec[i], phi_vec[j], nucleus);
 
                 coherent_results_real[i][j] = coh_real;
                 coherent_results_imag[i][j] = coh_imag;
 
-                incoherent_results[i][j] = Incoherent::Sampled::dsigmadt_single_event(Q_vec[i], Delta_vec[j], nucleus);
+                incoherent_results[i][j] = Incoherent::Sampled::dsigmadt_single_event(Q, Delta_vec[i], phi_vec[j], nucleus);
             }
-        }
 
         if (filepath == std::string(""))
     #ifndef _DILUTE
@@ -128,15 +169,15 @@ namespace Output
         print_infos(out, seed, nucleus);
 
         out << "##Delta,   Q,        A Co real,Co imag,  A2 Inco\n";
-        
-        for (uint i = 0; i < Q_vec.size(); i++)
+
+        for (uint i=0; i<Delta_vec.size(); i++)
         {
-            for (uint j = 0; j < Delta_vec.size(); j++)
-            {
-                out << std::setprecision(7) << Delta_vec[j] << " " << Q_vec[i] << " " << coherent_results_real[i][j] << " " << coherent_results_imag[i][j] << " " << incoherent_results[i][j] << std::endl;
-            }
+            out << std::setprecision(7) << Delta_vec[i] << " " << Q << "   ";
+            for (uint j=0; j<phi_vec.size(); j++)
+                out << std::setprecision(7) << phi_vec[j] << " " << coherent_results_real[i][j] << " " << coherent_results_imag[i][j] << " " << incoherent_results[i][j] << "   ";
             out << std::endl;
         }
+        out << std::endl;
 
         out.close();
     }

@@ -89,7 +89,7 @@ namespace SaturationModel
         
         return 4.0 * ( DD-D(G_xy)*D(G_xbyb) );
 #else
-        return 2.0*sqr(G_xxb+G_yyb-G_xyb-G_xby);
+        return 0.25*sqr(G_xxb+G_yyb-G_xyb-G_xby);
 #endif
     }
 
@@ -218,7 +218,7 @@ namespace SaturationModel
             
             return 4.0 * ( DD-D(G_xy_sum)*D(G_xbyb_sum) );
     #else
-            return 2.0*sqr(G_xxb_sum+G_yyb_sum-G_xyb_sum-G_xby_sum);
+            return 0.25*sqr(G_xxb_sum+G_yyb_sum-G_xyb_sum-G_xby_sum);
     #endif
         }
     }

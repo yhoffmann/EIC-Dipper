@@ -212,3 +212,15 @@ uint get_unique_seed()
 
     return seed;
 }
+
+
+double sin_zeros (uint n)
+{
+    return (-0.5+double(n))*PI;
+}
+
+
+double cos_zeros (uint n)
+{
+    return double(n)*PI;
+}

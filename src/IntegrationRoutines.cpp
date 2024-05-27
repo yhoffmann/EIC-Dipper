@@ -86,9 +86,10 @@ namespace IntegrationRoutines
 
     double cuba_integrate_one_bessel (integrand_t integrand, CubaConfig* cuba_config, IntegrationConfig* integration_config)
     {
-        AIntegrandParams* A_integrand_params = (AIntegrandParams*)integration_config->integrand_params;
+        AIntegrandParams* p = (AIntegrandParams*)integration_config->integrand_params;
 
-        bool use_bessel_zeros = (gsl_sf_bessel_zero_J0(1)/A_integrand_params->Delta < 2.0*B_MAX); // TODO check if this is neccesary or if it even causes inaccuracies
+        double Delta = std::sqrt(sqr(p->Delta1) + sqr(p->Delta2));
+        bool use_bessel_zeros = (gsl_sf_bessel_zero_J0(1)/Delta < 2.0*B_MAX); // TODO check if this is neccesary or if it even causes inaccuracies
         
         double partial_sum = 0.0;
         double total_sum = 0.0;
@@ -104,7 +105,7 @@ namespace IntegrationRoutines
                 {
             #ifndef _QUIET
                     if (cuba_config->progress_monitor)
-                        std::cout << A_integrand_params->Q << " " << A_integrand_params->Delta << " " << n << " Converged " << total_sum << std::endl;
+                        std::cout << p->Q << " " << Delta << " " << n << " Converged " << total_sum << std::endl;
             #endif
                     break;
                 }
@@ -121,12 +122,12 @@ namespace IntegrationRoutines
             if (n!=0)
             {
                 integration_config->min[0] = integration_config->max[0];
-                integration_config->max[0] = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(n+1)/A_integrand_params->Delta : (n+1)*B_MAX/2.0;
+                integration_config->max[0] = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(n+1)/Delta : (n+1)*B_MAX/2.0;
             }
             else
             {
                 integration_config->min[0] = 0.0;
-                integration_config->max[0] = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(1)/A_integrand_params->Delta : B_MAX/2.0;
+                integration_config->max[0] = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(1)/Delta : B_MAX/2.0;
             }
 
             current_oscillation_value = cuba_integrate(integrand, cuba_config, integration_config);
@@ -137,7 +138,7 @@ namespace IntegrationRoutines
     #ifndef _QUIET
             if (cuba_config->progress_monitor)
             {
-                std::cout << A_integrand_params->Q << " " << A_integrand_params->Delta << "\t" << n << "\t(" << integration_config->min[0] << "," << integration_config->max[0] << ")\t" << total_sum << "(+" << current_oscillation_value << ")" << std::endl;
+                std::cout << (((AIntegrandParams*)integration_config->integrand_params)->is_incoherent ? "inco " : "co ") << p->Q << " " << Delta << " " << p->phi << "\t" << n << "\t(" << integration_config->min[0] << "," << integration_config->max[0] << ")\t" << total_sum << "(+" << current_oscillation_value << ")" << std::endl;
             }
     #endif
         }
@@ -180,11 +181,12 @@ namespace IntegrationRoutines
     }
 
 
-    double cubature_integrate_one_bessel (integrand integrand, CubatureConfig* cubature_config, IntegrationConfig* integration_config)
+    double cubature_integrate_zeros (integrand integrand, CubatureConfig* cubature_config, IntegrationConfig* integration_config, double (*zeros)(uint n))
     {
         AIntegrandParams* p = (AIntegrandParams*)integration_config->integrand_params;
 
-        bool use_bessel_zeros = (gsl_sf_bessel_zero_J0(1)/p->Delta < 2.0*B_MAX); // TODO check if this is neccesary or if it even causes inaccuracies
+        double Delta = std::sqrt(sqr(p->Delta1) + sqr(p->Delta2));
+        bool use_zeros = (zeros(1)/Delta < B_MAX/4.0); // TODO check if this is neccesary or if it even causes inaccuracies
         
         double partial_sum = 0.0;
         double total_sum = 0.0;
@@ -199,7 +201,7 @@ namespace IntegrationRoutines
                 if (std::abs(partial_sum) < cubature_config->bessel_tolerance*std::abs(total_sum) && (n+1) > cubature_config->min_oscillations)
                 {
                     if (cubature_config->progress_monitor)
-                        std::cout << p->Q << " " << p->Delta << " " << n << " Converged " << total_sum << std::endl;
+                        std::cout << p->Q << " " << Delta << " " << n << " Converged " << total_sum << std::endl;
                     
                     break;
                 }
@@ -212,12 +214,12 @@ namespace IntegrationRoutines
             if (n!=0)
             {
                 integration_config->min[0] = integration_config->max[0];
-                integration_config->max[0] = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(n+1)/p->Delta : (n+1)*B_MAX/4.0;
+                integration_config->max[0] = (use_zeros) ? zeros(n+1)/Delta : (n+1)*B_MAX/4.0;
             }
             else // if n == 0
             {
                 integration_config->min[0] = 0.0;
-                integration_config->max[0] = (use_bessel_zeros) ? gsl_sf_bessel_zero_J0(1)/p->Delta : B_MAX/4.0;
+                integration_config->max[0] = (use_zeros) ? zeros(1)/Delta : B_MAX/4.0;
             }
             
             integration_config->max[2] = std::max(integration_config->max[2], integration_config->max[0]);
@@ -234,7 +236,7 @@ namespace IntegrationRoutines
             
             if (cubature_config->progress_monitor)
             {
-                std::cout << p->Q << " " << p->Delta << "\t" << n << "\t"<< (use_bessel_zeros ? "bessel zero" : "") <<"(" << integration_config->min[0] << "," << integration_config->max[0] << ")\t" << total_sum << "(+" << current_oscillation_value << ")" << std::endl;
+                std::cout << (((AIntegrandParams*)integration_config->integrand_params)->is_incoherent ? "inco " : "co ") << p->Q << " " << Delta << " " << p->phi << "\t" << n << "\t"<< (use_zeros ? "root" : "") <<"(" << integration_config->min[0] << "," << integration_config->max[0] << ")\t" << total_sum << ((current_oscillation_value > 0.0) ? "(+" : "(") << current_oscillation_value << ")" << std::endl;
 
                 if (n == cubature_config->max_oscillations-1)
                     std::cout << "### WARNING SLOW CONVERGENCE ###" << std::endl;

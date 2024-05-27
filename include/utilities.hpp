@@ -47,3 +47,7 @@ void print_infos (std::ofstream& out, uint seed, const HotspotNucleus& nucleus);
 
 
 uint get_unique_seed();
+
+
+double sin_zeros(uint n);
+double cos_zeros(uint n);

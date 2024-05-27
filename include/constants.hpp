@@ -26,12 +26,12 @@ const double sqrt_2m_c_Nc = std::sqrt(2.0*m_Q_c*Nc); // in GeV
 // Unit conversion factors
 const double hbarc = 0.1973; //GeV fm
 
-const double fmToGeVm1 = 1.0/hbarc;
-const double GeVTofmm1 = 1.0/hbarc;
-const double GeVm1Tofm = hbarc;
-const double fmm1ToGeV = hbarc;
-const double fm2TonB = 1.0e7;
-const double nBTofm2 = 1.0e-7;
+const double fm_to_GeVm1 = 1.0/hbarc;
+const double GeV_to_fmm1 = 1.0/hbarc;
+const double GeVm1_to_fm = hbarc;
+const double fmm1_to_GeV = hbarc;
+const double fm2_to_nb = 1.0e7;
+const double nb_to_fm2 = 1.0e-7;
 
 // not exactly constant constants
 inline double NH = 1.0;

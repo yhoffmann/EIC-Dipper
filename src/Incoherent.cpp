@@ -17,9 +17,9 @@ namespace Incoherent
     }
 
 
-    double A_integrand_function (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double Delta)
+    double A_integrand_function (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double Delta1, double Delta2)
     {
-        return gsl_sf_bessel_J0( std::sqrt(sqr(b1-bb1)+sqr(b2-bb2))*Delta ) * NRPhoton::wave_function(r1, r2, Q) * NRPhoton::wave_function(rb1, rb2, Q) * SaturationModel::dsigma_d2b_sqr_reduced(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0, bb1+rb1/2.0, bb2+rb2/2.0, bb1-rb1/2.0, bb2-rb2/2.0);
+        return gsl_sf_bessel_J0((b1-bb1)*Delta1 + (b2-bb2)*Delta2) * NRPhoton::wave_function(r1, r2, Q) * NRPhoton::wave_function(rb1, rb2, Q) * SaturationModel::dsigma_d2b_sqr_reduced(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0, bb1+rb1/2.0, bb2+rb2/2.0, bb1-rb1/2.0, bb2-rb2/2.0);
     }
 
 
@@ -27,7 +27,7 @@ namespace Incoherent
     {
         IntegrationConfig* integration_config = (IntegrationConfig*)userdata;
 
-        AIntegrandParams* A_integrand_params = (AIntegrandParams*)(integration_config->integrand_params);
+        AIntegrandParams* p = (AIntegrandParams*)(integration_config->integrand_params);
 
         double dbmin = integration_config->min[0];
         double dbmax = integration_config->max[0];
@@ -76,13 +76,13 @@ namespace Incoherent
 
         double jacobian = r*db*B*rb*(dbmax-dbmin)*R_MAX*B_MAX*R_MAX*16.0*PI*PI*PI*PI;
 
-        ff[0] = jacobian * Incoherent::A_integrand_function(b1, b2, r1, r2, bb1, bb2, rb1, rb2, A_integrand_params->Q, A_integrand_params->Delta);
+        ff[0] = jacobian * Incoherent::A_integrand_function(b1, b2, r1, r2, bb1, bb2, rb1, rb2, p->Q, p->Delta1, p->Delta2);
 
         return 0;
     }
 
 
-    double dsigmadt (double Q, double Delta)
+    double dsigmadt (double Q, double Delta, double phi)
     {
         CubaConfig c_config;
         c_config.progress_monitor = true;
@@ -91,7 +91,8 @@ namespace Incoherent
 
         AIntegrandParams params;
         params.Q = Q;
-        params.Delta = Delta;
+        params.Delta1 = Delta*cos(phi);
+        params.Delta2 = Delta*sin(phi);
 
         i_config.integrand_params = &params;
 
@@ -109,7 +110,7 @@ namespace Incoherent
         double ret;
 
         ret = sqr(A_integrand_function_factor(((AIntegrandParams*)(integration_config->integrand_params))->Q)) * IntegrationRoutines::cuba_integrate_one_bessel(Incoherent::integrand, c_config, integration_config);
-        ret *= (GeVm1Tofm*GeVm1Tofm*fm2TonB)/(16.0*PI);
+        ret *= (GeVm1_to_fm*GeVm1_to_fm*fm2_to_nb)/(16.0*PI);
 
         return ret;
     }
@@ -134,23 +135,25 @@ namespace Incoherent
         double bb1 = B1-db1/2.0;
         double bb2 = B2-db2/2.0;
 
-        ff[0] = xx[0]*xx[2]*xx[4]*xx[6] * Incoherent::A_integrand_function(b1, b2, r1, r2, bb1, bb2, rb1, rb2, p->Q, p->Delta);
+        ff[0] = xx[0]*xx[2]*xx[4]*xx[6] * Incoherent::A_integrand_function(b1, b2, r1, r2, bb1, bb2, rb1, rb2, p->Q, p->Delta1, p->Delta2);
 
         return 0;
     }
 
 
-    double dsigmadt_cubature (double Q, double Delta)
+    double dsigmadt_cubature (double Q, double Delta, double phi)
     {
         CubatureConfig c_config;
         c_config.progress_monitor = progress_monitor_global;
-        c_config.max_eval = 1e8;
+        c_config.max_eval = 1e6;
 
         IntegrationConfig i_config;
 
         AIntegrandParams params;
         params.Q = Q;
-        params.Delta = Delta;
+        params.Delta1 = Delta*cos(phi);
+        params.Delta2 = Delta*sin(phi);
+        params.phi = phi;
         params.is_incoherent = true;
 
         i_config.integrand_params = &params;
@@ -187,8 +190,8 @@ namespace Incoherent
         i_config->min[7] = 0.0;
         i_config->max[7] = 2.0*M_PI;
 
-        double ret = sqr(A_integrand_function_factor(((AIntegrandParams*)(i_config->integrand_params))->Q)) * IntegrationRoutines::cubature_integrate_one_bessel(Incoherent::integrand_cubature, c_config, i_config);
-        ret *= (GeVm1Tofm*GeVm1Tofm*fm2TonB)/(16.0*PI);
+        double ret = sqr(A_integrand_function_factor(((AIntegrandParams*)(i_config->integrand_params))->Q)) * IntegrationRoutines::cubature_integrate_zeros(Incoherent::integrand_cubature, c_config, i_config, &gsl_sf_bessel_zero_J0);
+        ret *= (GeVm1_to_fm*GeVm1_to_fm*fm2_to_nb)/(16.0*PI);
 
         return ret;
     }
@@ -218,7 +221,7 @@ namespace Incoherent { namespace Demirci
     int one_connected_integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
     {
         AIntegrandParams* p = (AIntegrandParams*)(((IntegrationConfig*)userdata)->integrand_params);
-        ff[0] = xx[0]*xx[2]*K_integrand_function(xx[0], xx[1], xx[2], xx[3], rH_sqr, p->Delta, m*m, sqr(NRPhoton::epsilon(p->Q)) );
+        ff[0] = xx[0]*xx[2]*K_integrand_function(xx[0], xx[1], xx[2], xx[3], rH_sqr, p->Delta1, m*m, sqr(NRPhoton::epsilon(p->Q)) );
 
         return 0;
     }
@@ -227,7 +230,7 @@ namespace Incoherent { namespace Demirci
     int two_connected_integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
     {
         AIntegrandParams* p = (AIntegrandParams*)(((IntegrationConfig*)userdata)->integrand_params);
-        ff[0] = xx[0]*xx[2]*K_integrand_function(xx[0], xx[1], xx[2], xx[3], R_sqr+rH_sqr, p->Delta, m*m, sqr(NRPhoton::epsilon(p->Q)) );
+        ff[0] = xx[0]*xx[2]*K_integrand_function(xx[0], xx[1], xx[2], xx[3], R_sqr+rH_sqr, p->Delta1, m*m, sqr(NRPhoton::epsilon(p->Q)) );
 
         return 0;
     }
@@ -249,7 +252,7 @@ namespace Incoherent { namespace Demirci
     {
         AIntegrandParams p;
         p.Q = Q;
-        p.Delta = Delta;
+        p.Delta1 = Delta;
 
         CubatureConfig c_config;
         c_config.progress_monitor = progress_monitor_global;
@@ -289,7 +292,7 @@ namespace Incoherent { namespace Demirci
         double one_connected_result = one_connected_factor( ((AIntegrandParams*)(i_config->integrand_params))->Q ) * IntegrationRoutines::cubature_integrate(one_connected_integrand, c_config, i_config);
         double two_connected_result = two_connected_factor( ((AIntegrandParams*)(i_config->integrand_params))->Q ) * IntegrationRoutines::cubature_integrate(two_connected_integrand, c_config, i_config);
 
-        return (one_connected_result+two_connected_result) * sqr(GeVm1Tofm) * fm2TonB;
+        return (one_connected_result+two_connected_result) * sqr(GeVm1_to_fm) * fm2_to_nb;
     }
 
     
@@ -308,14 +311,14 @@ namespace Incoherent { namespace Demirci
 
 namespace Incoherent { namespace Sampled
 {
-    double A_integrand_function (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double Delta, const HotspotNucleus* h_nucleus)
+    double A_integrand_function (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double Delta1, double Delta2, const HotspotNucleus* h_nucleus)
     {
-        return gsl_sf_bessel_J0( std::sqrt(sqr(b1-bb1)+sqr(b2-bb2))*Delta ) * NRPhoton::wave_function(r1, r2, Q) * NRPhoton::wave_function(rb1, rb2, Q) * SaturationModel::Sampled::dsigma_d2b_sqr_reduced(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0, bb1+rb1/2.0, bb2+rb2/2.0, bb1-rb1/2.0, bb2-rb2/2.0, h_nucleus);
+        return gsl_sf_bessel_J0((b1-bb1)*Delta1 + (b2-bb2)*Delta2) * NRPhoton::wave_function(r1, r2, Q) * NRPhoton::wave_function(rb1, rb2, Q) * SaturationModel::Sampled::dsigma_d2b_sqr_reduced(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0, bb1+rb1/2.0, bb2+rb2/2.0, bb1-rb1/2.0, bb2-rb2/2.0, h_nucleus);
     }
 
     int integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
     {
-        AIntegrandParams* p = (AIntegrandParams*)(((IntegrationConfig*)userdata)->integrand_params);
+        AIntegrandParams* p = (AIntegrandParams*)userdata;
 
         double db1 = xx[0]*cos(xx[1]);
         double db2 = xx[0]*sin(xx[1]);
@@ -332,15 +335,16 @@ namespace Incoherent { namespace Sampled
         double bb1 = B1-db1/2.0;
         double bb2 = B2-db2/2.0;
 
-        ff[0] = xx[0]*xx[2]*xx[4]*xx[6] * Incoherent::Sampled::A_integrand_function(b1, b2, r1, r2, bb1, bb2, rb1, rb2, p->Q, p->Delta, p->h_nucleus);
+        ff[0] = xx[0]*xx[2]*xx[4]*xx[6] * Incoherent::Sampled::A_integrand_function(b1, b2, r1, r2, bb1, bb2, rb1, rb2, p->Q, p->Delta1, p->Delta2, p->h_nucleus);
 
         return 0;
     }
 
 
-    double dsigmadt_single_event (double Q, double Delta, const HotspotNucleus& h_nucleus)
+    double dsigmadt_single_event (double Q, double Delta, double phi, const HotspotNucleus& h_nucleus)
     {
         CubatureConfig c_config;
+        c_config.max_eval = 1e7;
         c_config.progress_monitor = progress_monitor_global;
 
         IntegrationConfig i_config;
@@ -349,7 +353,9 @@ namespace Incoherent { namespace Sampled
         i_config.integrand_params = &params;
         
         params.Q = Q;
-        params.Delta = Delta;
+        params.Delta1 = Delta*cos(phi);
+        params.Delta2 = Delta*sin(phi);
+        params.phi = phi;
         params.is_incoherent = true;
         params.h_nucleus = &h_nucleus;
 
@@ -385,8 +391,8 @@ namespace Incoherent { namespace Sampled
         i_config->min[7] = 0.0;
         i_config->max[7] = 2.0*M_PI;
 
-        double factor = Incoherent::A_integrand_function_factor( ((AIntegrandParams*)(i_config->integrand_params))->Q ) * sqr(GeVm1Tofm) * fm2TonB / (16.0*PI);
+        double factor = sqr(Incoherent::A_integrand_function_factor( ((AIntegrandParams*)(i_config->integrand_params))->Q )) * sqr(GeVm1_to_fm) * fm2_to_nb / (16.0*PI);
 
-        return factor*IntegrationRoutines::cubature_integrate_one_bessel(Incoherent::Sampled::integrand, c_config, i_config);
+        return factor*IntegrationRoutines::cubature_integrate_zeros(Incoherent::Sampled::integrand, c_config, i_config, &gsl_sf_bessel_zero_J0);
     }
 } }

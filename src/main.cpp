@@ -36,7 +36,10 @@ int main (int argc, char** argv)
     set_import_filepath_by_parameters(interpolator_filepath);
 
     //GBWModel::G_ip.import_data(interpolator_filepath);
-    GBWModel::G_ip.import_data("InterpolatorData/G_rH2_290_m_022.dat");
+    GBWModel::G_ip.import_data("InterpolatorData/G_rH2_070_m_022.dat");
+    
+    // Output::dsigmadt(true, false, filepath_global);
+    Output::dsigmadt_nucleus(1, 3, 0, filepath_global);
 
     // std::cout << Coherent::dsigmadt(std::sqrt(0.1), 1.5) << std::endl;
     // std::cout << Coherent::dsigmadt_test(std::sqrt(0.1), 1.5) << std::endl;
@@ -124,20 +127,21 @@ int main (int argc, char** argv)
 */
 
 
-    std::vector<double> Q_vec = {std::sqrt(0.1)};
-    std::vector<double> Delta_vec;
+    // std::vector<double> Q_vec = {std::sqrt(0.1)};
+    // std::vector<double> Delta_vec;
+    // std::vector<double> phi_vec;
 
-    uint imax = 32;
+    // uint imax = 32;
 
-    double results[imax];
-    double results2[imax];
+    // double results[imax];
+    // double results2[imax];
 
-    for (uint i=0; i<imax; ++i)
-    {
-        Delta_vec.push_back( std::sqrt(8.0)*double(i)/double(imax-1)+0.0001 );
-    }
+    // for (uint i=0; i<imax; ++i)
+    // {
+    //     Delta_vec.push_back( std::sqrt(8.0)*double(i)/double(imax-1)+0.0001 );
+    // }
 
-    Output::dsigmadt(true, false, Q_vec, Delta_vec, filepath_global);
+    // Output::dsigmadt(true, false, Q_vec, Delta_vec, phi_vec, filepath_global);
 
     // // #pragma omp parallel for ordered
     // // for (uint i=0; i<imax; ++i)

@@ -9,11 +9,11 @@ namespace Output
 {
     void dsigmadt(bool do_coherent, bool do_incoherent, std::string output_file);
 
-    void dsigmadt(bool do_coherent, bool do_incoherent, std::vector<double> Q_vec, std::vector<double> Delta_vec, std::string output_file = "");
+    void dsigmadt(bool do_coherent, bool do_incoherent, double Q, std::vector<double> Delta_vec, std::vector<double> phi_vec, std::string output_file = "");
 
     void dsigmadt_nucleus(uint atomic_num, uint num_hotspots, uint seed, std::string filepath = std::string(""));
 
-    void dsigmadt_nucleus(uint atomic_num, uint num_hotspots, uint seed, std::vector<double> Q_vec, std::vector<double> Delta_vec, std::string filepath = std::string(""));
+    void dsigmadt_nucleus(uint atomic_num, uint num_hotspots, uint seed, double Q, std::vector<double> Delta_vec, std::vector<double> phi_vec, std::string filepath = std::string(""));
 
     void G(unsigned int num_points, std::string filepath);
 
