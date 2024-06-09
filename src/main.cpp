@@ -36,10 +36,10 @@ int main (int argc, char** argv)
     set_import_filepath_by_parameters(interpolator_filepath);
 
     //GBWModel::G_ip.import_data(interpolator_filepath);
-    GBWModel::G_ip.import_data("InterpolatorData/G_rH2_070_m_022.dat");
+    GBWModel::G_ip.import_data("InterpolatorData/G_rH2_290_m_022.dat");
     
-    // Output::dsigmadt(true, false, filepath_global);
-    Output::dsigmadt_nucleus(1, 3, 0, filepath_global);
+    Output::dsigmadt(true, true, filepath_global);
+    // Output::dsigmadt_nucleus(1, 3, 0, filepath_global);
 
     // std::cout << Coherent::dsigmadt(std::sqrt(0.1), 1.5) << std::endl;
     // std::cout << Coherent::dsigmadt_test(std::sqrt(0.1), 1.5) << std::endl;

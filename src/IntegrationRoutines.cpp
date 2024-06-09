@@ -62,7 +62,7 @@ namespace IntegrationRoutines
                 flags1 | flags2,
                 mineval, maxeval,
                 KEY, NULL, NULL,
-                &num_regions,&num_evals, &error_status,
+                &num_regions, &num_evals, &error_status,
                 value, error, probability
             );
         } else if (cuba_config->integrator==CubaIntegrator::Suave) {
@@ -186,7 +186,7 @@ namespace IntegrationRoutines
         AIntegrandParams* p = (AIntegrandParams*)integration_config->integrand_params;
 
         double Delta = std::sqrt(sqr(p->Delta1) + sqr(p->Delta2));
-        bool use_zeros = (zeros(1)/Delta < B_MAX/4.0); // TODO check if this is neccesary or if it even causes inaccuracies
+        bool use_zeros = (zeros(1)/Delta < B_MAX/4.0);
         
         double partial_sum = 0.0;
         double total_sum = 0.0;

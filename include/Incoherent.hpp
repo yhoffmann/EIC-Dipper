@@ -8,15 +8,13 @@
 
 namespace Incoherent {
     double A_integrand_function_factor(double Q);
-    double A_integrand_function(double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double Delta1, double Delta2);
+    double A_real(double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double Delta1, double Delta2);
+    double A_imag(double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double Delta1, double Delta2);
 
-    int integrand(const int *ndim, const cubareal xx[], const int *ncomp, cubareal ff[], void *userdata);
+    int integrand_real(unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff);
+    int integrand_imag(unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff);
     double dsigmadt(double Q, double Delta, double phi);
-    double dsigmadt(CubaConfig* cuba_config, IntegrationConfig* integration_config);
-
-    int integrand_cubature(unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff);
-    double dsigmadt_cubature(double Q, double Delta, double phi);
-    double dsigmadt_cubature(CubatureConfig* cuba_config, IntegrationConfig* integration_config);
+    double dsigmadt(CubatureConfig* cuba_config, IntegrationConfig* integration_config);
 }
 
 

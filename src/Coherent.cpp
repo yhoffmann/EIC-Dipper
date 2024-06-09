@@ -65,7 +65,7 @@ namespace Coherent
         c_config.progress_monitor = progress_monitor_global;
         c_config.abs_err = 1.0e-7;
         c_config.rel_err = 1.0e-12;
-        c_config.max_eval = 1e7;
+        c_config.max_eval = 1e5;
 
         IntegrationConfig i_config;
         AIntegrandParams params;
@@ -144,14 +144,13 @@ namespace Coherent
         return 0;
     }
 
-
     double dsigmadt_test (double Q, double Delta, double phi)
     {
         CubatureConfig c_config;
         c_config.progress_monitor = progress_monitor_global;
         c_config.abs_err = 1.0e-7;
         c_config.rel_err = 1.0e-12;
-        c_config.max_eval = 5e6;
+        c_config.max_eval = 1e5;
 
         IntegrationConfig i_config;
         AIntegrandParams params;
@@ -177,7 +176,9 @@ namespace Coherent
         i_config.min[3] = 0.0;
         i_config.max[3] = 2.0*PI;
 
-        double ret = sqr(IntegrationRoutines::cubature_integrate_zeros(Coherent::integrand_real, &c_config, &i_config, &sin_zeros)) + sqr(IntegrationRoutines::cubature_integrate_zeros(Coherent::integrand_imag, &c_config, &i_config, &cos_zeros));
+        double ret = sqr(IntegrationRoutines::cubature_integrate_zeros(Coherent::integrand_real, &c_config, &i_config, &sin_zeros));
+        i_config.max[2] = R_MAX;
+        ret += sqr(IntegrationRoutines::cubature_integrate_zeros(Coherent::integrand_imag, &c_config, &i_config, &cos_zeros));
 
         ret *= sqr(A_integrand_function_factor(Q)) * (GeVm1_to_fm*GeVm1_to_fm*fm2_to_nb)/(16.0*PI);
 
@@ -222,7 +223,7 @@ namespace Coherent { namespace Demirci
 
     int integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
     {
-        AIntegrandParams* params = (AIntegrandParams*)(((IntegrationConfig*)userdata)->integrand_params);
+        AIntegrandParams* params = (AIntegrandParams*)userdata;
 
         ff[0] = Z_integrand_function(xx[0], xx[1], xx[2], params->Q, params->Delta1);
 
@@ -238,7 +239,7 @@ namespace Coherent { namespace Demirci
         c_config.max_eval = 2e7;
 
         IntegrationConfig i_config;
-        
+
         AIntegrandParams params;
         params.Q = Q;
         params.Delta1 = Delta;
@@ -252,7 +253,7 @@ namespace Coherent { namespace Demirci
     double dsigmadt (CubatureConfig* c_config, IntegrationConfig* i_config)
     {
         c_config->num_dims = 3;
-        
+
         i_config->min = (double*)alloca(3*sizeof(double));
         i_config->max = (double*)alloca(3*sizeof(double));
 
@@ -284,7 +285,7 @@ namespace Coherent { namespace Sampled
         return NRPhoton::wave_function(r1, r2, Q) * sin(b1*Delta1 + b2*Delta2) * SaturationModel::Sampled::dsigma_d2b(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0, nucleus);
     }
 
-    
+
     double A_imag (double b1, double b2, double r1, double r2, double Q, double Delta1, double Delta2, const HotspotNucleus* nucleus)
     {
         return NRPhoton::wave_function(r1, r2, Q) * cos(b1*Delta1 + b2*Delta2) * SaturationModel::Sampled::dsigma_d2b(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0, nucleus);
@@ -313,14 +314,14 @@ namespace Coherent { namespace Sampled
     std::tuple<double,double> sqrt_dsigmadt_single_event (double Q, double Delta, double phi, const HotspotNucleus& h_nucleus)
     {
         CubatureConfig c_config;
-        c_config.max_eval = 1e7;
+        c_config.max_eval = 1e4;
         c_config.progress_monitor = progress_monitor_global;
 
         IntegrationConfig i_config;
         AIntegrandParams params;
-        
+
         i_config.integrand_params = &params;
-        
+
         params.Q = Q;
         params.Delta1 = Delta*cos(phi);
         params.Delta2 = Delta*sin(phi);
@@ -350,6 +351,7 @@ namespace Coherent { namespace Sampled
         double factor = Coherent::A_integrand_function_factor( ((AIntegrandParams*)(i_config->integrand_params))->Q ) * GeVm1_to_fm * std::sqrt(fm2_to_nb) / (4.0*M_SQRTPI);
 
         double real = IntegrationRoutines::cubature_integrate_zeros(Coherent::Sampled::integrand_real, c_config, i_config, &sin_zeros);
+        i_config->max[2] = R_MAX;
         double imag = IntegrationRoutines::cubature_integrate_zeros(Coherent::Sampled::integrand_imag, c_config, i_config, &cos_zeros);
 
         return {factor*real, factor*imag};

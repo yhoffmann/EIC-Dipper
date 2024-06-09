@@ -17,66 +17,43 @@ namespace Incoherent
     }
 
 
-    double A_integrand_function (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double Delta1, double Delta2)
+    double A_real (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double Delta1, double Delta2)
     {
-        return gsl_sf_bessel_J0((b1-bb1)*Delta1 + (b2-bb2)*Delta2) * NRPhoton::wave_function(r1, r2, Q) * NRPhoton::wave_function(rb1, rb2, Q) * SaturationModel::dsigma_d2b_sqr_reduced(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0, bb1+rb1/2.0, bb2+rb2/2.0, bb1-rb1/2.0, bb2-rb2/2.0);
+        return cos((b1-bb1)*Delta1 + (b2-bb2)*Delta2) * NRPhoton::wave_function(r1, r2, Q) * NRPhoton::wave_function(rb1, rb2, Q) * SaturationModel::dsigma_d2b_sqr_reduced(b1+r1*0.5, b2+r2*0.5, b1-r1*0.5, b2-r2*0.5, bb1+rb1*0.5, bb2+rb2*0.5, bb1-rb1*0.5, bb2-rb2*0.5);
+    }
+
+    double A_imag (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double Delta1, double Delta2)
+    {
+        return -sin((b1-bb1)*Delta1 + (b2-bb2)*Delta2) * NRPhoton::wave_function(r1, r2, Q) * NRPhoton::wave_function(rb1, rb2, Q) * SaturationModel::dsigma_d2b_sqr_reduced(b1+r1*0.5, b2+r2*0.5, b1-r1*0.5, b2-r2*0.5, bb1+rb1*0.5, bb2+rb2*0.5, bb1-rb1*0.5, bb2-rb2*0.5);
     }
 
 
-    int integrand (const int* ndim, const cubareal xx[], const int* ncomp, cubareal ff[], void* userdata)
+    int integrand_real (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
     {
-        IntegrationConfig* integration_config = (IntegrationConfig*)userdata;
+        AIntegrandParams* p = (AIntegrandParams*)userdata;
 
-        AIntegrandParams* p = (AIntegrandParams*)(integration_config->integrand_params);
+        double db1 = xx[0]*cos(xx[1]);
+        double db2 = xx[0]*sin(xx[1]);
 
-        double dbmin = integration_config->min[0];
-        double dbmax = integration_config->max[0];
-        //double phidbmin = 0.0;
-        //double phidbmax = 2*PI;
+        double B1 = xx[4]*cos(xx[5]);
+        double B2 = xx[4]*sin(xx[5]);
 
-        //double rmin = 0.0;
-        //double rmax = R_MAX;
-        //double phirmin = 0.0;
-        //double phirmax = 2.0*PI;
+        ff[0] = xx[0]*xx[2]*xx[4]*xx[6] * Incoherent::A_real(B1+db1*0.5, B2+db2*0.5, xx[2]*cos(xx[3]), xx[2]*sin(xx[3]), B1-db1*0.5, B2-db2*0.5, xx[6]*cos(xx[7]), xx[6]*sin(xx[7]), p->Q, p->Delta1, p->Delta2);
 
-        //double Bmin = 0.0;
-        //double Bmax = B_MAX;
-        //double phiBmin = 0.0;
-        //double phiBmax = 2*PI;
+        return 0;
+    }
 
-        //double rbmin = 0.0;
-        //double rbmax = rmax;
-        //double phirbmin = 0.0;
-        //double phirbmax = 2.0*PI;
+    int integrand_imag (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
+    {
+        AIntegrandParams* p = (AIntegrandParams*)userdata;
 
-        double db = dbmin + (dbmax-dbmin)*xx[0];
-        double phib = 2.0*M_PI*xx[1];
-        double r = R_MAX*xx[2];
-        double phir = 2.0*M_PI*xx[3];
+        double db1 = xx[0]*cos(xx[1]);
+        double db2 = xx[0]*sin(xx[1]);
 
-        double B = B_MAX*xx[4];
-        double phiB = 2.0*M_PI*xx[5];
-        double rb = R_MAX*xx[6];
-        double phirb = 2.0*M_PI*xx[7];
+        double B1 = xx[4]*cos(xx[5]);
+        double B2 = xx[4]*sin(xx[5]);
 
-        double db1 = db*cos(phib);
-        double db2 = db*sin(phib);
-        double r1 = r*cos(phir);
-        double r2 = r*sin(phir);
-
-        double B1 = B*cos(phiB);
-        double B2 = B*sin(phiB);
-        double rb1 = rb*cos(phirb);
-        double rb2 = rb*sin(phirb);
-
-        double b1 = B1+db1/2.0;
-        double b2 = B2+db2/2.0;
-        double bb1 = B1-db1/2.0;
-        double bb2 = B2-db2/2.0;
-
-        double jacobian = r*db*B*rb*(dbmax-dbmin)*R_MAX*B_MAX*R_MAX*16.0*PI*PI*PI*PI;
-
-        ff[0] = jacobian * Incoherent::A_integrand_function(b1, b2, r1, r2, bb1, bb2, rb1, rb2, p->Q, p->Delta1, p->Delta2);
+        ff[0] = xx[0]*xx[2]*xx[4]*xx[6] * Incoherent::A_imag(B1+db1*0.5, B2+db2*0.5, xx[2]*cos(xx[3]), xx[2]*sin(xx[3]), B1-db1*0.5, B2-db2*0.5, xx[6]*cos(xx[7]), xx[6]*sin(xx[7]), p->Q, p->Delta1, p->Delta2);
 
         return 0;
     }
@@ -84,68 +61,9 @@ namespace Incoherent
 
     double dsigmadt (double Q, double Delta, double phi)
     {
-        CubaConfig c_config;
-        c_config.progress_monitor = true;
-
-        IntegrationConfig i_config;
-
-        AIntegrandParams params;
-        params.Q = Q;
-        params.Delta1 = Delta*cos(phi);
-        params.Delta2 = Delta*sin(phi);
-
-        i_config.integrand_params = &params;
-
-        return dsigmadt(&c_config, &i_config);
-    }
-
-
-    double dsigmadt (CubaConfig* c_config, IntegrationConfig* integration_config) // TODO include coherent here, this only calculates incoherent right now
-    {
-        c_config->num_dims = 8;
-
-        integration_config->min = (double*)alloca(sizeof(double));
-        integration_config->max = (double*)alloca(sizeof(double));
-
-        double ret;
-
-        ret = sqr(A_integrand_function_factor(((AIntegrandParams*)(integration_config->integrand_params))->Q)) * IntegrationRoutines::cuba_integrate_one_bessel(Incoherent::integrand, c_config, integration_config);
-        ret *= (GeVm1_to_fm*GeVm1_to_fm*fm2_to_nb)/(16.0*PI);
-
-        return ret;
-    }
-
-
-    int integrand_cubature (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
-    {
-        AIntegrandParams* p = (AIntegrandParams*)userdata;
-
-        double db1 = xx[0]*cos(xx[1]);
-        double db2 = xx[0]*sin(xx[1]);
-        double r1 = xx[2]*cos(xx[3]);
-        double r2 = xx[2]*sin(xx[3]);
-
-        double B1 = xx[4]*cos(xx[5]);
-        double B2 = xx[4]*sin(xx[5]);
-        double rb1 = xx[6]*cos(xx[7]);
-        double rb2 = xx[6]*sin(xx[7]);
-
-        double b1 = B1+db1/2.0;
-        double b2 = B2+db2/2.0;
-        double bb1 = B1-db1/2.0;
-        double bb2 = B2-db2/2.0;
-
-        ff[0] = xx[0]*xx[2]*xx[4]*xx[6] * Incoherent::A_integrand_function(b1, b2, r1, r2, bb1, bb2, rb1, rb2, p->Q, p->Delta1, p->Delta2);
-
-        return 0;
-    }
-
-
-    double dsigmadt_cubature (double Q, double Delta, double phi)
-    {
         CubatureConfig c_config;
         c_config.progress_monitor = progress_monitor_global;
-        c_config.max_eval = 1e6;
+        c_config.max_eval = 1e7;
 
         IntegrationConfig i_config;
 
@@ -158,42 +76,50 @@ namespace Incoherent
 
         i_config.integrand_params = &params;
 
-        return dsigmadt_cubature(&c_config, &i_config);
+        return dsigmadt(&c_config, &i_config);
     }
 
 
-    double dsigmadt_cubature (CubatureConfig* c_config, IntegrationConfig* i_config)
+    void set_integration_range(double min[], double max[])
+    {
+        min[1] = 0.0;
+        max[1] = 2.0*M_PI;
+
+        min[2] = 0.0;
+        max[2] = R_MAX;
+
+        min[3] = 0.0;
+        max[3] = 2.0*M_PI;
+
+        min[4] = 0.0;
+        max[4] = B_MAX;
+
+        min[5] = 0.0;
+        max[5] = 2.0*M_PI;
+
+        min[6] = 0.0;
+        max[6] = R_MAX;
+
+        min[7] = 0.0;
+        max[7] = 2.0*M_PI;
+    }
+
+    double dsigmadt (CubatureConfig* c_config, IntegrationConfig* i_config)
     {
         c_config->num_dims = 8;
 
         i_config->min = (double*)alloca(8*sizeof(double));
         i_config->max = (double*)alloca(8*sizeof(double));
 
-        i_config->min[1] = 0.0;
-        i_config->max[1] = 2.0*M_PI;
+        set_integration_range(i_config->min, i_config->max);
+        double real = sqr(A_integrand_function_factor(((AIntegrandParams*)(i_config->integrand_params))->Q)) * IntegrationRoutines::cubature_integrate_zeros(Incoherent::integrand_real, c_config, i_config, &cos_zeros);
 
-        i_config->min[2] = 0.0;
-        i_config->max[2] = R_MAX;
+        set_integration_range(i_config->min, i_config->max);
+        double imag = sqr(A_integrand_function_factor(((AIntegrandParams*)(i_config->integrand_params))->Q)) * IntegrationRoutines::cubature_integrate_zeros(Incoherent::integrand_imag, c_config, i_config, &sin_zeros);
 
-        i_config->min[3] = 0.0;
-        i_config->max[3] = 2.0*M_PI;
-
-        i_config->min[4] = 0.0;
-        i_config->max[4] = B_MAX;
-
-        i_config->min[5] = 0.0;
-        i_config->max[5] = 2.0*M_PI;
-
-        i_config->min[6] = 0.0;
-        i_config->max[6] = R_MAX;
-
-        i_config->min[7] = 0.0;
-        i_config->max[7] = 2.0*M_PI;
-
-        double ret = sqr(A_integrand_function_factor(((AIntegrandParams*)(i_config->integrand_params))->Q)) * IntegrationRoutines::cubature_integrate_zeros(Incoherent::integrand_cubature, c_config, i_config, &gsl_sf_bessel_zero_J0);
-        ret *= (GeVm1_to_fm*GeVm1_to_fm*fm2_to_nb)/(16.0*PI);
-
-        return ret;
+        double factor = (GeVm1_to_fm*GeVm1_to_fm*fm2_to_nb)/(16.0*PI);
+std::cout << ((AIntegrandParams*)(i_config->integrand_params))->Delta1 << " " << ((AIntegrandParams*)(i_config->integrand_params))->Delta2 << " " << ((AIntegrandParams*)(i_config->integrand_params))->phi << " " << real << " " << imag << std::endl;
+        return (real+imag)*factor;
     }
 }
 
@@ -220,7 +146,7 @@ namespace Incoherent { namespace Demirci
 
     int one_connected_integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
     {
-        AIntegrandParams* p = (AIntegrandParams*)(((IntegrationConfig*)userdata)->integrand_params);
+        AIntegrandParams* p = (AIntegrandParams*)userdata;
         ff[0] = xx[0]*xx[2]*K_integrand_function(xx[0], xx[1], xx[2], xx[3], rH_sqr, p->Delta1, m*m, sqr(NRPhoton::epsilon(p->Q)) );
 
         return 0;
@@ -229,7 +155,7 @@ namespace Incoherent { namespace Demirci
 
     int two_connected_integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
     {
-        AIntegrandParams* p = (AIntegrandParams*)(((IntegrationConfig*)userdata)->integrand_params);
+        AIntegrandParams* p = (AIntegrandParams*)userdata;
         ff[0] = xx[0]*xx[2]*K_integrand_function(xx[0], xx[1], xx[2], xx[3], R_sqr+rH_sqr, p->Delta1, m*m, sqr(NRPhoton::epsilon(p->Q)) );
 
         return 0;
@@ -261,7 +187,7 @@ namespace Incoherent { namespace Demirci
 
         i_config.integrand_params = &p;
 
-        c_config.max_eval = 1e8;
+        c_config.max_eval = 2e7;
 
         return color_fluctuations(&c_config, &i_config);
     }
@@ -313,7 +239,7 @@ namespace Incoherent { namespace Sampled
 {
     double A_integrand_function (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double Delta1, double Delta2, const HotspotNucleus* h_nucleus)
     {
-        return gsl_sf_bessel_J0((b1-bb1)*Delta1 + (b2-bb2)*Delta2) * NRPhoton::wave_function(r1, r2, Q) * NRPhoton::wave_function(rb1, rb2, Q) * SaturationModel::Sampled::dsigma_d2b_sqr_reduced(b1+r1/2.0, b2+r2/2.0, b1-r1/2.0, b2-r2/2.0, bb1+rb1/2.0, bb2+rb2/2.0, bb1-rb1/2.0, bb2-rb2/2.0, h_nucleus);
+        return /*gsl_sf_bessel_J0((b1-bb1)*Delta1 + (b2-bb2)*Delta2)*/cos((b1-bb1)*Delta1 + (b2-bb2)*Delta2) * NRPhoton::wave_function(r1, r2, Q) * NRPhoton::wave_function(rb1, rb2, Q) * SaturationModel::Sampled::dsigma_d2b_sqr_reduced(b1+r1*0.5, b2+r2*0.5, b1-r1*0.5, b2-r2*0.5, bb1+rb1*0.5, bb2+rb2*0.5, bb1-rb1*0.5, bb2-rb2*0.5, h_nucleus);
     }
 
     int integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
@@ -322,20 +248,11 @@ namespace Incoherent { namespace Sampled
 
         double db1 = xx[0]*cos(xx[1]);
         double db2 = xx[0]*sin(xx[1]);
-        double r1 = xx[2]*cos(xx[3]);
-        double r2 = xx[2]*sin(xx[3]);
 
         double B1 = xx[4]*cos(xx[5]);
         double B2 = xx[4]*sin(xx[5]);
-        double rb1 = xx[6]*cos(xx[7]);
-        double rb2 = xx[6]*sin(xx[7]);
 
-        double b1 = B1+db1/2.0;
-        double b2 = B2+db2/2.0;
-        double bb1 = B1-db1/2.0;
-        double bb2 = B2-db2/2.0;
-
-        ff[0] = xx[0]*xx[2]*xx[4]*xx[6] * Incoherent::Sampled::A_integrand_function(b1, b2, r1, r2, bb1, bb2, rb1, rb2, p->Q, p->Delta1, p->Delta2, p->h_nucleus);
+        ff[0] = xx[0]*xx[2]*xx[4]*xx[6] * Incoherent::Sampled::A_integrand_function(B1+db1*0.5, B2+db2*0.5, xx[2]*cos(xx[3]), xx[2]*sin(xx[3]), B1-db1*0.5, B2-db2*0.5, xx[6]*cos(xx[7]), xx[6]*sin(xx[7]), p->Q, p->Delta1, p->Delta2, p->h_nucleus);
 
         return 0;
     }
@@ -349,7 +266,7 @@ namespace Incoherent { namespace Sampled
 
         IntegrationConfig i_config;
         AIntegrandParams params;
-        
+
         i_config.integrand_params = &params;
         
         params.Q = Q;
@@ -393,6 +310,6 @@ namespace Incoherent { namespace Sampled
 
         double factor = sqr(Incoherent::A_integrand_function_factor( ((AIntegrandParams*)(i_config->integrand_params))->Q )) * sqr(GeVm1_to_fm) * fm2_to_nb / (16.0*PI);
 
-        return factor*IntegrationRoutines::cubature_integrate_zeros(Incoherent::Sampled::integrand, c_config, i_config, &gsl_sf_bessel_zero_J0);
+        return factor*IntegrationRoutines::cubature_integrate_zeros(Incoherent::Sampled::integrand, c_config, i_config, &cos_zeros);
     }
 } }

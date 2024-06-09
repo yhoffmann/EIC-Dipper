@@ -21,7 +21,7 @@ namespace Output
 
     std::vector<double> get_default_Delta_vec()
     {
-        return std::vector<double>{0.001, 0.002, 0.005, 0.007, 0.01, 0.03, 0.05, 0.07, 0.08, 0.09, 0.12, 0.16, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.3, 2.7, 3.0, 3.3, 3.7, 4.0}; // {0.001, 0.01, 0.04, 0.08, 0.12, 0.2, 0.4, 0.6, 0.8, 1.0, 1.4, 1.8, 2.3, 3.0, 4.0}; //
+        return std::vector<double>{0.001, 0.01, 0.04, 0.08, 0.12, 0.2, 0.3, 0.4, 0.6, 0.8, 1.0, 1.4, 1.8, 2.3, 3.0, 4.0}; //{0.001, 0.002, 0.005, 0.007, 0.01, 0.03, 0.05, 0.07, 0.08, 0.09, 0.12, 0.16, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.3, 2.7, 3.0, 3.3, 3.7, 4.0}; //
     }
 
     std::vector<double> get_default_phi_vec()
@@ -29,7 +29,7 @@ namespace Output
         std::vector<double> default_phi_vec;
         uint num_angles = 8;
         for (uint i=0; i<num_angles; i++)
-            default_phi_vec.push_back(PI*double(i)/double(num_angles)); // no num_angles-1 because we do not want to reach 2pi
+            default_phi_vec.push_back(2.0*PI*double(i)/double(num_angles)); // no num_angles-1 because we do not want to reach the end
 
         return default_phi_vec;
     }
@@ -38,16 +38,15 @@ namespace Output
     {
         double default_Q = get_default_Q();
         std::vector<double> default_Delta_vec = get_default_Delta_vec();
-        std::vector<double> default_phi_vec = get_default_phi_vec();
+        std::vector<double> default_phi_vec = get_default_phi_vec();//std::vector<double>{0.0};
 
         dsigmadt(do_coherent, do_incoherent, default_Q, default_Delta_vec, default_phi_vec, output_file);
     }
-    
 
     void dsigmadt (bool do_coherent, bool do_incoherent, double Q, std::vector<double> Delta_vec, std::vector<double> phi_vec, std::string filepath)
     {
         if (phi_vec.size()==0)
-            phi_vec = get_default_phi_vec();
+            phi_vec = std::vector<double>{0.0};
 
         double coherent_results[Delta_vec.size()][phi_vec.size()];
         double coherent_avg[Delta_vec.size()];
@@ -76,7 +75,7 @@ namespace Output
 
                 if (do_incoherent)
                 {
-                    incoherent_results[i][j] = Incoherent::dsigmadt_cubature(Q, Delta_vec[i], phi_vec[j]);
+                    incoherent_results[i][j] = Incoherent::dsigmadt(Q, Delta_vec[i], phi_vec[j]);//Incoherent::Demirci::color_fluctuations(Q, Delta_vec[i]);//
                     incoherent_avg[i] += incoherent_results[i][j]/double(jmax);
                 }
             }
@@ -139,7 +138,9 @@ namespace Output
         std::mt19937 rng(seed);
 
         HotspotNucleus nucleus(atomic_num, num_hotspots, rng);
-
+*(HotspotPos*)nucleus.get_hotspot_pos(0, 0) = {cos(0.0*2.0*PI), sin(0.0*2.0*PI)};
+*(HotspotPos*)nucleus.get_hotspot_pos(0, 1) = {cos(1.0/3.0*2.0*PI), sin(1.0/3.0*2.0*PI)};
+*(HotspotPos*)nucleus.get_hotspot_pos(0, 2) = {cos(2.0/3.0*2.0*PI), sin(2.0/3.0*2.0*PI)};
         #pragma omp parallel for
         for (uint i=0; i<Delta_vec.size(); i++)
             for (uint j=0; j<phi_vec.size(); j++)
