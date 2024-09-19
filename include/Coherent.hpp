@@ -37,8 +37,6 @@ namespace Coherent { namespace Demirci
 
 namespace Coherent { namespace Sampled
 {
-    double A_integrand_function(double b1, double b2, double r1, double r2, double Q, double Delta, const HotspotNucleus* nucleus);
-
     int integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff);
     std::tuple<double,double> sqrt_dsigmadt_single_event (double Q, double Delta, double phi, const HotspotNucleus& nucleus);
     std::tuple<double,double> sqrt_dsigmadt_single_event (CubatureConfig* c_config, IntegrationConfig* i_config);

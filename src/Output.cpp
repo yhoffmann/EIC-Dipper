@@ -10,6 +10,7 @@
 #include "../include/constants.hpp"
 #include "../include/GBWModel.hpp"
 #include "../external/Nucleus/include/HotspotNucleus.hpp"
+#include "../external/thread-pool/include/ThreadPool.hpp"
 
 
 namespace Output
@@ -122,10 +123,10 @@ namespace Output
 
     void dsigmadt_nucleus (uint atomic_num, uint num_hotspots, uint seed, double Q, std::vector<double> Delta_vec, std::vector<double> phi_vec)
     {
-        double coherent_results_real[Delta_vec.size()][phi_vec.size()];
-        double coherent_results_imag[Delta_vec.size()][phi_vec.size()];
-        double incoherent_results_real[Delta_vec.size()][phi_vec.size()];
-        double incoherent_results_imag[Delta_vec.size()][phi_vec.size()];
+        double coherent_results_real[Delta_vec.size()*phi_vec.size()];
+        double coherent_results_imag[Delta_vec.size()*phi_vec.size()];
+        double incoherent_results_real[Delta_vec.size()];
+        double incoherent_results_imag[Delta_vec.size()];
 
         if (seed==0)
             seed = get_unique_seed();
@@ -134,22 +135,34 @@ namespace Output
 
         HotspotNucleus nucleus(atomic_num, num_hotspots, rng);
 
-        #pragma omp parallel for
-        for (uint i=0; i<Delta_vec.size(); i++)
+        ThreadPool pool(num_threads);
+
+        for (uint Delta_index=0, Delta_size=Delta_vec.size(); Delta_index<Delta_size; ++Delta_index)
         {
-            double incoherent = Incoherent::Sampled::dsigmadt_single_event(Q, Delta_vec[i], nucleus);
-            for (uint j=0; j<phi_vec.size(); j++)
+            double Delta = Delta_vec[Delta_index];
+            pool.enq_job([Delta_index, Q, Delta, &nucleus, &incoherent_results_real, &incoherent_results_imag] {
+                incoherent_results_real[Delta_index] = Incoherent::Sampled::dsigmadt_single_event(Q, Delta, nucleus);
+                incoherent_results_imag[Delta_index] = 0.0;
+            });
+        }
+
+        for (uint Delta_index=0, Delta_size=Delta_vec.size(); Delta_index<Delta_size; ++Delta_index)
+        {
+            for (uint phi_index=0, phi_size=phi_vec.size(); phi_index<phi_size; ++phi_index)
             {
-                auto [coh_real, coh_imag] = Coherent::Sampled::sqrt_dsigmadt_single_event(Q, Delta_vec[i], phi_vec[j], nucleus);
-
-                coherent_results_real[i][j] = coh_real;
-                coherent_results_imag[i][j] = coh_imag;
-
-
-                incoherent_results_real[i][j] = incoherent;
-                incoherent_results_imag[i][j] = 0.0;
+                double Delta = Delta_vec[Delta_index];
+                double phi = phi_vec[phi_index];
+                pool.enq_job([Delta_index, phi_index, Q, Delta, phi_size, phi, &nucleus, &coherent_results_real, &coherent_results_imag] {
+                    auto [coh_real, coh_imag] = Coherent::Sampled::sqrt_dsigmadt_single_event(Q, Delta, phi, nucleus);
+                    
+                    coherent_results_real[Delta_index*phi_size + phi_index] = coh_real;
+                    coherent_results_imag[Delta_index*phi_size + phi_index] = coh_imag;
+                });
             }
         }
+
+        pool.await();
+        pool.stop();
 
         std::ofstream out(get_default_filepath_from_parameters()+"_Amplitude.dat");
 
@@ -161,13 +174,13 @@ namespace Output
 
         out << "##Delta,   Q,        A Co real,Co imag,  A2 Inco\n";
 
-        for (uint i=0; i<Delta_vec.size(); i++)
+        for (uint Delta_index=0, Delta_size=Delta_vec.size(); Delta_index<Delta_size; ++Delta_index)
         {
-            out << Delta_vec[i] << " " << Q << "   ";
-            for (uint j=0; j<phi_vec.size(); j++)
-                out << phi_vec[j] << " " << coherent_results_real[i][j] << " " << coherent_results_imag[i][j] << " " << incoherent_results_real[i][j] << " " << incoherent_results_imag[i][j] << "   ";
-            for (uint j=0; j<phi_vec.size(); j++)
-                out << phi_vec[j]+PI << " " << -coherent_results_real[i][j] << " " << coherent_results_imag[i][j] << " " << incoherent_results_real[i][j] << " " << incoherent_results_imag[i][j] << "   ";
+            out << Delta_vec[Delta_index] << " " << Q << "   ";
+            for (uint phi_index=0, phi_size=phi_vec.size(); phi_index<phi_size; ++phi_index)
+                out << phi_vec[phi_index] << " " << coherent_results_real[Delta_index*phi_size + phi_index] << " " << coherent_results_imag[Delta_index*phi_size + phi_index] << " " << incoherent_results_real[Delta_index] << " " << incoherent_results_imag[Delta_index] << "   ";
+            for (uint phi_index=0, phi_size=phi_vec.size(); phi_index<phi_size; ++phi_index)
+                out << phi_vec[phi_index]+PI << " " << -coherent_results_real[Delta_index*phi_size + phi_index] << " " << coherent_results_imag[Delta_index*phi_size + phi_index] << " " << incoherent_results_real[Delta_index] << " " << incoherent_results_imag[Delta_index] << "   ";
             out << std::endl;
         }
         out << std::endl;

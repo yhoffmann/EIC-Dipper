@@ -95,6 +95,7 @@ void set_parameters (int argc, char** argv)
     const std::string error_message = "Invalid use. Valid flags are\n"
                 "[-s <seed>] (rng seed)\n"
                 "[--add-to-seed <number to add to seed>] (add number to seed)\n"
+                "[-t, --threads <number of threads>]\n"
                 "[-p] (progress monitor)\n"
                 "[-m <gluon mass>]\n"
                 "[--g2mu02-factor <factor to multiply g2mu02 by>]\n"
@@ -203,6 +204,9 @@ void set_parameters (int argc, char** argv)
             g2mu02 *= arg_number;
             g2mu02_config_factor = arg_number;
         }
+        else if (flag.str()=="-t" || flag.str()=="--threads")
+            num_threads = uint(std::round(arg_number));
+            
         else
         {
             std::cerr << error_message << std::endl;

@@ -27,6 +27,8 @@ inline bool progress_monitor_global = false;
 
 inline uint seed = 147541768;
 
+inline uint num_threads = 10;
+
 typedef long unsigned int luint;
 
 double sqr(double x);

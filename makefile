@@ -39,11 +39,11 @@ nolibs:
 libs:
 	g++ $(FLAGS) -c -Wall external/cubature/hcubature.c -o obj/hcubature.o -O3
 	g++ $(FLAGS) -c -Wall external/cubature/pcubature.c -o obj/pcubature.o -O3
-	g++ $(FLAGS) -c -Wall external/Interpolation3D/src/*.cpp -o obj/interpolation3d.o -O3 -fopenmp
+	g++ $(FLAGS) -c -Wall external/Interpolation3D/src/Interpolator3D.cpp -o obj/interpolation3d.o -O3 -fopenmp
 	g++ $(FLAGS) -c -Wall external/Interpolation3D/external/easy-progress-monitor/src/*.cpp -o obj/easy-progress-monitor.o -O3
-	g++ $(FLAGS) -c -Wall external/Nucleus/src/*.cpp -o obj/Nucleus.o -O3
-	g++ $(FLAGS) -c -Wall external/Nucleus/src/*.cpp -o obj/HotspotNucleus.o -O3
-	g++ $(FLAGS) -c -Wall external/thread-pool/src/*.cpp -o obj/ThreadPool.o -O3
+	g++ $(FLAGS) -c -Wall external/Nucleus/src/Nucleus.cpp -o obj/Nucleus.o -O3
+	g++ $(FLAGS) -c -Wall external/Nucleus/src/HotspotNucleus.cpp -o obj/HotspotNucleus.o -O3
+	g++ $(FLAGS) -c -Wall external/thread-pool/src/ThreadPool.cpp -o obj/ThreadPool.o -O3
 
 all:
 	make libs
