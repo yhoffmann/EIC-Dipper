@@ -24,19 +24,17 @@
 int main (int argc, char** argv)
 {
     set_parameters(argc, argv);
-    
-    import_interp_data_by_params(interpolator_filepath);
 
     // Output::dsigmadt_demirci("Data/dsdt_demirci.dat");
     // GBWModel::G_ip.import_data("interpolator-data/G_rH2_070_m_022.dat");
     Output::dsigmadt_nucleus(1, 3, seed);
 
-    // Output::hotspot_nucleus_thickness_avg(A, H, seed, 1, "Data/thickness-event-avg-1-1.dat");
-    // Output::hotspot_nucleus_thickness_avg(A, H, seed+1, 1, "Data/thickness-event-avg-1-2.dat");
-    // Output::hotspot_nucleus_thickness_avg(A, H, seed+2, 1, "Data/thickness-event-avg-1-3.dat");
-    // Output::hotspot_nucleus_thickness_avg(A, H, seed, 128, "Data/thickness-event-avg-128.dat");
-    // Output::hotspot_nucleus_thickness_avg(A, H, seed, 256, "Data/thickness-event-avg-256.dat");
-    // Output::hotspot_nucleus_thickness_avg(A, H, seed, 512, "Data/thickness-event-avg-512.dat");
+    // Output::hotspot_nucleus_thickness_avg(A, H, seed, 1, "data/thickness-event-avg-1-1.dat");
+    // Output::hotspot_nucleus_thickness_avg(A, H, seed+1, 1, "data/thickness-event-avg-1-2.dat");
+    // Output::hotspot_nucleus_thickness_avg(A, H, seed+2, 1, "data/thickness-event-avg-1-3.dat");
+    // Output::hotspot_nucleus_thickness_avg(A, H, seed, 128, "data/thickness-event-avg-128.dat");
+    // Output::hotspot_nucleus_thickness_avg(A, H, seed, 256, "data/thickness-event-avg" + filepath_global);
+    // Output::hotspot_nucleus_thickness_avg(A, H, seed, 512, "data/thickness-event-avg-512.dat");
 
     // std::mt19937 rng(12390);
     // HotspotNucleus hn(1, 3, rng);

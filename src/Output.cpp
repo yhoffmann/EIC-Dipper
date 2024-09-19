@@ -28,7 +28,7 @@ namespace Output
     std::vector<double> get_default_phi_vec()
     {
         std::vector<double> default_phi_vec;
-        uint num_angles = 48;
+        uint num_angles = 1;
         for (uint i=0; i<num_angles; i++)
             default_phi_vec.push_back(PI*double(i)/double(num_angles)); // no num_angles-1 because we do not want to reach the end // NOTE if the calculation of the coherent cross section ever changes to not use sin and cos anymore but something more complicated, this needs to be adjusted to 2pi again and also the writing of data to file needs to be changed (currently I am using that cos and sin are symmetric/antisymmetric to print 2 results for one calculation/angle)
 
@@ -123,6 +123,8 @@ namespace Output
 
     void dsigmadt_nucleus (uint atomic_num, uint num_hotspots, uint seed, double Q, std::vector<double> Delta_vec, std::vector<double> phi_vec)
     {
+        import_interp_data_by_params(interpolator_filepath);
+
         double coherent_results_real[Delta_vec.size()*phi_vec.size()];
         double coherent_results_imag[Delta_vec.size()*phi_vec.size()];
         double incoherent_results_real[Delta_vec.size()];
@@ -364,9 +366,13 @@ namespace Output
         const double inverse_num = 1.0/double(num_events);
 
         double* thickness = new double [size_x*size_y];
+        double* thickness_stddev = new double [size_x*size_y]; 
         for (uint j=0; j<size_y; ++j)
             for (uint k=0; k<size_x; ++k)
+            {
                 thickness[j*size_x + k] = 0.0;
+                thickness_stddev[j*size_x + k] = 0.0;
+            }
         
         double* x = new double [size_x];
         double* y = new double [size_y];
@@ -375,10 +381,12 @@ namespace Output
 
         for (uint i=0; i<num_events; ++i)
         {
-            uint seed = start_seed + i + 1;
+            uint seed = start_seed + i;
 
             std::mt19937 rng(seed);
             HotspotNucleus hn(atomic_num, num_hotspots_per_nucleon, rng);
+            hn.set_hotspot_size(std::sqrt(rH_sqr));
+            hn.set_nucleon_size(std::sqrt(R_sqr));
             for (uint n=0; n<atomic_num; ++n)
                 for (uint h=0; h<num_hotspots_per_nucleon; ++h)
                     pos[i*atomic_num*num_hotspots_per_nucleon + n*num_hotspots_per_nucleon + h] = *hn.get_hotspot_pos(n, h);
@@ -395,6 +403,38 @@ namespace Output
             }
         }
 
+
+        for (uint i=0; i<num_events; ++i)
+        {
+            uint seed = start_seed + i;
+            std::mt19937 rng(seed);
+
+            HotspotNucleus hn(atomic_num, num_hotspots_per_nucleon, rng);
+            hn.set_hotspot_size(std::sqrt(rH_sqr));
+            hn.set_nucleon_size(std::sqrt(R_sqr));
+            for (uint j=0; j<size_y; ++j)
+            {
+                y[j] = ymin+(ymax-ymin)*double(j)/double(size_y-1);
+                for (uint k=0; k<size_x; ++k)
+                {
+                    x[k] = xmin+(xmax-xmin)*double(k)/double(size_x-1);
+
+                    thickness_stddev[j*size_x + k] += sqr(hn.get_hotspot_thickness(x[k], y[j]) - thickness[j*size_x + k])*inverse_num;
+                }
+            }
+        }
+
+        for (uint j=0; j<size_y; ++j)
+        {
+            y[j] = ymin+(ymax-ymin)*double(j)/double(size_y-1);
+            for (uint k=0; k<size_x; ++k)
+            {
+                x[k] = xmin+(xmax-xmin)*double(k)/double(size_x-1);
+
+                thickness_stddev[j*size_x + k] = std::sqrt(thickness_stddev[j*size_x + k]);
+            }
+        }
+
         std::ofstream out(filepath);
         if (!out.is_open())
             exit(20);
@@ -402,19 +442,27 @@ namespace Output
         for (uint j=0; j<size_y; ++j)
             for (uint k=0; k<size_x; ++k)
                 out << x[k] << " " << y[j] << " " << thickness[j*size_x + k] << std::endl;
-            
         out.close();
 
-        std::ofstream pos_out(filepath + ".pos");
-        if (!pos_out.is_open())
+        out.open(filepath + ".stddev");
+        if (!out.is_open())
             exit(20);
-        pos_out << "x y" << std::endl;
+        for (uint j=0; j<size_y; ++j)
+            for (uint k=0; k<size_x; ++k)
+                out << x[k] << " " << y[j] << " " << thickness_stddev[j*size_x + k] << std::endl;
+        out.close();
+
+        out.open(filepath + ".pos");
+        if (!out.is_open())
+            exit(20);
+        out << "x y" << std::endl;
         for (uint i=0; i<num_events; ++i)
             for (uint n=0; n<atomic_num; ++n)
                 for (uint h=0; h<num_hotspots_per_nucleon; ++h)
-                    pos_out << pos[i*atomic_num*num_hotspots_per_nucleon + n*num_hotspots_per_nucleon + h].x << " " << pos[i*atomic_num*num_hotspots_per_nucleon + n*num_hotspots_per_nucleon + h].y << std::endl;
+                    out << pos[i*atomic_num*num_hotspots_per_nucleon + n*num_hotspots_per_nucleon + h].x << " " << pos[i*atomic_num*num_hotspots_per_nucleon + n*num_hotspots_per_nucleon + h].y << std::endl;
         
         delete[] thickness;
+        delete[] thickness_stddev;
         delete[] x;
         delete[] y;
         delete[] pos;
