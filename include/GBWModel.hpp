@@ -5,6 +5,9 @@
 #include "../external/Interpolation3D/include/Interpolator3D.hpp"
 
 
+inline std::string interpolator_filepath = "";
+
+
 namespace GBWModel
 {
     extern Interpolator3D G_ip;

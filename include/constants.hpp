@@ -4,24 +4,27 @@
 #include <math.h>
 
 
+
 // DEFINING GLOBAL PARAMETERS //
 const double PI = M_PI;
 const double alpha_em = 1.0/137.036; //unit 1
 const double e = std::sqrt(4.0*PI*alpha_em); //unit 1
-const double e_c = 2.0/3.0;
-const double e_t = 2.0/3.0;
-const double e_b = -1.0/3.0;
 const double Nc = 3.0;
 const double CF = (Nc*Nc-1.0)/(2.0*Nc);
 const double Qs0 = 1.0; //GeV
-
-const double m_Q_c = 1.275; //in GeV
 const double A_c = 0.211; //in GeV3/2
 
-const double e_Q = e_c;
-const double A_Q = A_c; // in GeV3/2
+const double e_c = 2.0/3.0;
+const double e_b = -1.0/3.0;
+const double e_t = 2.0/3.0;
+const double m_c = 1.275; // GeV
+const double m_b = 4.18; // GeV
 
-const double sqrt_2m_c_Nc = std::sqrt(2.0*m_Q_c*Nc); // in GeV
+inline double m_Q = m_b;
+inline double e_Q = e_c;
+
+inline double A_Q = A_c; // in GeV3/2
+
 
 // Unit conversion factors
 const double hbarc = 0.1973; //GeV fm
@@ -45,17 +48,18 @@ inline double RC_sqr = rH_sqr + (NH-1)/NH*R_sqr;
 inline double sigma0 = 2.0*PI*RC_sqr;
 
 inline uint A = 1;
-inline uint H = 1;
+inline uint H = 3;
 
 // Integration ranges
 const double B_RANGE_FACTOR = 15.0;
 const double R_RANGE_FACTOR = 20.0;
 
-const double B_MAX = std::sqrt(B_RANGE_FACTOR*2.0*RC_sqr);
-const double R_MAX = R_RANGE_FACTOR/m_Q_c;
+inline double B_MAX = B_RANGE_FACTOR*std::sqrt(2.0*RC_sqr);
+inline double R_MAX = R_RANGE_FACTOR/m_Q;
 
 const double g2mu02_demirci = std::sqrt(43.22);
 const double g2mu02_factor = g2mu02_demirci/(2.9)*3.0;
+inline double g2mu02_config_factor = 1.0;
 inline double g2mu02 = g2mu02_demirci;
 
 // useful consts for speed

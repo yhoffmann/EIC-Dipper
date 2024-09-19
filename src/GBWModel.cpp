@@ -1,7 +1,6 @@
 #include "../include/GBWModel.hpp"
 #include "../include/utilities.hpp"
 #include "../include/constants.hpp"
-//#include <math.h>
 #include <iostream>
 #include <gsl/gsl_sf.h>
 #include <gsl/gsl_math.h>
@@ -83,7 +82,8 @@ namespace GBWModel
     {
         CubatureConfig cubature_config;
         cubature_config.num_dims = 2;
-        cubature_config.max_eval = 1e6;
+        cubature_config.max_eval = 5e6;
+        cubature_config.abs_err = 0.0;
 
         IntegrationConfig integration_config;
         GIntegrandParams G_integrand_params
@@ -104,7 +104,7 @@ namespace GBWModel
         integration_config.min[1] = 0.0;
         integration_config.max[1] = integration_config.max[0];
 
-        return IntegrationRoutines::cubature_integrate(G_integrand_cubature, &cubature_config, &integration_config);
+        return /*CF * g2mu02 / (16.0*PI*PI) **/ IntegrationRoutines::cubature_integrate(G_integrand_cubature, &cubature_config, &integration_config);
     }
 
 
@@ -122,6 +122,6 @@ namespace GBWModel
         double rb = std::sqrt(sqr(y1)+sqr(y2));
         float arg = (r==0.0 || rb==0.0) ? 0.0 : (x1*y1+x2*y2)/(r*rb);
 
-        return CF * g2mu02 / (16.0*PI*PI) * G_ip.get_interp_value_tricubic(r, rb, acos(arg));
+        return CF * g2mu02 / (16.0*PI*PI) * G_ip(r, rb, acos(arg));
     }
 }

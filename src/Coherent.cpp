@@ -130,7 +130,7 @@ namespace Coherent
     {
         AIntegrandParams* p = (AIntegrandParams*)userdata;
 
-        ff[0] = xx[0]*xx[2] * Coherent::A_real(xx[0]*cos(xx[1]), xx[0]*sin(xx[1]), xx[2]*cos(xx[3]), xx[2]*sin(xx[3]), p->Q, p->Delta1, p->Delta2);
+        ff[0] = xx[0] * xx[2] * Coherent::A_real(xx[0]*cos(xx[1]), xx[0]*sin(xx[1]), xx[2]*cos(xx[3]), xx[2]*sin(xx[3]), p->Q, p->Delta1, p->Delta2);
 
         return 0;
     }
@@ -139,7 +139,7 @@ namespace Coherent
     {
         AIntegrandParams* p = (AIntegrandParams*)userdata;
 
-        ff[0] = xx[0]*xx[2] * Coherent::A_imag(xx[0]*cos(xx[1]), xx[0]*sin(xx[1]), xx[2]*cos(xx[3]), xx[2]*sin(xx[3]), p->Q, p->Delta1, p->Delta2);
+        ff[0] = xx[0] * xx[2] * Coherent::A_imag(xx[0]*cos(xx[1]), xx[0]*sin(xx[1]), xx[2]*cos(xx[3]), xx[2]*sin(xx[3]), p->Q, p->Delta1, p->Delta2);
 
         return 0;
     }
@@ -150,11 +150,12 @@ namespace Coherent
         c_config.progress_monitor = progress_monitor_global;
         c_config.abs_err = 1.0e-7;
         c_config.rel_err = 1.0e-12;
-        c_config.max_eval = 1e5;
+        c_config.max_eval = 1e7;
 
         IntegrationConfig i_config;
         AIntegrandParams params;
         params.Q = Q;
+        params.Delta = Delta;
         params.Delta1 = Delta*cos(phi);
         params.Delta2 = Delta*sin(phi);
         params.phi = phi;
@@ -184,6 +185,98 @@ namespace Coherent
 
         return ret;
     }
+
+    /*namespace Test
+    {
+        double A_real (double bII, double bT, double r1, double r2, double Q, double Delta, double dII, double dT)
+        {
+            double b1 = bII*dII - bT*dT;
+            double b2 = bII*dT + bT*dII;
+            return NRPhoton::wave_function(r1, r2, Q) * sin(bII*Delta) * SaturationModel::dsigma_d2b(b1+r1*0.5, b2+r2*0.5, b1-r1*0.5, b2-r2*0.5);
+        }
+
+        double A_imag (double bII, double bT, double r1, double r2, double Q, double Delta, double dII, double dT)
+        {
+            double b1 = bII*dII - bT*dT;
+            double b2 = bII*dT + bT*dII;
+            return NRPhoton::wave_function(r1, r2, Q) * cos(bII*Delta) * SaturationModel::dsigma_d2b(b1+r1*0.5, b2+r2*0.5, b1-r1*0.5, b2-r2*0.5);
+        }
+
+        int integrand_real (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
+        {
+            AIntegrandParams* p = (AIntegrandParams*)userdata;
+
+            ff[0] = xx[2] * Coherent::Test::A_real(xx[0], xx[1], xx[2]*cos(xx[3]), xx[2]*sin(xx[3]), p->Q, p->Delta, p->Delta1, p->Delta2);
+
+            return 0;
+        }
+
+        int integrand_imag (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
+        {
+            AIntegrandParams* p = (AIntegrandParams*)userdata;
+
+            ff[0] = xx[2] * Coherent::Test::A_imag(xx[0], xx[1], xx[2]*cos(xx[3]), xx[2]*sin(xx[3]), p->Q, p->Delta, p->Delta1, p->Delta2);
+
+            return 0;
+        }
+
+        double dsigmadt_test (double Q, double Delta, double phi)
+        {
+            CubatureConfig c_config;
+            c_config.progress_monitor = progress_monitor_global;
+            c_config.abs_err = 1.0e-1;
+            c_config.rel_err = 1.0e-1;
+            c_config.max_eval = 1e5;
+
+            IntegrationConfig i_config;
+            AIntegrandParams params;
+            params.Q = Q;
+            params.Delta = Delta;
+            params.Delta1 = cos(phi);
+            params.Delta2 = sin(phi);
+            params.phi = phi;
+            params.is_incoherent = false;
+            params.is_cartesian = true;
+
+            i_config.integrand_params = &params;
+
+            c_config.num_dims = 4;
+
+            i_config.min = (double*)alloca(4*sizeof(double));
+            i_config.max = (double*)alloca(4*sizeof(double));
+
+            i_config.min[1] = -B_MAX;
+            i_config.max[1] = B_MAX;
+
+            i_config.min[2] = 0.0;
+            i_config.max[2] = R_MAX;
+
+            i_config.min[3] = 0.0;
+            i_config.max[3] = 2.0*PI;
+
+            double ret = sqr(IntegrationRoutines::cubature_integrate_zeros(Coherent::Test::integrand_real, &c_config, &i_config, &sin_zeros));
+
+            i_config.min[1] = -B_MAX;
+            i_config.max[1] = B_MAX;
+
+            i_config.min[2] = 0.0;
+            i_config.max[2] = R_MAX;
+
+            i_config.min[3] = 0.0;
+            i_config.max[3] = 2.0*PI;
+            // i_config.min[2] = -R_MAX;
+            // i_config.max[2] = R_MAX;
+
+            // i_config.min[3] = -R_MAX;
+            // i_config.max[3] = R_MAX;
+
+            ret += sqr(IntegrationRoutines::cubature_integrate_zeros(Coherent::Test::integrand_imag, &c_config, &i_config, &cos_zeros));
+
+            ret *= sqr(A_integrand_function_factor(Q)) * (GeVm1_to_fm*GeVm1_to_fm*fm2_to_nb)/(16.0*PI);
+
+            return ret;
+        }
+    }*/
 }
 
 
@@ -205,7 +298,7 @@ namespace Coherent { namespace Demirci
 
     double Z (double r, double phi, double lambda, double Delta, double m_sqr, double epsilon)
     {
-        return r * bessel_K_safe(0, epsilon*r) * ( 2.0*cos(0.5*Delta*r*cos(phi))*Psi0(Delta, m_sqr) - Psi(r, phi, lambda, Delta, m_sqr));
+        return r * bessel_K_safe(0, epsilon*r) * ( 2.0*cos(0.5*Delta*r*cos(phi))*Psi0(Delta, m_sqr) - Psi(r, phi, lambda, Delta, m_sqr) );
     }
 
 
@@ -236,7 +329,7 @@ namespace Coherent { namespace Demirci
         CubatureConfig c_config;
         c_config.progress_monitor = false;
         c_config.rel_err = 1.0e-14;
-        c_config.max_eval = 2e7;
+        c_config.max_eval = 2e6;
 
         IntegrationConfig i_config;
 
@@ -265,8 +358,6 @@ namespace Coherent { namespace Demirci
 
         i_config->min[2] = 0.0;
         i_config->max[2] = 0.5;
-
-        c_config->max_eval = 1e7;
 
         AIntegrandParams* params = (AIntegrandParams*)(i_config->integrand_params);
 
@@ -314,7 +405,7 @@ namespace Coherent { namespace Sampled
     std::tuple<double,double> sqrt_dsigmadt_single_event (double Q, double Delta, double phi, const HotspotNucleus& h_nucleus)
     {
         CubatureConfig c_config;
-        c_config.max_eval = 1e4;
+        c_config.max_eval = 2e6;
         c_config.progress_monitor = progress_monitor_global;
 
         IntegrationConfig i_config;
@@ -323,6 +414,7 @@ namespace Coherent { namespace Sampled
         i_config.integrand_params = &params;
 
         params.Q = Q;
+        params.Delta = Delta;
         params.Delta1 = Delta*cos(phi);
         params.Delta2 = Delta*sin(phi);
         params.phi = phi;

@@ -7,27 +7,13 @@
 
 
 namespace Incoherent {
-    double A_integrand_function_factor(double Q);
-    double A_real(double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double Delta1, double Delta2);
-    double A_imag(double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double Delta1, double Delta2);
-
-    int integrand_real(unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff);
-    int integrand_imag(unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff);
-    double dsigmadt(double Q, double Delta, double phi);
+    double dsigmadt(double Q, double Delta);
     double dsigmadt(CubatureConfig* cuba_config, IntegrationConfig* integration_config);
 }
 
 
 namespace Incoherent { namespace Demirci
 {
-    double one_connected_factor (double Q);
-    double two_connected_factor (double Q);
-
-    double K_integrand_function (double k, double phik, double kb, double phikb, double A, double Delta, double m2, double epsilon2);
-
-    int one_connected_integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff);
-    int two_connected_integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff);
-
     double one_disconnected (double Q, double Delta);
     double two_disconnected (double Q, double Delta);
 
@@ -42,7 +28,6 @@ namespace Incoherent { namespace Demirci
 
 namespace Incoherent { namespace Sampled
 {
-    int integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff);
-    double dsigmadt_single_event (double Q, double Delta, double phi, const HotspotNucleus& nucleus);
+    double dsigmadt_single_event (double Q, double Delta, const HotspotNucleus& nucleus);
     double dsigmadt_single_event (CubatureConfig* c_config, IntegrationConfig* i_config);
 } }

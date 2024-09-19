@@ -23,30 +23,38 @@
 
 int main (int argc, char** argv)
 {
-#ifndef _QUIET
-#ifndef _DILUTE
-    std::cout << "Dense" << std::endl;
-#else
-    std::cout << "Dilute" << std::endl;
-#endif
-#endif
     set_parameters(argc, argv);
     
-    std::string interpolator_filepath = "";
-    set_import_filepath_by_parameters(interpolator_filepath);
+    import_interp_data_by_params(interpolator_filepath);
 
-    //GBWModel::G_ip.import_data(interpolator_filepath);
-    GBWModel::G_ip.import_data("InterpolatorData/G_rH2_290_m_022.dat");
-    
-    Output::dsigmadt(true, true, filepath_global);
-    // Output::dsigmadt_nucleus(1, 3, 0, filepath_global);
+    // Output::dsigmadt_demirci("Data/dsdt_demirci.dat");
+    // GBWModel::G_ip.import_data("interpolator-data/G_rH2_070_m_022.dat");
+    Output::dsigmadt_nucleus(1, 3, seed);
+
+    // Output::hotspot_nucleus_thickness_avg(A, H, seed, 1, "Data/thickness-event-avg-1-1.dat");
+    // Output::hotspot_nucleus_thickness_avg(A, H, seed+1, 1, "Data/thickness-event-avg-1-2.dat");
+    // Output::hotspot_nucleus_thickness_avg(A, H, seed+2, 1, "Data/thickness-event-avg-1-3.dat");
+    // Output::hotspot_nucleus_thickness_avg(A, H, seed, 128, "Data/thickness-event-avg-128.dat");
+    // Output::hotspot_nucleus_thickness_avg(A, H, seed, 256, "Data/thickness-event-avg-256.dat");
+    // Output::hotspot_nucleus_thickness_avg(A, H, seed, 512, "Data/thickness-event-avg-512.dat");
+
+    // std::mt19937 rng(12390);
+    // HotspotNucleus hn(1, 3, rng);
+    // auto [real, imag] = Coherent::Sampled::sqrt_dsigmadt_single_event(std::sqrt(0.1), 2.3, 1.0, hn);
+    // std::cout << real << " " << imag << std::endl;
+    // double inco = Incoherent::Sampled::dsigmadt_single_event(std::sqrt(0.1), 2.3, 1.0, hn);
+    // std::cout << inco << std::endl;
+
+    // Output::G(1000, "Data/G_m_022.dat");
+
+    // Output::dsigmadt(true, true, filepath_global);
 
     // std::cout << Coherent::dsigmadt(std::sqrt(0.1), 1.5) << std::endl;
     // std::cout << Coherent::dsigmadt_test(std::sqrt(0.1), 1.5) << std::endl;
 
     //std::cout << Coherent::dsigmadt(std::sqrt(0.1), 0.0001) << "\n" << Incoherent::dsigmadt_cubature(std::sqrt(0.1), 0.0001) << std::endl;
 
-    //std::cout << SaturationModel::dsigma_d2b_sqr_reduced(0.1, 0.2, 0.3, -0.4, 0.5, 0.6, -0.7, -0.8) << " " << SaturationModel::dsigma_d2b_sqr(0.1, 0.2, 0.3, -0.4, 0.5, 0.6, -0.7, -0.8) - SaturationModel::dsigma_d2b(0.1, 0.2, 0.3, -0.4)*SaturationModel::dsigma_d2b(0.5, 0.6, -0.7, -0.8) << std::endl;
+    // std::cout << SaturationModel::dsigma_d2b_sqr_reduced(0.1, 0.2, 0.3, -0.4, 0.5, 0.6, -0.7, -0.8) << " " << SaturationModel::dsigma_d2b_sqr(0.1, 0.2, 0.3, -0.4, 0.5, 0.6, -0.7, -0.8) - SaturationModel::dsigma_d2b(0.1, 0.2, 0.3, -0.4)*SaturationModel::dsigma_d2b(0.5, 0.6, -0.7, -0.8) << std::endl;
 
     //Output::hotspot_nucleus_thickness_1d(A, H, 1e5, 1e3, 0, filepath_global);
 /*
@@ -127,21 +135,22 @@ int main (int argc, char** argv)
 */
 
 
-    // std::vector<double> Q_vec = {std::sqrt(0.1)};
+    // double Q = std::sqrt(0.1);
     // std::vector<double> Delta_vec;
     // std::vector<double> phi_vec;
 
-    // uint imax = 32;
+    // uint imax = 64;
 
-    // double results[imax];
-    // double results2[imax];
+    // double inco[imax];
+    // double color[imax];
+    // double hotspot[imax];
 
     // for (uint i=0; i<imax; ++i)
     // {
-    //     Delta_vec.push_back( std::sqrt(8.0)*double(i)/double(imax-1)+0.0001 );
+    //     Delta_vec.push_back( std::sqrt(16.0)*double(i)/double(imax-1)+0.0001 );
     // }
 
-    // Output::dsigmadt(true, false, Q_vec, Delta_vec, phi_vec, filepath_global);
+    // // Output::dsigmadt(true, false, Q, Delta_vec, phi_vec, filepath_global);
 
     // // #pragma omp parallel for ordered
     // // for (uint i=0; i<imax; ++i)
@@ -154,21 +163,21 @@ int main (int argc, char** argv)
     // #pragma omp parallel for ordered
     // for (uint i=0; i<imax; ++i)
     // {
-    //     results[i] = Incoherent::Demirci::dsigmadt(Q_vec[0], Delta_vec[i]);
-    //     results2[i] = Incoherent::dsigmadt_cubature(Q_vec[0], Delta_vec[i]);
+    //     inco[i] = Incoherent::Demirci::dsigmadt(Q, Delta_vec[i]);
+    //     // results2[i] = Incoherent::dsigmadt(Q, Delta_vec[i], {0.0});
         
-    //     // results[i] = Incoherent::Demirci::color_fluctuations(Q_vec[0], Delta_vec[i]);
-    //     // results2[i] = Incoherent::Demirci::hotspot_fluctuations(Q_vec[0], Delta_vec[i]);
+    //     color[i] = Incoherent::Demirci::color_fluctuations(Q, Delta_vec[i]);
+    //     hotspot[i] = Incoherent::Demirci::hotspot_fluctuations(Q, Delta_vec[i]);
         
     //     std::cout << i << "\n";
     // }
     
     // if (filepath_global == "")
-    //     filepath_global = "Data/inco-dilute-demirci-new.dat";
+    //     filepath_global = "Data/inco-dilute-demirci.dat";
     // std::ofstream out(filepath_global);
     
     // for (uint i=0; i<imax; i++)
-    //     out << Q_vec[0] << " " << Delta_vec[i] << " " << results[i] << " " << results2[i] << std::endl;
+    //     out << Q << " " << Delta_vec[i] << " " << inco[i] << " " << color[i] << " " << hotspot[i] << std::endl;
     
     // out.close();
 

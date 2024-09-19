@@ -185,8 +185,8 @@ namespace IntegrationRoutines
     {
         AIntegrandParams* p = (AIntegrandParams*)integration_config->integrand_params;
 
-        double Delta = std::sqrt(sqr(p->Delta1) + sqr(p->Delta2));
-        bool use_zeros = (zeros(1)/Delta < B_MAX/4.0);
+        double Delta = p->Delta;//std::sqrt(sqr(p->Delta1) + sqr(p->Delta2));
+        bool use_zeros = (zeros(1)/Delta < B_MAX/8.0);
         
         double partial_sum = 0.0;
         double total_sum = 0.0;
@@ -201,7 +201,7 @@ namespace IntegrationRoutines
                 if (std::abs(partial_sum) < cubature_config->bessel_tolerance*std::abs(total_sum) && (n+1) > cubature_config->min_oscillations)
                 {
                     if (cubature_config->progress_monitor)
-                        std::cout << p->Q << " " << Delta << " " << n << " Converged " << total_sum << std::endl;
+                        std::cout << (((AIntegrandParams*)integration_config->integrand_params)->is_incoherent ? "inco " : "co ") << p->Q << " " << Delta << " " << n << " Converged " << total_sum << std::endl;
                     
                     break;
                 }
@@ -213,13 +213,13 @@ namespace IntegrationRoutines
 
             if (n!=0)
             {
-                integration_config->min[0] = integration_config->max[0];
-                integration_config->max[0] = (use_zeros) ? zeros(n+1)/Delta : (n+1)*B_MAX/4.0;
+                integration_config->min[0] = (use_zeros) ? zeros(n)/Delta : (n)*B_MAX/8.0;
+                integration_config->max[0] = (use_zeros) ? zeros(n+1)/Delta : (n+1)*B_MAX/8.0;
             }
             else // if n == 0
             {
                 integration_config->min[0] = 0.0;
-                integration_config->max[0] = (use_zeros) ? zeros(1)/Delta : B_MAX/4.0;
+                integration_config->max[0] = (use_zeros) ? zeros(1)/Delta : B_MAX/8.0;
             }
             
             integration_config->max[2] = std::max(integration_config->max[2], integration_config->max[0]);
@@ -230,6 +230,15 @@ namespace IntegrationRoutines
             }
 
             current_oscillation_value = cubature_integrate(integrand, cubature_config, integration_config);
+
+            /*if (p->is_cartesian)
+            {
+                double store = integration_config->min[0];
+                integration_config->min[0] = -integration_config->max[0];
+                integration_config->max[0] = -store;
+
+                current_oscillation_value += cubature_integrate(integrand, cubature_config, integration_config);
+            }*/
 
             total_sum += current_oscillation_value;
             partial_sum += current_oscillation_value;

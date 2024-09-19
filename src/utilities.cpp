@@ -1,7 +1,3 @@
-#include "../include/utilities.hpp"
-#include "../include/constants.hpp"
-#include "../include/GBWModel.hpp"
-#include "../include/IntegrationRoutines.hpp"
 #include <cstring>
 #include <gsl/gsl_sf.h>
 #include <gsl/gsl_math.h>
@@ -12,6 +8,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
+#include "../include/utilities.hpp"
+#include "../include/constants.hpp"
+#include "../include/GBWModel.hpp"
+#include "../include/IntegrationRoutines.hpp"
+#include "../include/NRPhoton.hpp"
 
 
 double sqr (double x)
@@ -28,16 +29,22 @@ double bessel_K_safe (int n, double x)
 }
 
 
-void set_import_filepath_by_parameters (std::string& filepath, const DataGenerationConfig* config)
+double get_r_max (double m_Q)
+{
+    return R_RANGE_FACTOR/m_Q;
+}
+
+
+void import_interp_data_by_params (std::string& filepath, const DataGenerationConfig* config)
 {
     std::string m_path = std::to_string( int(m*100) );
-    std::string rH_sqr_path = (rH_sqr >= 1.0) ?  std::to_string( int(std::round(rH_sqr*100)) ) : "0"+std::to_string( int(std::round(rH_sqr*100)) );
+    std::string rH_sqr_path = (rH_sqr >= 1.0) ? std::to_string( int(std::round(rH_sqr*100)) ) : "0"+std::to_string( int(std::round(rH_sqr*100)) );
 
-    filepath = "InterpolatorData/";
+    filepath = "interpolator-data/";
 
     filepath += "G_rH2_"+rH_sqr_path+"_m_0"+m_path+".dat";
-#ifndef _QUIET
-    std::ifstream file_check (filepath);
+
+    std::ifstream file_check(filepath);
 
     if (!config)
         return;
@@ -45,9 +52,11 @@ void set_import_filepath_by_parameters (std::string& filepath, const DataGenerat
     if (!file_check)
     {
         file_check.close();
+#ifndef _QUIET
         std::string answer;
 
-        std::cout << "No data for this combination of m(=" << m << ") and rH2(=" << rH_sqr << "). Do you want to generate that data set? (y/n)\n(The path to the new file would be " << filepath << ". File size would be (at most) " << (config->nx+config->ny+config->nz+2+config->nx*config->ny*config->nz)*17.0/1.0e6 << "MB.)" << std::endl;
+        std::cout << "No data for this combination of m(=" << m << ") and rH2(=" << rH_sqr << "). Do you want to generate that data set? (y/n)\n"
+            "(The path to the new file would be " << filepath << ". File size would be " << ((config->nx+3)*(config->ny+3)*(config->nz+3)+config->nx+config->ny+config->nz+13)*8.0*1.0e-6 << "MB.)" << std::endl;
         bool input_accepted = false;
         while (!input_accepted)
         {
@@ -57,8 +66,10 @@ void set_import_filepath_by_parameters (std::string& filepath, const DataGenerat
                 input_accepted = true;
 
                 std::cout << "Generating new data set..." << std::endl;
+    #endif    
                 GBWModel::G_ip.generate_data(GBWModel::G_wrapper, config, true);
                 GBWModel::G_ip.export_data(filepath);
+    #ifndef _QUIET
             }
             else if (answer=="n")
             {
@@ -72,31 +83,23 @@ void set_import_filepath_by_parameters (std::string& filepath, const DataGenerat
                 std::cout << "Please enter either \"y\" or \"n\"." << std::endl;
             }
         }
+#endif
     }
     else 
-    {
-        return;
-        file_check.close();
-        std::cout << "File with name " << filepath << " for m=" << m << " found. Do you want to make that the active filepath? (y/n)" << std::endl;
-
-        std::string answer;
-
-        std::cin >> answer;
-
-        if (answer=="y")
-            return;
-        else
-            exit(22);
-    }
-#endif
+        GBWModel::G_ip.import_data(filepath);
 }
 
 
 void set_parameters (int argc, char** argv)
 {
-    const std::string error_message = "Invalid option. Valid flags are\n"
+    const std::string error_message = "Invalid use. Valid flags are\n"
+                "[-s <seed>] (rng seed)\n"
+                "[--add-to-seed <number to add to seed>] (add number to seed)\n"
                 "[-p] (progress monitor)\n"
                 "[-m <gluon mass>]\n"
+                "[--g2mu02-factor <factor to multiply g2mu02 by>]\n"
+                "[--charm, -c] (select charm quark)\n"
+                "[--bottom, -b] (select bottom quark)\n"
                 "[-A <atomic number>]\n"
                 "[-H <number of hotspots per nucleon>]\n"
                 "[-rH2 <hotspot radius square>]\n"
@@ -110,6 +113,32 @@ void set_parameters (int argc, char** argv)
         if (flag.str()=="-p")
         {
             progress_monitor_global = true;
+            --i;
+            continue;
+        }
+        else if (flag.str()=="--bottom" || flag.str()=="-b")
+        {
+            m_Q = m_b;
+            e_Q = e_b;
+
+            R_MAX = get_r_max(m_b);
+            NRPhoton::set_wave_function_factor_T(m_b, e_b);
+
+            quark_config = Quark::Bottom;
+
+            --i;
+            continue;
+        }
+        else if (flag.str()=="--charm" || flag.str()=="-c")
+        {
+            m_Q = m_c;
+            e_Q = e_c;
+
+            R_MAX = get_r_max(m_c);
+            NRPhoton::set_wave_function_factor_T(m_c, e_c);
+
+            quark_config = Quark::Charm;
+
             --i;
             continue;
         }
@@ -146,23 +175,34 @@ void set_parameters (int argc, char** argv)
             H = uint(std::round(arg_number));
             NH = arg_number;
             RC_sqr = rH_sqr + (NH-1.0)/NH*R_sqr;
-            //g2mu02 = g2mu02_factor*RC_sqr/NH;
+            // g2mu02 = g2mu02_factor*RC_sqr/NH;
         }
         else if (flag.str()=="-rH2")
         {
             rH_sqr = arg_number;
             RC_sqr = rH_sqr + (NH-1.0)/NH*R_sqr;
-            //g2mu02 = g2mu02_factor*RC_sqr/NH;
+            // g2mu02 = g2mu02_factor*RC_sqr/NH;
         }
         else if (flag.str()=="-Rp2")
         {
             R_sqr = arg_number;
             RC_sqr = rH_sqr + (NH-1.0)/NH*R_sqr;
-            //g2mu02 = g2mu02_factor*RC_sqr/NH;
+            // g2mu02 = g2mu02_factor*RC_sqr/NH;
         }
         else if (flag.str()=="-A")
             A = uint(std::round(arg_number));
-        
+
+        else if (flag.str()=="-s")
+            seed = uint(std::round(arg_number));
+
+        else if (flag.str()=="--add-to-seed")
+            seed += uint(std::round(arg_number));
+
+        else if (flag.str()=="--g2mu02-factor")
+        {
+            g2mu02 *= arg_number;
+            g2mu02_config_factor = arg_number;
+        }
         else
         {
             std::cerr << error_message << std::endl;
@@ -214,13 +254,33 @@ uint get_unique_seed()
 }
 
 
+std::string get_default_filepath_from_parameters()
+{
+    std::string filepath = "data/samples/";
+    filepath += (char)quark_config;
+
+    filepath += (g2mu02_config_factor >= 1.0) ? std::to_string( int(std::round(g2mu02_config_factor*10.0)) ) : "0"+std::to_string( int(std::round(g2mu02_config_factor*10.0)) );
+
+    filepath += 
+#ifndef _DILUTE
+        "/de/";
+#else
+        "/di/";
+#endif
+
+    filepath += std::to_string(seed);
+
+    return filepath;
+}
+
+
 double sin_zeros (uint n)
 {
-    return (-0.5+double(n))*PI;
+    return double(n)*PI;
 }
 
 
 double cos_zeros (uint n)
 {
-    return double(n)*PI;
+    return (-0.5+double(n))*PI;
 }

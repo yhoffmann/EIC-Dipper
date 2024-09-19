@@ -16,6 +16,10 @@ namespace Coherent {
     double dsigmadt(CubatureConfig* cuba_config, IntegrationConfig* integration_config);
 
     double dsigmadt_test(double Q, double Delta, double phi = 0.0);
+
+    /*namespace Test {
+        double dsigmadt_test(double Q, double Delta, double phi = 0.0);
+    }*/
 }
 
 

@@ -36,7 +36,7 @@ struct CubaConfig
     int n_min = 2;
 
     double bessel_tolerance = 1.0e-5;
-    uint max_oscillations = 40;
+    uint max_oscillations = 100;
     uint ocillations_per_partial_sum = 3;
 
     bool progress_monitor = false;
@@ -51,12 +51,12 @@ struct CubatureConfig
     uint num_f_dims = 1;
     size_t max_eval = 1e8;
     double abs_err = 1.0e-14;
-    double rel_err = 1.0e-6;
+    double rel_err = 1.0e-8;
     error_norm err_norm = ERROR_INDIVIDUAL;
 
     double bessel_tolerance = 1.0e-4;
     uint min_oscillations = 5;
-    uint max_oscillations = 40;
+    uint max_oscillations = 100;
     uint ocillations_per_partial_sum = 3;
 
     bool progress_monitor = false;
@@ -65,6 +65,7 @@ struct CubatureConfig
 
 struct AIntegrandParams
 {
+    double Delta = 0.001;
     double Delta1 = 0.001;
     double Delta2 = 0.0;
     double phi = 0.0;

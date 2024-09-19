@@ -1,6 +1,6 @@
 #pragma once
 
-
+#include "constants.hpp"
 #include "IntegrationRoutines.hpp"
 
 
@@ -8,7 +8,9 @@ namespace NRPhoton
 {
     double epsilon(double Q);
 
-    extern double wave_function_factor_T;
+    double get_wave_function_factor_T(double m_Q, double e_Q);
+    void set_wave_function_factor_T(double m_Q, double e_Q);
+    inline double wave_function_factor_T = get_wave_function_factor_T(m_Q, e_Q);
 
     double wave_function_factor_L(double Q);
 

@@ -32,64 +32,64 @@ namespace SaturationModel
         double G_xbyb = NH*GBWModel::G(xb1, xb2, yb1, yb2);
         double G_xxb = NH*GBWModel::G(x1, x2, xb1, xb2);
         double G_xyb = NH*GBWModel::G(x1, x2, yb1, yb2);
-        double G_xby = NH*GBWModel::G(xb1, xb2, y1, y2);
+        double G_yxb = NH*GBWModel::G(xb1, xb2, y1, y2);
         double G_yyb = NH*GBWModel::G(y1, y2, yb1, yb2);
-
 #ifndef _DILUTE
-        double T_xy_ybxb = G_xxb + G_yyb - G_xyb - G_xby;
-        double T_xxb_yby = G_xy + G_xbyb - G_xyb - G_xby;
+        double T_xy_xbyb = G_xyb + G_yxb - G_xxb - G_yyb;
+        double T_xyb_xby = G_xy + G_xbyb - G_xxb - G_yyb;
         
-        double a = G_xy + G_xbyb - T_xy_ybxb*Ncsqrm1_inverse;
-        double b = T_xy_ybxb*twoCF_inverse;
-        double c = T_xxb_yby*twoCF_inverse;
-        double d = G_xxb + G_yyb - T_xxb_yby*Ncsqrm1_inverse;
+        double a = G_xy + G_xbyb - T_xy_xbyb*Ncsqrm1_inverse;
+        double b = T_xy_xbyb*twoCF_inverse;
+        double c = T_xyb_xby*twoCF_inverse;
+        double d = G_xyb + G_yxb - T_xyb_xby*Ncsqrm1_inverse;
 
         double Sqrt = std::sqrt( 4.0*b*c + sqr(a-d) );
+        double DD;
         if (Sqrt == 0.0)
-            return exp(0.5*(a+d));
-            
-        double factor = ( a-d+2.0*b ) / Sqrt;
+            DD = exp(0.5*(a+d));
+        else
+        {
+            double factor = ( a-d+2.0/Nc*b ) / Sqrt;
+            DD = 0.5 * ( (1.0+factor) * exp( (a+d+Sqrt)*0.5 ) + (1.0-factor) * exp( (a+d-Sqrt)*0.5 ) );
+        }
 
-        double DD = 0.5 * ( (1.0+factor) * exp( (a+d+Sqrt)/2.0 ) + (1.0-factor) * exp( (a+d-Sqrt)/2.0 ) );
-        
         return 4.0 * (1.0-D(G_xy)-D(G_xbyb)+DD);
 #else
-        return 4.0*(G_xy*G_xbyb+sqr(G_xxb+G_yyb-G_xyb-G_xby)/2.0);
+        return 4.0*(G_xy*G_xbyb+sqr(G_xxb+G_yyb-G_xyb-G_yxb)/2.0); // probably wrong (but also not in use but) needs to be checked (factor of 1/8 probably missing)
 #endif
     }
 
-
     double dsigma_d2b_sqr_reduced (double x1, double x2, double y1, double y2, double xb1, double xb2, double yb1, double yb2)
     {
+        double G_xxb = NH*GBWModel::G(x1, x2, xb1, xb2);
+        double G_xyb = NH*GBWModel::G(x1, x2, yb1, yb2);
+        double G_yxb = NH*GBWModel::G(xb1, xb2, y1, y2);
+        double G_yyb = NH*GBWModel::G(y1, y2, yb1, yb2);
 #ifndef _DILUTE
         double G_xy = NH*GBWModel::G(x1, x2, y1, y2);
         double G_xbyb = NH*GBWModel::G(xb1, xb2, yb1, yb2);
-#endif
-        double G_xxb = NH*GBWModel::G(x1, x2, xb1, xb2);
-        double G_xyb = NH*GBWModel::G(x1, x2, yb1, yb2);
-        double G_xby = NH*GBWModel::G(xb1, xb2, y1, y2);
-        double G_yyb = NH*GBWModel::G(y1, y2, yb1, yb2);
 
-#ifndef _DILUTE
-        double T_xy_ybxb = G_xxb + G_yyb - G_xyb - G_xby;
-        double T_xxb_yby = G_xy + G_xbyb - G_xyb - G_xby;
+        double T_xy_xbyb = G_xyb + G_yxb - G_xxb - G_yyb;
+        double T_xyb_xby = G_xy + G_xbyb - G_xxb - G_yyb;
         
-        double a = G_xy + G_xbyb - T_xy_ybxb*Ncsqrm1_inverse;
-        double b = T_xy_ybxb*twoCF_inverse;
-        double c = T_xxb_yby*twoCF_inverse;
-        double d = G_xxb + G_yyb - T_xxb_yby*Ncsqrm1_inverse;
+        double a = G_xy + G_xbyb - T_xy_xbyb*Ncsqrm1_inverse;
+        double b = T_xy_xbyb*twoCF_inverse;
+        double c = T_xyb_xby*twoCF_inverse;
+        double d = G_xyb + G_yxb - T_xyb_xby*Ncsqrm1_inverse;
 
         double Sqrt = std::sqrt( 4.0*b*c + sqr(a-d) );
+        double DD;
         if (Sqrt == 0.0)
-            return exp(0.5*(a+d));
-            
-        double factor = ( a-d+2.0*b ) / Sqrt;
+            DD = exp(0.5*(a+d));
+        else
+        {
+            double factor = ( a-d+2.0/Nc*b ) / Sqrt;
+            DD = 0.5 * ( (1.0+factor) * exp( (a+d+Sqrt)*0.5 ) + (1.0-factor) * exp( (a+d-Sqrt)*0.5 ) );
+        }
 
-        double DD = 0.5 * ( (1.0+factor) * exp( (a+d+Sqrt)/2.0 ) + (1.0-factor) * exp( (a+d-Sqrt)/2.0 ) );
-        
-        return 4.0 * ( DD-D(G_xy)*D(G_xbyb) );
+        return 4.0 * (DD - D(G_xy)*D(G_xbyb));
 #else
-        return 0.25*sqr(G_xxb+G_yyb-G_xyb-G_xby);
+        return 4.0*0.5*Ncsqrm1_inverse*sqr(G_xxb+G_yyb-G_xyb-G_yxb);
 #endif
     }
 
@@ -114,12 +114,12 @@ namespace SaturationModel
 
         double dsigma_d2b_sqr (double x1, double x2, double y1, double y2, double xb1, double xb2, double yb1, double yb2, const HotspotNucleus* nucleus)
         {
-            double G_xy_sum = 0.0;
-            double G_xbyb_sum = 0.0;
-            double G_xxb_sum = 0.0;
-            double G_xyb_sum = 0.0;
-            double G_xby_sum = 0.0;
-            double G_yyb_sum = 0.0;
+            double G_xy = 0.0;
+            double G_xbyb = 0.0;
+            double G_xxb = 0.0;
+            double G_xyb = 0.0;
+            double G_yxb = 0.0;
+            double G_yyb = 0.0;
 
             for (uint n=0, a=nucleus->get_atomic_num(); n<a; ++n)
                 for (uint i=0, nh=nucleus->get_num_hotspots_per_nucleon(); i<nh; ++i)
@@ -135,33 +135,35 @@ namespace SaturationModel
                     double yb1_mod = yb1-b0.x;
                     double yb2_mod = yb2-b0.y;
 
-                    G_xy_sum += GBWModel::G(x1_mod, x2_mod, y1_mod, y2_mod);
-                    G_xbyb_sum += GBWModel::G(xb1_mod, xb2_mod, yb1_mod, yb2_mod);
-                    G_xxb_sum += GBWModel::G(x1_mod, x2_mod, xb1_mod, xb2_mod);
-                    G_xyb_sum += GBWModel::G(x1_mod, x2_mod, yb1_mod, yb2_mod);
-                    G_xby_sum += GBWModel::G(xb1_mod, xb2_mod, y1_mod, y2_mod);
-                    G_yyb_sum += GBWModel::G(y1_mod, y2_mod, yb1_mod, yb2_mod);
+                    G_xy += GBWModel::G(x1_mod, x2_mod, y1_mod, y2_mod);
+                    G_xbyb += GBWModel::G(xb1_mod, xb2_mod, yb1_mod, yb2_mod);
+                    G_xxb += GBWModel::G(x1_mod, x2_mod, xb1_mod, xb2_mod);
+                    G_xyb += GBWModel::G(x1_mod, x2_mod, yb1_mod, yb2_mod);
+                    G_yxb += GBWModel::G(xb1_mod, xb2_mod, y1_mod, y2_mod);
+                    G_yyb += GBWModel::G(y1_mod, y2_mod, yb1_mod, yb2_mod);
                 }
     #ifndef _DILUTE
-            double T_xy_ybxb = G_xxb_sum + G_yyb_sum - G_xyb_sum - G_xby_sum;
-            double T_xxb_yby = G_xy_sum + G_xbyb_sum - G_xyb_sum - G_xby_sum;
+            double T_xy_xbyb = G_xyb + G_yxb - G_xxb - G_yyb;
+            double T_xyb_xby = G_xy + G_xbyb - G_xxb - G_yyb;
             
-            double a = G_xy_sum + G_xbyb_sum - T_xy_ybxb*Ncsqrm1_inverse;
-            double b = T_xy_ybxb*twoCF_inverse;
-            double c = T_xxb_yby*twoCF_inverse;
-            double d = G_xxb_sum + G_yyb_sum - T_xxb_yby*Ncsqrm1_inverse;
+            double a = G_xy + G_xbyb - T_xy_xbyb*Ncsqrm1_inverse;
+            double b = T_xy_xbyb*twoCF_inverse;
+            double c = T_xyb_xby*twoCF_inverse;
+            double d = G_xyb + G_yxb - T_xyb_xby*Ncsqrm1_inverse;
 
             double Sqrt = std::sqrt( 4.0*b*c + sqr(a-d) );
+            double DD;
             if (Sqrt == 0.0)
-                return exp(0.5*(a+d));
-
-            double factor = ( a-d+2.0*b ) / Sqrt;
-
-            double DD = 0.5 * ( (1.0+factor) * exp( (a+d+Sqrt)/2.0 ) + (1.0-factor) * exp( (a+d-Sqrt)/2.0 ) );
+                DD = exp(0.5*(a+d));
+            else
+            {
+                double factor = ( a-d+2.0*b ) / Sqrt;
+                DD = 0.5 * ( (1.0+factor) * exp( (a+d+Sqrt)*0.5 ) + (1.0-factor) * exp( (a+d-Sqrt)*0.5 ) );
+            }
             
-            return 4.0 * ( 1.0-D(G_xy_sum)-D(G_xbyb_sum)+DD );
+            return 4.0 * (1.0 - D(G_xy) - D(G_xbyb) + DD);
     #else
-            return 4.0*(G_xy_sum*G_xbyb_sum+sqr(G_xxb_sum+G_yyb_sum-G_xyb_sum-G_xby_sum)/2.0);
+            return 0.5*(G_xy*G_xbyb + sqr(G_xxb+G_yyb-G_xyb-G_yxb)*0.5); // probably wrong (but also not in use but) needs to be checked (factor of 1/8 probably missing)
     #endif
         }
 
@@ -169,13 +171,13 @@ namespace SaturationModel
         double dsigma_d2b_sqr_reduced (double x1, double x2, double y1, double y2, double xb1, double xb2, double yb1, double yb2, const HotspotNucleus* nucleus)
         {
     #ifndef _DILUTE
-            double G_xy_sum = 0.0;
-            double G_xbyb_sum = 0.0;
+            double G_xy = 0.0;
+            double G_xbyb = 0.0;
     #endif
-            double G_xxb_sum = 0.0;
-            double G_xyb_sum = 0.0;
-            double G_xby_sum = 0.0;
-            double G_yyb_sum = 0.0;
+            double G_xxb = 0.0;
+            double G_xyb = 0.0;
+            double G_yxb = 0.0;
+            double G_yyb = 0.0;
 
             for (uint n=0, a=nucleus->get_atomic_num(); n<a; ++n)
                 for (uint i=0, nh=nucleus->get_num_hotspots_per_nucleon(); i<nh; ++i)
@@ -191,34 +193,36 @@ namespace SaturationModel
                     double yb1_mod = yb1-b0.x;
                     double yb2_mod = yb2-b0.y;
             #ifndef _DILUTE
-                    G_xy_sum += GBWModel::G(x1_mod, x2_mod, y1_mod, y2_mod);
-                    G_xbyb_sum += GBWModel::G(xb1_mod, xb2_mod, yb1_mod, yb2_mod);
+                    G_xy += GBWModel::G(x1_mod, x2_mod, y1_mod, y2_mod);
+                    G_xbyb += GBWModel::G(xb1_mod, xb2_mod, yb1_mod, yb2_mod);
             #endif
-                    G_xxb_sum += GBWModel::G(x1_mod, x2_mod, xb1_mod, xb2_mod);
-                    G_xyb_sum += GBWModel::G(x1_mod, x2_mod, yb1_mod, yb2_mod);
-                    G_xby_sum += GBWModel::G(xb1_mod, xb2_mod, y1_mod, y2_mod);
-                    G_yyb_sum += GBWModel::G(y1_mod, y2_mod, yb1_mod, yb2_mod);
+                    G_xxb += GBWModel::G(x1_mod, x2_mod, xb1_mod, xb2_mod);
+                    G_xyb += GBWModel::G(x1_mod, x2_mod, yb1_mod, yb2_mod);
+                    G_yxb += GBWModel::G(y1_mod, y2_mod, xb1_mod, xb2_mod);
+                    G_yyb += GBWModel::G(y1_mod, y2_mod, yb1_mod, yb2_mod);
                 }
     #ifndef _DILUTE
-            double T_xy_ybxb = G_xxb_sum + G_yyb_sum - G_xyb_sum - G_xby_sum;
-            double T_xxb_yby = G_xy_sum + G_xbyb_sum - G_xyb_sum - G_xby_sum;
-
-            double a = G_xy_sum + G_xbyb_sum - T_xy_ybxb*Ncsqrm1_inverse;
-            double b = T_xy_ybxb*twoCF_inverse;
-            double c = T_xxb_yby*twoCF_inverse;
-            double d = G_xxb_sum + G_yyb_sum - T_xxb_yby*Ncsqrm1_inverse;
+            double T_xy_xbyb = G_xyb + G_yxb - G_xxb - G_yyb;
+            double T_xyb_xby = G_xy + G_xbyb - G_xxb - G_yyb;
+            
+            double a = G_xy + G_xbyb - T_xy_xbyb*Ncsqrm1_inverse;
+            double b = T_xy_xbyb*twoCF_inverse;
+            double c = T_xyb_xby*twoCF_inverse;
+            double d = G_xyb + G_yxb - T_xyb_xby*Ncsqrm1_inverse;
 
             double Sqrt = std::sqrt( 4.0*b*c + sqr(a-d) );
+            double DD;
             if (Sqrt == 0.0)
-                return exp(0.5*(a+d));
-
-            double factor = ( a-d+2.0*b ) / Sqrt;
-
-            double DD = 0.5 * ( (1.0+factor) * exp( (a+d+Sqrt)/2.0 ) + (1.0-factor) * exp( (a+d-Sqrt)/2.0 ) );
+                DD = exp(0.5*(a+d));
+            else
+            {
+                double factor = ( a-d+2.0/Nc*b ) / Sqrt;
+                DD = 0.5 * ( (1.0+factor) * exp( (a+d+Sqrt)*0.5 ) + (1.0-factor) * exp( (a+d-Sqrt)*0.5 ) );
+            }
             
-            return 4.0 * ( DD-D(G_xy_sum)*D(G_xbyb_sum) );
+            return 4.0 * (DD - D(G_xy)*D(G_xbyb));
     #else
-            return 0.25*sqr(G_xxb_sum+G_yyb_sum-G_xyb_sum-G_xby_sum);
+            return 4.0*0.5*Ncsqrm1_inverse*sqr(G_xxb+G_yyb-G_xyb-G_yxb);
     #endif
         }
     }

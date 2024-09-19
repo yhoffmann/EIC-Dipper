@@ -27,9 +27,9 @@ namespace Output
     std::vector<double> get_default_phi_vec()
     {
         std::vector<double> default_phi_vec;
-        uint num_angles = 8;
+        uint num_angles = 48;
         for (uint i=0; i<num_angles; i++)
-            default_phi_vec.push_back(2.0*PI*double(i)/double(num_angles)); // no num_angles-1 because we do not want to reach the end
+            default_phi_vec.push_back(PI*double(i)/double(num_angles)); // no num_angles-1 because we do not want to reach the end // NOTE if the calculation of the coherent cross section ever changes to not use sin and cos anymore but something more complicated, this needs to be adjusted to 2pi again and also the writing of data to file needs to be changed (currently I am using that cos and sin are symmetric/antisymmetric to print 2 results for one calculation/angle)
 
         return default_phi_vec;
     }
@@ -38,7 +38,7 @@ namespace Output
     {
         double default_Q = get_default_Q();
         std::vector<double> default_Delta_vec = get_default_Delta_vec();
-        std::vector<double> default_phi_vec = get_default_phi_vec();//std::vector<double>{0.0};
+        std::vector<double> default_phi_vec = std::vector<double>{0.0};//get_default_phi_vec();//
 
         dsigmadt(do_coherent, do_incoherent, default_Q, default_Delta_vec, default_phi_vec, output_file);
     }
@@ -51,16 +51,15 @@ namespace Output
         double coherent_results[Delta_vec.size()][phi_vec.size()];
         double coherent_avg[Delta_vec.size()];
 
-        double incoherent_results[Delta_vec.size()][phi_vec.size()];
-        double incoherent_avg[Delta_vec.size()];
-#ifndef _QUIET
-        std::cout << "Integrating with different parameters..." << std::endl;
-#endif
+        double incoherent[Delta_vec.size()];
+
         #pragma omp parallel for schedule(static, 1)
         for (uint i=0; i<Delta_vec.size(); i++)
         {
             coherent_avg[i] = 0.0;
-            incoherent_avg[i] = 0.0;
+            
+            if (do_incoherent)
+                incoherent[i] = Incoherent::dsigmadt(Q, Delta_vec[i]);
 
             for (uint j=0, jmax=phi_vec.size(); j<jmax; j++)
             {
@@ -71,12 +70,6 @@ namespace Output
                 {
                     coherent_results[i][j] = Coherent::dsigmadt_test(Q, Delta_vec[i], phi_vec[j]);
                     coherent_avg[i] += coherent_results[i][j]/double(jmax);
-                }
-
-                if (do_incoherent)
-                {
-                    incoherent_results[i][j] = Incoherent::dsigmadt(Q, Delta_vec[i], phi_vec[j]);//Incoherent::Demirci::color_fluctuations(Q, Delta_vec[i]);//
-                    incoherent_avg[i] += incoherent_results[i][j]/double(jmax);
                 }
             }
         }
@@ -90,12 +83,13 @@ namespace Output
         if (!out.is_open())
             exit(20);
 
+        out << std::setprecision(10);
         out << "#Q, Delta, Coher, Incoher; " << std::endl;
         out << "#1, 2,           3,4" << std::endl;
         out.flush();
 
         for (uint i=0; i<Delta_vec.size(); i++)
-            out << std::setprecision(7) << Delta_vec[i] << " " << Q << " " << coherent_avg[i] << " " << incoherent_avg[i] << std::endl;
+            out << Delta_vec[i] << " " << Q << " " << coherent_avg[i] << " " << incoherent[i] << std::endl;
         out << std::endl;
 
         out.close();
@@ -105,9 +99,9 @@ namespace Output
 
         for (uint i=0; i<Delta_vec.size(); i++)
         {
-            out << std::setprecision(7) << Delta_vec[i] << " " << Q << "   ";
+            out << Delta_vec[i] << " " << Q << "   ";
             for (uint j=0; j<phi_vec.size(); j++)
-                out << std::setprecision(7) << phi_vec[j] << " " << coherent_results[i][j] << " " << incoherent_results[i][j] << "   ";
+                out << phi_vec[j] << " " << coherent_results[i][j] << " " << incoherent[i] << "   ";
             out << std::endl;
         }
         out << std::endl;
@@ -116,21 +110,22 @@ namespace Output
     }
 
 
-    void dsigmadt_nucleus (uint atomic_num, uint num_hotspots, uint seed, std::string filepath)
+    void dsigmadt_nucleus (uint atomic_num, uint num_hotspots, uint seed)
     {
         double default_Q = get_default_Q();
         std::vector<double> default_Delta_vec = get_default_Delta_vec();
         std::vector<double> default_phi_vec = get_default_phi_vec();
 
-        dsigmadt_nucleus(atomic_num, num_hotspots, seed, default_Q, default_Delta_vec, default_phi_vec, filepath);
+        dsigmadt_nucleus(atomic_num, num_hotspots, seed, default_Q, default_Delta_vec, default_phi_vec);
     }
 
 
-    void dsigmadt_nucleus (uint atomic_num, uint num_hotspots, uint seed, double Q, std::vector<double> Delta_vec, std::vector<double> phi_vec, std::string filepath)
+    void dsigmadt_nucleus (uint atomic_num, uint num_hotspots, uint seed, double Q, std::vector<double> Delta_vec, std::vector<double> phi_vec)
     {
         double coherent_results_real[Delta_vec.size()][phi_vec.size()];
         double coherent_results_imag[Delta_vec.size()][phi_vec.size()];
-        double incoherent_results[Delta_vec.size()][phi_vec.size()];
+        double incoherent_results_real[Delta_vec.size()][phi_vec.size()];
+        double incoherent_results_imag[Delta_vec.size()][phi_vec.size()];
 
         if (seed==0)
             seed = get_unique_seed();
@@ -138,11 +133,11 @@ namespace Output
         std::mt19937 rng(seed);
 
         HotspotNucleus nucleus(atomic_num, num_hotspots, rng);
-*(HotspotPos*)nucleus.get_hotspot_pos(0, 0) = {cos(0.0*2.0*PI), sin(0.0*2.0*PI)};
-*(HotspotPos*)nucleus.get_hotspot_pos(0, 1) = {cos(1.0/3.0*2.0*PI), sin(1.0/3.0*2.0*PI)};
-*(HotspotPos*)nucleus.get_hotspot_pos(0, 2) = {cos(2.0/3.0*2.0*PI), sin(2.0/3.0*2.0*PI)};
+
         #pragma omp parallel for
         for (uint i=0; i<Delta_vec.size(); i++)
+        {
+            double incoherent = Incoherent::Sampled::dsigmadt_single_event(Q, Delta_vec[i], nucleus);
             for (uint j=0; j<phi_vec.size(); j++)
             {
                 auto [coh_real, coh_imag] = Coherent::Sampled::sqrt_dsigmadt_single_event(Q, Delta_vec[i], phi_vec[j], nucleus);
@@ -150,32 +145,29 @@ namespace Output
                 coherent_results_real[i][j] = coh_real;
                 coherent_results_imag[i][j] = coh_imag;
 
-                incoherent_results[i][j] = Incoherent::Sampled::dsigmadt_single_event(Q, Delta_vec[i], phi_vec[j], nucleus);
+
+                incoherent_results_real[i][j] = incoherent;
+                incoherent_results_imag[i][j] = 0.0;
             }
+        }
 
-        if (filepath == std::string(""))
-    #ifndef _DILUTE
-            filepath = "Data/raw/dense/" + std::to_string(seed);
-    #else
-            filepath = "Data/raw/dilute/" + std::to_string(seed);
-    #endif
-        else filepath += std::to_string(seed);
-
-        std::ofstream out;
-        out.open(filepath+"_Amplitude.dat");
+        std::ofstream out(get_default_filepath_from_parameters()+"_Amplitude.dat");
 
         if (!out.is_open())
             exit(20);
 
+        out << std::setprecision(10);
         print_infos(out, seed, nucleus);
 
         out << "##Delta,   Q,        A Co real,Co imag,  A2 Inco\n";
 
         for (uint i=0; i<Delta_vec.size(); i++)
         {
-            out << std::setprecision(7) << Delta_vec[i] << " " << Q << "   ";
+            out << Delta_vec[i] << " " << Q << "   ";
             for (uint j=0; j<phi_vec.size(); j++)
-                out << std::setprecision(7) << phi_vec[j] << " " << coherent_results_real[i][j] << " " << coherent_results_imag[i][j] << " " << incoherent_results[i][j] << "   ";
+                out << phi_vec[j] << " " << coherent_results_real[i][j] << " " << coherent_results_imag[i][j] << " " << incoherent_results_real[i][j] << " " << incoherent_results_imag[i][j] << "   ";
+            for (uint j=0; j<phi_vec.size(); j++)
+                out << phi_vec[j]+PI << " " << -coherent_results_real[i][j] << " " << coherent_results_imag[i][j] << " " << incoherent_results_real[i][j] << " " << incoherent_results_imag[i][j] << "   ";
             out << std::endl;
         }
         out << std::endl;
@@ -184,16 +176,80 @@ namespace Output
     }
 
 
-    void G (unsigned int num_points, std::string filepath)
+    void dsigmadt_demirci(std::string filepath) 
     {
-        double results[num_points][3];
-        #pragma omp parallel for schedule(dynamic,1)
-        for (unsigned int i=0; i<num_points; i++)
+        dsigmadt_demirci(get_default_Q(), filepath);
+    }
+
+
+    void dsigmadt_demirci (double Q, std::string filepath)
+    {
+        const uint DELTA_VEC_SIZE = 50;
+        std::vector<double> Delta_vec;
+        for (uint i=0; i<DELTA_VEC_SIZE; ++i)
+            Delta_vec.push_back(std::sqrt(25.0)*double(i)/double(DELTA_VEC_SIZE-1) + 0.001);
+
+        double coherent[DELTA_VEC_SIZE];
+        double color_fluc[DELTA_VEC_SIZE];
+        double hotspot_fluc[DELTA_VEC_SIZE];
+
+        #pragma omp parallel for
+        for (uint i=0; i<DELTA_VEC_SIZE; ++i)
         {
-            double x = 100.0*double(i)/double(num_points-1);
-            results[i][0] = x;
-            results[i][1] = GBWModel::G(x, 0.0, 0.0, 0.0);
-            results[i][2] = GBWModel::G_by_integration(x, 0.0, 0.0, 0.0);
+            coherent[i] = Coherent::Demirci::dsigmadt(Q, Delta_vec[i]);
+            color_fluc[i] = Incoherent::Demirci::color_fluctuations(Q, Delta_vec[i]);
+            hotspot_fluc[i] = Incoherent::Demirci::hotspot_fluctuations(Q, Delta_vec[i]);
+
+            if(progress_monitor_global)
+                std::cout << i << std::endl;
+        }
+
+        std::ofstream out(filepath);
+        if (!out.is_open())
+            exit(20);
+
+        out << "t Co Inco Color Hotspot" << std::endl;
+        for (uint i=0; i<DELTA_VEC_SIZE; ++i)
+            out << sqr(Delta_vec[i]) << " " << coherent[i] << " " << color_fluc[i]+hotspot_fluc[i] << " " << color_fluc[i] << " " << hotspot_fluc[i] << std::endl;
+
+        out.close();
+    }
+
+
+    void G (uint num_points, std::string filepath)
+    {
+        uint num_angles = 8;
+        double angles[num_angles];
+        for (uint i=0; i<num_angles; ++i)
+            angles[i] = double(i)/double(num_angles)*PI;
+
+        double r = 1.0;
+
+        double results[num_points][1+2*num_angles];
+
+        #pragma omp parallel for schedule(dynamic,1)
+        for (unsigned int i=0; i<num_points; ++i)
+        {
+            double x1, x2, y1, y2;
+            double b = 100.0*double(i)/double(num_points-1);
+
+            results[i][0] = b;
+            for (uint j=0; j<num_angles; ++j)
+            {
+                double b1 = 0.0;
+                double b2 = b;
+
+                double r1 = r*cos(angles[j]);
+                double r2 = r*sin(angles[j]);
+
+                x1 = b1 + 0.5*r1;
+                x2 = b2 + 0.5*r2;
+                y1 = b1 - 0.5*r1;
+                y2 = b2 - 0.5*r2;
+
+                results[i][1+2*j] = GBWModel::G(x1, x2, y1, y2);
+                results[i][2+2*j] = GBWModel::G_by_integration(x1, x2, y1, y2);
+            }
             std::cout << i << std::endl;
         }
 
@@ -207,9 +263,23 @@ namespace Output
             exit(20);
         }
 
+        out << std::setprecision(10);
+
+        out << "x ";
+        for (uint i=0; i<num_angles; ++i)
+        {
+            out << "angle" << i << "interp angle" << i << "integration ";
+        }
+        out << std::endl;
+
         for (unsigned int i=0; i<num_points; i++)
         {
-            out << std::setprecision(10) << results[i][0] << " " << results[i][1] << " " << results[i][2] << std::endl;
+            out << results[i][0] << " ";
+            for (uint j=0; j<num_angles; ++j)
+            {
+                out << results[i][1+2*j] << " " << results[i][2+2*j] << " ";
+            }
+            out << std::endl;
         }
 
         out.close();
@@ -265,5 +335,75 @@ namespace Output
 
         delete[] thickness;
         delete[] x;
+    }
+
+
+    void hotspot_nucleus_thickness_avg (uint atomic_num, uint num_hotspots_per_nucleon, uint start_seed, uint num_events, std::string filepath)
+    {
+        const uint size_x = 2e2;
+        const uint size_y = 2e2;
+
+        const double xmin = -5.0;
+        const double xmax = 5.0;
+        const double ymin = -5.0;
+        const double ymax = 5.0;
+
+        const double inverse_num = 1.0/double(num_events);
+
+        double* thickness = new double [size_x*size_y];
+        for (uint j=0; j<size_y; ++j)
+            for (uint k=0; k<size_x; ++k)
+                thickness[j*size_x + k] = 0.0;
+        
+        double* x = new double [size_x];
+        double* y = new double [size_y];
+
+        HotspotPos* pos = new HotspotPos [atomic_num*num_hotspots_per_nucleon*num_events];
+
+        for (uint i=0; i<num_events; ++i)
+        {
+            uint seed = start_seed + i + 1;
+
+            std::mt19937 rng(seed);
+            HotspotNucleus hn(atomic_num, num_hotspots_per_nucleon, rng);
+            for (uint n=0; n<atomic_num; ++n)
+                for (uint h=0; h<num_hotspots_per_nucleon; ++h)
+                    pos[i*atomic_num*num_hotspots_per_nucleon + n*num_hotspots_per_nucleon + h] = *hn.get_hotspot_pos(n, h);
+
+            for (uint j=0; j<size_y; ++j)
+            {
+                y[j] = ymin+(ymax-ymin)*double(j)/double(size_y-1);
+                for (uint k=0; k<size_x; ++k)
+                {
+                    x[k] = xmin+(xmax-xmin)*double(k)/double(size_x-1);
+
+                    thickness[j*size_x + k] += hn.get_hotspot_thickness(x[k], y[j])*inverse_num;
+                }
+            }
+        }
+
+        std::ofstream out(filepath);
+        if (!out.is_open())
+            exit(20);
+        // out << "x y thickness" << std::endl;
+        for (uint j=0; j<size_y; ++j)
+            for (uint k=0; k<size_x; ++k)
+                out << x[k] << " " << y[j] << " " << thickness[j*size_x + k] << std::endl;
+            
+        out.close();
+
+        std::ofstream pos_out(filepath + ".pos");
+        if (!pos_out.is_open())
+            exit(20);
+        pos_out << "x y" << std::endl;
+        for (uint i=0; i<num_events; ++i)
+            for (uint n=0; n<atomic_num; ++n)
+                for (uint h=0; h<num_hotspots_per_nucleon; ++h)
+                    pos_out << pos[i*atomic_num*num_hotspots_per_nucleon + n*num_hotspots_per_nucleon + h].x << " " << pos[i*atomic_num*num_hotspots_per_nucleon + n*num_hotspots_per_nucleon + h].y << std::endl;
+        
+        delete[] thickness;
+        delete[] x;
+        delete[] y;
+        delete[] pos;
     }
 }

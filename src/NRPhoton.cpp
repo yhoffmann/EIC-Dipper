@@ -10,16 +10,24 @@ namespace NRPhoton
 {
     double epsilon (double Q)
     {
-        return std::sqrt( sqr(Q)*0.25 + sqr(m_Q_c) );
+        return std::sqrt( sqr(Q)*0.25 + sqr(m_Q) );
     }
 
 
-    double wave_function_factor_T = -A_Q * sqrt_2m_c_Nc * e * e_Q;
+    double get_wave_function_factor_T (double m_Q, double e_Q)
+    {
+        return -A_Q * std::sqrt(2.0*m_Q*Nc) * e * e_Q;
+    }
+
+    void set_wave_function_factor_T (double m_Q, double e_Q)
+    {
+        wave_function_factor_T = get_wave_function_factor_T(m_Q, e_Q);
+    }
 
 
     double wave_function_factor_L (double Q)
     {
-        return wave_function_factor_T * Q / (2.0*m_Q_c);
+        return wave_function_factor_T * Q / (2.0*m_Q);
     }
 
 
