@@ -28,7 +28,7 @@ namespace Output
     std::vector<double> get_default_phi_vec()
     {
         std::vector<double> default_phi_vec;
-        uint num_angles = 1;
+        uint num_angles = 48;
         for (uint i=0; i<num_angles; i++)
             default_phi_vec.push_back(PI*double(i)/double(num_angles)); // no num_angles-1 because we do not want to reach the end // NOTE if the calculation of the coherent cross section ever changes to not use sin and cos anymore but something more complicated, this needs to be adjusted to 2pi again and also the writing of data to file needs to be changed (currently I am using that cos and sin are symmetric/antisymmetric to print 2 results for one calculation/angle)
 
