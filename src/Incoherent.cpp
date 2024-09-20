@@ -43,7 +43,7 @@ namespace Incoherent
     {
         CubatureConfig c_config;
         c_config.progress_monitor = progress_monitor_global;
-        c_config.max_eval = 2e7;
+        c_config.max_eval = 1e7;
 
         IntegrationConfig i_config;
 
@@ -236,7 +236,7 @@ namespace Incoherent { namespace Sampled
     double dsigmadt_single_event (double Q, double Delta, const HotspotNucleus& h_nucleus)
     {
         CubatureConfig c_config;
-        c_config.max_eval = 1e8;
+        c_config.max_eval = 5e7;
         c_config.progress_monitor = progress_monitor_global;
 
         IntegrationConfig i_config;
