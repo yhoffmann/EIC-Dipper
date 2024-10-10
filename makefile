@@ -3,29 +3,33 @@
 FLAGS =
 
 ifeq ($(QUIET),1)
-	FLAGS += -D_QUIET
+	FLAGS+= -D_QUIET
 endif
 
 ifeq ($(DILUTE),1) # use dilute approx
-	FLAGS += -D_DILUTE
+	FLAGS+= -D_DILUTE
 endif
 
 ifeq ($(QBOTTOM), 1) # use bottom quark instead of charm
-	FLAGS += -D_Q_B
+	FLAGS+= -D_Q_B
 endif
 
 ifeq ($(QTOP), 1) # use bottom quark instead of charm
-	FLAGS += -D_Q_T
+	FLAGS+= -D_Q_T
+endif
+
+ifeq ($(G2MU02), 1)
+	FLAGS+= -D_G2MU02
 endif
 
 ifeq ($(PCTWO),1)
-	FLAGS += -lgslcblas
-	FLAGS += -I external/cuba
-	FLAGS += -L external/cuba
+	FLAGS+= -lgslcblas
+	FLAGS+= -I external/cuba
+	FLAGS+= -L external/cuba
 endif
 
 ifneq ($(PCTWO), 1)
-	FLAGS += -D_INTERP_LOG
+	FLAGS+= -D_INTERP_LOG
 endif
 
 
@@ -34,6 +38,7 @@ nolibs:
 	mkdir -p data/samples/c05/de data/samples/c05/di
 	mkdir -p data/samples/c10/de data/samples/c10/di
 	mkdir -p data/samples/c20/de data/samples/c20/di
+	mkdir -p data/samples/g2mu02/c
 	g++ $(FLAGS) -Wall src/*.cpp obj/*.o -o eic -O3 -lcuba -lm -lgsl -fopenmp
 
 libs:

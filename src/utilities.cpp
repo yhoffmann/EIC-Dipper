@@ -97,6 +97,7 @@ void set_parameters (int argc, char** argv)
                 "[--add-to-seed <number to add to seed>] (add number to seed)\n"
                 "[-t, --threads <number of threads>]\n"
                 "[-p] (progress monitor)\n"
+                "[-Q <photon virtuality>]\n"
                 "[-m <gluon mass>]\n"
                 "[--g2mu02-factor <factor to multiply g2mu02 by>]\n"
                 "[--charm, -c] (select charm quark)\n"
@@ -206,6 +207,9 @@ void set_parameters (int argc, char** argv)
         }
         else if (flag.str()=="-t" || flag.str()=="--threads")
             num_threads = uint(std::round(arg_number));
+        
+        else if (flag.str()=="-Q")
+            Q = arg_number;
             
         else
         {
@@ -261,10 +265,13 @@ uint get_unique_seed()
 std::string get_default_filepath_from_parameters()
 {
     std::string filepath = "data/samples/";
+#ifndef _G2MU02
+    filepath += "g2mu02/";
+#endif
     filepath += (char)quark_config;
-
+#ifndef _G2MU02
     filepath += (g2mu02_config_factor >= 1.0) ? std::to_string( int(std::round(g2mu02_config_factor*10.0)) ) : "0"+std::to_string( int(std::round(g2mu02_config_factor*10.0)) );
-
+#endif
     filepath += 
 #ifndef _DILUTE
         "/de/";

@@ -11,18 +11,26 @@
 #include "../include/GBWModel.hpp"
 #include "../external/Nucleus/include/HotspotNucleus.hpp"
 #include "../external/thread-pool/include/ThreadPool.hpp"
+#include "../include/SaturationModel.hpp"
 
 
 namespace Output
 {
-    double get_default_Q()
+    inline double get_default_Q()
     {
         return std::sqrt(0.1);
     }
 
+    static const double DELTA_SINGLE = 1.0;
+
     std::vector<double> get_default_Delta_vec()
     {
-        return std::vector<double>{0.001, 0.01, 0.04, 0.08, 0.12, 0.2, 0.3, 0.4, 0.6, 0.8, 1.0, 1.4, 1.8, 2.3, 3.0, 4.0}; //{0.001, 0.002, 0.005, 0.007, 0.01, 0.03, 0.05, 0.07, 0.08, 0.09, 0.12, 0.16, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.3, 2.7, 3.0, 3.3, 3.7, 4.0}; //
+        return std::vector<double>{0.001, 0.01, 0.04, 0.08, 0.12, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 2.0, 2.3, 3.0}; //{0.001, 0.002, 0.005, 0.007, 0.01, 0.03, 0.05, 0.07, 0.08, 0.09, 0.12, 0.16, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.3, 2.7, 3.0, 3.3, 3.7, 4.0}; //
+    }
+
+    std::vector<double> get_default_g2mu02_vec()
+    {
+        return std::vector<double>{0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2, 2.3, 2.4, 2.5};
     }
 
     std::vector<double> get_default_phi_vec()
@@ -113,60 +121,83 @@ namespace Output
 
     void dsigmadt_nucleus (uint atomic_num, uint num_hotspots, uint seed)
     {
-        double default_Q = get_default_Q();
-        std::vector<double> default_Delta_vec = get_default_Delta_vec();
+        std::vector<double> default_value_vec = 
+    #ifndef _G2MU02
+            get_default_Delta_vec();
+    #else
+            get_default_g2mu02_vec();
+    #endif
+
         std::vector<double> default_phi_vec = get_default_phi_vec();
 
-        dsigmadt_nucleus(atomic_num, num_hotspots, seed, default_Q, default_Delta_vec, default_phi_vec);
+        dsigmadt_nucleus(atomic_num, num_hotspots, seed, Q, default_value_vec, default_phi_vec);
     }
 
 
-    void dsigmadt_nucleus (uint atomic_num, uint num_hotspots, uint seed, double Q, std::vector<double> Delta_vec, std::vector<double> phi_vec)
+    void dsigmadt_nucleus (uint atomic_num, uint num_hotspots, uint seed, double Q, std::vector<double> value_vec, std::vector<double> phi_vec)
     {
         import_interp_data_by_params(interpolator_filepath);
 
-        double coherent_results_real[Delta_vec.size()*phi_vec.size()];
-        double coherent_results_imag[Delta_vec.size()*phi_vec.size()];
-        double incoherent_results_real[Delta_vec.size()];
-        double incoherent_results_imag[Delta_vec.size()];
+        std::vector<double> coherent_results_real(value_vec.size()*phi_vec.size());
+        std::vector<double> coherent_results_imag(value_vec.size()*phi_vec.size());
+        std::vector<double> incoherent_results_real(value_vec.size());
+        std::vector<double> incoherent_results_imag(value_vec.size());
 
         if (seed==0)
             seed = get_unique_seed();
 
-        std::mt19937 rng(seed);
-
-        HotspotNucleus nucleus(atomic_num, num_hotspots, rng);
+        HotspotNucleus nucleus(atomic_num, num_hotspots, seed);
+        nucleus.set_nucleon_size(std::sqrt(R_sqr));
+        nucleus.sample_nucleon_pos();
 
         ThreadPool pool(num_threads);
 
-        for (uint Delta_index=0, Delta_size=Delta_vec.size(); Delta_index<Delta_size; ++Delta_index)
+        for (uint value_index=0, value_size=value_vec.size(); value_index<value_size; ++value_index)
         {
-            double Delta = Delta_vec[Delta_index];
-            pool.enq_job([Delta_index, Q, Delta, &nucleus, &incoherent_results_real, &incoherent_results_imag] {
-                incoherent_results_real[Delta_index] = Incoherent::Sampled::dsigmadt_single_event(Q, Delta, nucleus);
-                incoherent_results_imag[Delta_index] = 0.0;
-            });
+    #ifndef _G2MU02
+            double Delta = value_vec[value_index];
+    #else
+            double Delta = DELTA_SINGLE;
+            g2mu02_config_factor = value_vec[value_index];
+            g2mu02 = g2mu02_config_factor*g2mu02;
+    #endif
+            pool.enq_job(
+                [value_index, Q, Delta, &nucleus, &incoherent_results_real, &incoherent_results_imag]
+                {
+                    incoherent_results_real[value_index] = Incoherent::Sampled::dsigmadt_single_event(Q, Delta, nucleus);
+                    incoherent_results_imag[value_index] = 0.0;
+                }
+            );
         }
 
-        for (uint Delta_index=0, Delta_size=Delta_vec.size(); Delta_index<Delta_size; ++Delta_index)
+        for (uint value_index=0, value_size=value_vec.size(); value_index<value_size; ++value_index)
         {
             for (uint phi_index=0, phi_size=phi_vec.size(); phi_index<phi_size; ++phi_index)
             {
-                double Delta = Delta_vec[Delta_index];
+        #ifndef _G2MU02
+                double Delta = value_vec[value_index];
+        #else
+                double Delta = DELTA_SINGLE;
+                g2mu02_config_factor = value_vec[value_index];
+                g2mu02 = g2mu02_config_factor*g2mu02;
+        #endif
                 double phi = phi_vec[phi_index];
-                pool.enq_job([Delta_index, phi_index, Q, Delta, phi_size, phi, &nucleus, &coherent_results_real, &coherent_results_imag] {
-                    auto [coh_real, coh_imag] = Coherent::Sampled::sqrt_dsigmadt_single_event(Q, Delta, phi, nucleus);
-                    
-                    coherent_results_real[Delta_index*phi_size + phi_index] = coh_real;
-                    coherent_results_imag[Delta_index*phi_size + phi_index] = coh_imag;
-                });
+                pool.enq_job(
+                    [value_index, phi_index, Q, Delta, phi_size, phi, &nucleus, &coherent_results_real, &coherent_results_imag]
+                    {
+                        auto [coh_real, coh_imag] = Coherent::Sampled::sqrt_dsigmadt_single_event(Q, Delta, phi, nucleus);
+                        
+                        coherent_results_real[value_index*phi_size + phi_index] = coh_real;
+                        coherent_results_imag[value_index*phi_size + phi_index] = coh_imag;
+                    }
+                );
             }
         }
 
         pool.await();
         pool.stop();
 
-        std::ofstream out(get_default_filepath_from_parameters()+"_Amplitude.dat");
+        std::ofstream out("test.dat");//(get_default_filepath_from_parameters()+"_Amplitude.dat");
 
         if (!out.is_open())
             exit(20);
@@ -176,13 +207,13 @@ namespace Output
 
         out << "##Delta,   Q,        A Co real,Co imag,  A2 Inco\n";
 
-        for (uint Delta_index=0, Delta_size=Delta_vec.size(); Delta_index<Delta_size; ++Delta_index)
+        for (uint value_index=0, value_size=value_vec.size(); value_index<value_size; ++value_index)
         {
-            out << Delta_vec[Delta_index] << " " << Q << "   ";
+            out << value_vec[value_index] << " " << Q << "   ";
             for (uint phi_index=0, phi_size=phi_vec.size(); phi_index<phi_size; ++phi_index)
-                out << phi_vec[phi_index] << " " << coherent_results_real[Delta_index*phi_size + phi_index] << " " << coherent_results_imag[Delta_index*phi_size + phi_index] << " " << incoherent_results_real[Delta_index] << " " << incoherent_results_imag[Delta_index] << "   ";
+                out << phi_vec[phi_index] << " " << coherent_results_real[value_index*phi_size + phi_index] << " " << coherent_results_imag[value_index*phi_size + phi_index] << " " << incoherent_results_real[value_index] << " " << incoherent_results_imag[value_index] << "   ";
             for (uint phi_index=0, phi_size=phi_vec.size(); phi_index<phi_size; ++phi_index)
-                out << phi_vec[phi_index]+PI << " " << -coherent_results_real[Delta_index*phi_size + phi_index] << " " << coherent_results_imag[Delta_index*phi_size + phi_index] << " " << incoherent_results_real[Delta_index] << " " << incoherent_results_imag[Delta_index] << "   ";
+                out << phi_vec[phi_index]+PI << " " << -coherent_results_real[value_index*phi_size + phi_index] << " " << coherent_results_imag[value_index*phi_size + phi_index] << " " << incoherent_results_real[value_index] << " " << incoherent_results_imag[value_index] << "   ";
             out << std::endl;
         }
         out << std::endl;
@@ -191,7 +222,7 @@ namespace Output
     }
 
 
-    void dsigmadt_demirci(std::string filepath) 
+    void dsigmadt_demirci (std::string filepath) 
     {
         dsigmadt_demirci(get_default_Q(), filepath);
     }
@@ -229,6 +260,19 @@ namespace Output
 
         out.close();
     }
+
+
+    // void dsdt_nucleus_avg_test (uint atomic_num, uint num_hotspots, uint seed, std::vector<double> Delta_vec, std::vector<double> phi_vec)
+    // {
+    //     GBWModel::G_ip.import_data(interpolator_filepath);
+
+    //     SaturationModel::HotspotAverage::sample(A, H, 32, time(0));
+
+    //     ThreadPool pool(num_threads);
+
+
+    //     SaturationModel::HotspotAverage::clear();
+    // }
 
 
     void G (uint num_points, std::string filepath)
@@ -306,9 +350,7 @@ namespace Output
         if (seed==0)
             seed = get_unique_seed();
 
-        std::mt19937 rng(seed);
-
-        HotspotNucleus hn(atomic_num, num_hotspots_per_nucleon, rng);
+        HotspotNucleus hn(atomic_num, num_hotspots_per_nucleon, seed);
 
         double* thickness = new(std::nothrow) double [num_points];
         double* x = new(std::nothrow) double [num_points];
@@ -383,8 +425,7 @@ namespace Output
         {
             uint seed = start_seed + i;
 
-            std::mt19937 rng(seed);
-            HotspotNucleus hn(atomic_num, num_hotspots_per_nucleon, rng);
+            HotspotNucleus hn(atomic_num, num_hotspots_per_nucleon, seed);
             hn.set_hotspot_size(std::sqrt(rH_sqr));
             hn.set_nucleon_size(std::sqrt(R_sqr));
             for (uint n=0; n<atomic_num; ++n)
@@ -407,9 +448,8 @@ namespace Output
         for (uint i=0; i<num_events; ++i)
         {
             uint seed = start_seed + i;
-            std::mt19937 rng(seed);
 
-            HotspotNucleus hn(atomic_num, num_hotspots_per_nucleon, rng);
+            HotspotNucleus hn(atomic_num, num_hotspots_per_nucleon, seed);
             hn.set_hotspot_size(std::sqrt(rH_sqr));
             hn.set_nucleon_size(std::sqrt(R_sqr));
             for (uint j=0; j<size_y; ++j)

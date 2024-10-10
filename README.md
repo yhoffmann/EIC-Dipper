@@ -10,14 +10,14 @@ https://www.overleaf.com/read/rtjrybdvgprj#db7d9b
 ```
 $ git clone https://github.com/yhoffmann/EIC-Dipper.git
 ```
-2. Enter the directory and clone the submodules (not working right now because I have not made all submodules public):
+2. Enter the directory and clone/update the submodules:
 ```
 $ cd EIC-Dipper/
-EIC-Dipper$ git submodule update --init --recursive
+EIC-Dipper$ git submodule update --init --recursive --remote
 ```
 
 ## How to build and run
-1. Build submpdules and dependencies and the main part of the code.
+1. Build submodules and dependencies and the main part of the code.
 ```
 EIC-Dipper$ make all DILUTE=X
 ```

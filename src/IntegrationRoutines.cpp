@@ -231,15 +231,6 @@ namespace IntegrationRoutines
 
             current_oscillation_value = cubature_integrate(integrand, cubature_config, integration_config);
 
-            /*if (p->is_cartesian)
-            {
-                double store = integration_config->min[0];
-                integration_config->min[0] = -integration_config->max[0];
-                integration_config->max[0] = -store;
-
-                current_oscillation_value += cubature_integrate(integrand, cubature_config, integration_config);
-            }*/
-
             total_sum += current_oscillation_value;
             partial_sum += current_oscillation_value;
             

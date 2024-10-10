@@ -27,7 +27,7 @@ namespace NRPhoton
 
     double wave_function_factor_L (double Q)
     {
-        return wave_function_factor_T * Q / (2.0*m_Q);
+        return 2.0 * wave_function_factor_T * Q / m_Q;
     }
 
 
@@ -39,11 +39,11 @@ namespace NRPhoton
 
     double wave_function (double r1, double r2, double Q)
     {
-        if (sqr(r1)+sqr(r2) < 2.0e-40)
-        {
-            r1 = 1.0e-20;
-            r2 = 1.0e-20;
-        }
-        return gsl_sf_bessel_K0( epsilon(Q) * std::sqrt( sqr(r1)+sqr(r2) ) );
+        double rsqr = sqr(r1) + sqr(r2);
+
+        if (rsqr == 0.0)
+            rsqr = 2.0e-15;
+
+        return gsl_sf_bessel_K0( epsilon(Q) * std::sqrt(rsqr) );
     }
 }

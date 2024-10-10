@@ -11,7 +11,10 @@ namespace Output
     void dsigmadt(bool do_coherent, bool do_incoherent, double Q, std::vector<double> Delta_vec, std::vector<double> phi_vec, std::string output_file = "");
 
     void dsigmadt_nucleus(uint atomic_num, uint num_hotspots, uint seed);
-    void dsigmadt_nucleus(uint atomic_num, uint num_hotspots, uint seed, double Q, std::vector<double> Delta_vec, std::vector<double> phi_vec);
+    void dsigmadt_nucleus(uint atomic_num, uint num_hotspots, uint seed, double Q, std::vector<double> value_vec, std::vector<double> phi_vec);
+
+    // void dsdt_nucleus_avg_test(uint atomic_num, uint num_hotspots, uint seed, uint num_events);
+    // void dsdt_nucleus_avg_test(uint atomic_num, uint num_hotspots, uint seed, double Q, std::vector<double> Delta_vec);
 
     void dsigmadt_demirci(std::string filepath);
     void dsigmadt_demirci(double Q, std::string filepath);

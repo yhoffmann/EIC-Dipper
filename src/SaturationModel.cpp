@@ -226,4 +226,45 @@ namespace SaturationModel
     #endif
         }
     }
+
+
+    namespace HotspotAverage
+    {
+        void sample (uint A, uint H, uint num, uint start_seed)
+        {
+            HotspotAverage::num = num;
+            inv_num = 1.0/double(num);
+
+            hn = (HotspotNucleus*)malloc(sizeof(HotspotNucleus)*num);
+
+            for (uint i=0; i<num; ++i)
+                new (&hn[i]) HotspotNucleus(A, H, start_seed + i);
+        }
+
+        void clear()
+        {
+            for (uint i=0; i<HotspotAverage::num; ++i)
+                hn[i].~HotspotNucleus();
+
+            free(hn);
+        }
+
+        double dsigma_d2b (double x1, double x2, double y1, double y2)
+        {
+            double avg = 0.0;
+            for (uint i=0; i<HotspotAverage::num; ++i)
+                avg += Sampled::dsigma_d2b(x1, x2, y1, y2, &hn[i]);
+            
+            return avg * inv_num;
+        }
+
+        double dsigma_d2b_sqr_reduced (double x1, double x2, double y1, double y2, double xb1, double xb2, double yb1, double yb2)
+        {
+            double avg = 0.0;
+            for (uint i=0; i<HotspotAverage::num; ++i)
+                avg += Sampled::dsigma_d2b_sqr_reduced(x1, x2, y1, y2, xb1, xb2, yb1, yb2, &hn[i]);
+            
+            return avg * inv_num;
+        }
+    }
 }
