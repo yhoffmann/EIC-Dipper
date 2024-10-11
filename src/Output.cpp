@@ -3,6 +3,8 @@
 #include <iomanip>
 #include <thread>
 #include <unistd.h>
+#include <vector>
+#include <array>
 #include "../include/IntegrationRoutines.hpp"
 #include "../include/Output.hpp"
 #include "../include/Coherent.hpp"
@@ -57,10 +59,10 @@ namespace Output
         if (phi_vec.size()==0)
             phi_vec = std::vector<double>{0.0};
 
-        double coherent_results[Delta_vec.size()][phi_vec.size()];
-        double coherent_avg[Delta_vec.size()];
+        std::vector<double> coherent_results(Delta_vec.size()*phi_vec.size());
+        std::vector<double> coherent_avg(Delta_vec.size());
 
-        double incoherent[Delta_vec.size()];
+        std::vector<double> incoherent(Delta_vec.size());
 
         #pragma omp parallel for schedule(static, 1)
         for (uint i=0; i<Delta_vec.size(); i++)
@@ -77,8 +79,8 @@ namespace Output
 
                 if (do_coherent)
                 {
-                    coherent_results[i][j] = Coherent::dsigmadt_test(Q, Delta_vec[i], phi_vec[j]);
-                    coherent_avg[i] += coherent_results[i][j]/double(jmax);
+                    coherent_results[i*jmax + j] = Coherent::dsigmadt_test(Q, Delta_vec[i], phi_vec[j]);
+                    coherent_avg[i] += coherent_results[i*jmax + j]/double(jmax);
                 }
             }
         }
@@ -109,8 +111,8 @@ namespace Output
         for (uint i=0; i<Delta_vec.size(); i++)
         {
             out << Delta_vec[i] << " " << Q << "   ";
-            for (uint j=0; j<phi_vec.size(); j++)
-                out << phi_vec[j] << " " << coherent_results[i][j] << " " << incoherent[i] << "   ";
+            for (uint j=0, jmax=phi_vec.size(); j<jmax; j++)
+                out << phi_vec[j] << " " << coherent_results[i*jmax + j] << " " << incoherent[i] << "   ";
             out << std::endl;
         }
         out << std::endl;
@@ -138,8 +140,8 @@ namespace Output
     {
         import_interp_data_by_params(interpolator_filepath);
 
-        std::vector<double> coherent_results_real(value_vec.size()*phi_vec.size());
-        std::vector<double> coherent_results_imag(value_vec.size()*phi_vec.size());
+        std::vector<std::vector<double>> coherent_results_real(value_vec.size(), std::vector<double>(phi_vec.size()));
+        std::vector<std::vector<double>> coherent_results_imag(value_vec.size(), std::vector<double>(phi_vec.size()));
         std::vector<double> incoherent_results_real(value_vec.size());
         std::vector<double> incoherent_results_imag(value_vec.size());
 
@@ -148,7 +150,7 @@ namespace Output
 
         HotspotNucleus nucleus(atomic_num, num_hotspots, seed);
         nucleus.set_nucleon_size(std::sqrt(R_sqr));
-        nucleus.sample_nucleon_pos();
+        nucleus.sample();
 
         ThreadPool pool(num_threads);
 
@@ -187,8 +189,8 @@ namespace Output
                     {
                         auto [coh_real, coh_imag] = Coherent::Sampled::sqrt_dsigmadt_single_event(Q, Delta, phi, nucleus);
                         
-                        coherent_results_real[value_index*phi_size + phi_index] = coh_real;
-                        coherent_results_imag[value_index*phi_size + phi_index] = coh_imag;
+                        coherent_results_real[value_index][phi_index] = coh_real;
+                        coherent_results_imag[value_index][phi_index] = coh_imag;
                     }
                 );
             }
@@ -211,9 +213,9 @@ namespace Output
         {
             out << value_vec[value_index] << " " << Q << "   ";
             for (uint phi_index=0, phi_size=phi_vec.size(); phi_index<phi_size; ++phi_index)
-                out << phi_vec[phi_index] << " " << coherent_results_real[value_index*phi_size + phi_index] << " " << coherent_results_imag[value_index*phi_size + phi_index] << " " << incoherent_results_real[value_index] << " " << incoherent_results_imag[value_index] << "   ";
+                out << phi_vec[phi_index] << " " << coherent_results_real[value_index][phi_index] << " " << coherent_results_imag[value_index][phi_index] << " " << incoherent_results_real[value_index] << " " << incoherent_results_imag[value_index] << "   ";
             for (uint phi_index=0, phi_size=phi_vec.size(); phi_index<phi_size; ++phi_index)
-                out << phi_vec[phi_index]+PI << " " << -coherent_results_real[value_index*phi_size + phi_index] << " " << coherent_results_imag[value_index*phi_size + phi_index] << " " << incoherent_results_real[value_index] << " " << incoherent_results_imag[value_index] << "   ";
+                out << phi_vec[phi_index]+PI << " " << -coherent_results_real[value_index][phi_index] << " " << coherent_results_imag[value_index][phi_index] << " " << incoherent_results_real[value_index] << " " << incoherent_results_imag[value_index] << "   ";
             out << std::endl;
         }
         out << std::endl;
@@ -277,22 +279,24 @@ namespace Output
 
     void G (uint num_points, std::string filepath)
     {
-        uint num_angles = 8;
-        double angles[num_angles];
+        const uint num_angles = 8;
+        std::vector<double> angles(num_angles);
         for (uint i=0; i<num_angles; ++i)
             angles[i] = double(i)/double(num_angles)*PI;
 
         double r = 1.0;
 
-        double results[num_points][1+2*num_angles];
+        std::vector<double> b_vec(num_points);
+
+        std::vector<std::vector<std::array<double, 2>>> results(num_points, std::vector<std::array<double, 2>>(num_angles));
 
         #pragma omp parallel for schedule(dynamic,1)
-        for (unsigned int i=0; i<num_points; ++i)
+        for (uint i=0; i<num_points; ++i)
         {
             double x1, x2, y1, y2;
             double b = 100.0*double(i)/double(num_points-1);
 
-            results[i][0] = b;
+            b_vec[i] = b;
             for (uint j=0; j<num_angles; ++j)
             {
                 double b1 = 0.0;
@@ -306,8 +310,8 @@ namespace Output
                 y1 = b1 - 0.5*r1;
                 y2 = b2 - 0.5*r2;
 
-                results[i][1+2*j] = GBWModel::G(x1, x2, y1, y2);
-                results[i][2+2*j] = GBWModel::G_by_integration(x1, x2, y1, y2);
+                results[i][j][0] = GBWModel::G(x1, x2, y1, y2);
+                results[i][j][1] = GBWModel::G_by_integration(x1, x2, y1, y2);
             }
             std::cout << i << std::endl;
         }
@@ -333,10 +337,10 @@ namespace Output
 
         for (unsigned int i=0; i<num_points; i++)
         {
-            out << results[i][0] << " ";
+            out << b_vec[i] << " ";
             for (uint j=0; j<num_angles; ++j)
             {
-                out << results[i][1+2*j] << " " << results[i][2+2*j] << " ";
+                out << results[i][j][0] << " " << results[i][j][1] << " ";
             }
             out << std::endl;
         }
@@ -352,26 +356,20 @@ namespace Output
 
         HotspotNucleus hn(atomic_num, num_hotspots_per_nucleon, seed);
 
-        double* thickness = new(std::nothrow) double [num_points];
-        double* x = new(std::nothrow) double [num_points];
-        if (thickness==nullptr || x==nullptr)
-            exit(24);
+        std::vector<double> thickness(num_points, 0.0);
+        std::vector<double> x(num_points);
 
-        double x_max = hn.get_mean_bulk_radius()+10.0*hn.get_mean_surface_diffusiveness(), x_min = -x_max;
+        double x_max = hn.get_mean_bulk_radius()+10.0*hn.get_mean_surface_diffusiveness();
+        double x_min = -x_max;
         double inverse_x_divisor = 1.0/double(num_points-1);
         for (uint i=0; i<num_points; i++)
-        {
-            thickness[i] = 0.0;
             x[i] = x_min+(x_max-x_min)*double(i)*inverse_x_divisor;
-        }
         
         for (uint i=0; i<num_samples; i++)
         {
             for (uint j=0; j<num_points; j++)
-            {
                 thickness[j] += hn.get_hotspot_thickness(x[j], 0.0);
-            }
-            hn.sample_nucleon_pos();
+            hn.sample();
         }
 
         double inverse_thickness_divisor = 1.0/double(num_samples);
@@ -389,9 +387,6 @@ namespace Output
             out << x[i] << " " << thickness[i] << std::endl;
 
         out.close();
-
-        delete[] thickness;
-        delete[] x;
     }
 
 
@@ -407,19 +402,19 @@ namespace Output
 
         const double inverse_num = 1.0/double(num_events);
 
-        double* thickness = new double [size_x*size_y];
-        double* thickness_stddev = new double [size_x*size_y]; 
-        for (uint j=0; j<size_y; ++j)
-            for (uint k=0; k<size_x; ++k)
-            {
-                thickness[j*size_x + k] = 0.0;
-                thickness_stddev[j*size_x + k] = 0.0;
-            }
+        std::vector<std::vector<double>> thickness(size_y, std::vector<double>(size_x, 0.0));
+        std::vector<std::vector<double>> thickness_stddev(size_y, std::vector<double>(size_x, 0.0));
         
-        double* x = new double [size_x];
-        double* y = new double [size_y];
+        std::vector<double> x(size_x);
+        std::vector<double> y(size_y);
 
         HotspotPos* pos = new HotspotPos [atomic_num*num_hotspots_per_nucleon*num_events];
+
+        for (uint j=0; j<size_y; ++j)
+            y[j] = ymin+(ymax-ymin)*double(j)/double(size_y-1);
+
+        for (uint k=0; k<size_x; ++k)
+            x[k] = xmin+(xmax-xmin)*double(k)/double(size_x-1);
 
         for (uint i=0; i<num_events; ++i)
         {
@@ -433,17 +428,9 @@ namespace Output
                     pos[i*atomic_num*num_hotspots_per_nucleon + n*num_hotspots_per_nucleon + h] = *hn.get_hotspot_pos(n, h);
 
             for (uint j=0; j<size_y; ++j)
-            {
-                y[j] = ymin+(ymax-ymin)*double(j)/double(size_y-1);
                 for (uint k=0; k<size_x; ++k)
-                {
-                    x[k] = xmin+(xmax-xmin)*double(k)/double(size_x-1);
-
-                    thickness[j*size_x + k] += hn.get_hotspot_thickness(x[k], y[j])*inverse_num;
-                }
-            }
+                    thickness[j][k] += hn.get_hotspot_thickness(x[k], y[j])*inverse_num;
         }
-
 
         for (uint i=0; i<num_events; ++i)
         {
@@ -453,27 +440,13 @@ namespace Output
             hn.set_hotspot_size(std::sqrt(rH_sqr));
             hn.set_nucleon_size(std::sqrt(R_sqr));
             for (uint j=0; j<size_y; ++j)
-            {
-                y[j] = ymin+(ymax-ymin)*double(j)/double(size_y-1);
                 for (uint k=0; k<size_x; ++k)
-                {
-                    x[k] = xmin+(xmax-xmin)*double(k)/double(size_x-1);
-
-                    thickness_stddev[j*size_x + k] += sqr(hn.get_hotspot_thickness(x[k], y[j]) - thickness[j*size_x + k])*inverse_num;
-                }
-            }
+                    thickness_stddev[j][k] += sqr(hn.get_hotspot_thickness(x[k], y[j]) - thickness[j][k])*inverse_num;
         }
 
         for (uint j=0; j<size_y; ++j)
-        {
-            y[j] = ymin+(ymax-ymin)*double(j)/double(size_y-1);
             for (uint k=0; k<size_x; ++k)
-            {
-                x[k] = xmin+(xmax-xmin)*double(k)/double(size_x-1);
-
-                thickness_stddev[j*size_x + k] = std::sqrt(thickness_stddev[j*size_x + k]);
-            }
-        }
+                thickness_stddev[j][k] = std::sqrt(thickness_stddev[j][k]);
 
         std::ofstream out(filepath);
         if (!out.is_open())
@@ -481,7 +454,7 @@ namespace Output
         // out << "x y thickness" << std::endl;
         for (uint j=0; j<size_y; ++j)
             for (uint k=0; k<size_x; ++k)
-                out << x[k] << " " << y[j] << " " << thickness[j*size_x + k] << std::endl;
+                out << x[k] << " " << y[j] << " " << thickness[j][k] << std::endl;
         out.close();
 
         out.open(filepath + ".stddev");
@@ -489,7 +462,7 @@ namespace Output
             exit(20);
         for (uint j=0; j<size_y; ++j)
             for (uint k=0; k<size_x; ++k)
-                out << x[k] << " " << y[j] << " " << thickness_stddev[j*size_x + k] << std::endl;
+                out << x[k] << " " << y[j] << " " << thickness_stddev[j][k] << std::endl;
         out.close();
 
         out.open(filepath + ".pos");
@@ -500,11 +473,7 @@ namespace Output
             for (uint n=0; n<atomic_num; ++n)
                 for (uint h=0; h<num_hotspots_per_nucleon; ++h)
                     out << pos[i*atomic_num*num_hotspots_per_nucleon + n*num_hotspots_per_nucleon + h].x << " " << pos[i*atomic_num*num_hotspots_per_nucleon + n*num_hotspots_per_nucleon + h].y << std::endl;
-        
-        delete[] thickness;
-        delete[] thickness_stddev;
-        delete[] x;
-        delete[] y;
+
         delete[] pos;
     }
 }
