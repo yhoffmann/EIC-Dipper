@@ -34,11 +34,8 @@ endif
 
 
 nolibs:
-	mkdir -p data/samples/b10/de data/samples/b10/di
-	mkdir -p data/samples/c05/de data/samples/c05/di
-	mkdir -p data/samples/c10/de data/samples/c10/di
-	mkdir -p data/samples/c20/de data/samples/c20/di
-	mkdir -p data/samples/g2mu02/c
+	mkdir -p data/samples/{c05,c10,c20,b10}/{de,di}
+	mkdir -p data/samples/g2mu02/{c,b}
 	g++ $(FLAGS) -Wall src/*.cpp obj/*.o -o eic -O3 -lcuba -lm -lgsl -fopenmp
 
 libs:

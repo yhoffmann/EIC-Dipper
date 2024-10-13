@@ -161,7 +161,7 @@ namespace Output
     #else
             double Delta = DELTA_SINGLE;
             g2mu02_config_factor = value_vec[value_index];
-            g2mu02 = g2mu02_config_factor*g2mu02;
+            g2mu02 = g2mu02_config_factor*g2mu02_demirci;
     #endif
             pool.enq_job(
                 [value_index, Q, Delta, &nucleus, &incoherent_results_real, &incoherent_results_imag]
@@ -174,15 +174,15 @@ namespace Output
 
         for (uint value_index=0, value_size=value_vec.size(); value_index<value_size; ++value_index)
         {
+    #ifndef _G2MU02
+            double Delta = value_vec[value_index];
+    #else
+            double Delta = DELTA_SINGLE;
+            g2mu02_config_factor = value_vec[value_index];
+            g2mu02 = g2mu02_config_factor*g2mu02_demirci;
+    #endif
             for (uint phi_index=0, phi_size=phi_vec.size(); phi_index<phi_size; ++phi_index)
             {
-        #ifndef _G2MU02
-                double Delta = value_vec[value_index];
-        #else
-                double Delta = DELTA_SINGLE;
-                g2mu02_config_factor = value_vec[value_index];
-                g2mu02 = g2mu02_config_factor*g2mu02;
-        #endif
                 double phi = phi_vec[phi_index];
                 pool.enq_job(
                     [value_index, phi_index, Q, Delta, phi_size, phi, &nucleus, &coherent_results_real, &coherent_results_imag]
