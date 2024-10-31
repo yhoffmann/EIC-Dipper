@@ -1,7 +1,6 @@
 #pragma once
 
 
-#include <vector>
 #include "../include/utilities.hpp"
 #include "../external/Nucleus/include/HotspotNucleus.hpp"
 

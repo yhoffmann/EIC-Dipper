@@ -1,5 +1,3 @@
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_sf.h>
 #include "../include/Incoherent.hpp"
 #include "../include/Coherent.hpp"
 #include "../include/NRPhoton.hpp"
@@ -7,6 +5,8 @@
 #include "../include/SaturationModel.hpp"
 #include "../include/utilities.hpp"
 #include "../external/Nucleus/include/HotspotNucleus.hpp"
+#include <gsl/gsl_math.h>
+#include <gsl/gsl_sf.h>
 
 
 namespace Incoherent
@@ -42,7 +42,7 @@ namespace Incoherent
     double dsigmadt (double Q, double Delta)
     {
         CubatureConfig c_config;
-        c_config.progress_monitor = progress_monitor_global;
+        c_config.progress_monitor = g_monitor_progress;
         c_config.max_eval = 1e7;
 
         IntegrationConfig i_config;
@@ -103,7 +103,7 @@ namespace Incoherent { namespace Demirci
 {
     double one_connected_factor (double Q)
     {
-        return sqr( NRPhoton::wave_function_factor(Q)/(4.0*PI) ) / (16.0*PI) * sqr(g2mu02) * (sqr(Nc)-1.0) / (2.0*sqr(PI*Nc)) * 3.0;
+        return sqr( NRPhoton::wave_function_factor(Q)/(4.0*PI) ) / (16.0*PI) * sqr(g_g2mu02) * (sqr(Nc)-1.0) / (2.0*sqr(PI*Nc)) * 3.0;
     }
 
 
@@ -156,7 +156,7 @@ namespace Incoherent { namespace Demirci
         p.Delta = Delta;
 
         CubatureConfig c_config;
-        c_config.progress_monitor = progress_monitor_global;
+        c_config.progress_monitor = g_monitor_progress;
 
         IntegrationConfig i_config;
 
@@ -237,7 +237,10 @@ namespace Incoherent { namespace Sampled
     {
         CubatureConfig c_config;
         c_config.max_eval = 5e7;
-        c_config.progress_monitor = progress_monitor_global;
+#ifdef _TEST
+        c_config.max_eval = 1e3;
+#endif
+        c_config.progress_monitor = g_monitor_progress;
 
         IntegrationConfig i_config;
         AIntegrandParams params;

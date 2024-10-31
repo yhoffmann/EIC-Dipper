@@ -1,7 +1,6 @@
 #pragma once
 
 
-#include <cuba.h>
 #include "../include/utilities.hpp"
 #include "../external/cubature/cubature.h"
 #include "../external/Nucleus/include/HotspotNucleus.hpp"
@@ -94,9 +93,6 @@ struct IntegrationConfig
 
 namespace IntegrationRoutines
 {
-    double cuba_integrate(integrand_t integrand, CubaConfig* cuba_config, IntegrationConfig* integration_config);
-    double cuba_integrate_one_bessel(integrand_t integrand, CubaConfig* cuba_config, IntegrationConfig* integration_config);
-
     double cubature_integrate(integrand integrand, CubatureConfig* cubature_config, IntegrationConfig* integration_config);
     double cubature_integrate_zeros(integrand integrand, CubatureConfig* cubature_config, IntegrationConfig* integration_config, double (*zeros)(uint n));
 }

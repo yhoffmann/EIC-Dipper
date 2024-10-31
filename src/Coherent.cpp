@@ -1,6 +1,3 @@
-#include <math.h>
-#include <gsl/gsl_math.h>
-#include <iostream>
 #include "../include/Coherent.hpp"
 #include "../include/constants.hpp"
 #include "../include/IntegrationRoutines.hpp"
@@ -8,6 +5,8 @@
 #include "../include/NRPhoton.hpp"
 #include "../include/SaturationModel.hpp"
 #include "../external/Nucleus/include/HotspotNucleus.hpp"
+#include <math.h>
+#include <gsl/gsl_math.h>
 
 
 namespace Coherent
@@ -62,7 +61,7 @@ namespace Coherent
     double dsigmadt (double Q, double Delta, double phi)
     {
         CubatureConfig c_config;
-        c_config.progress_monitor = progress_monitor_global;
+        c_config.progress_monitor = g_monitor_progress;
         c_config.abs_err = 1.0e-7;
         c_config.rel_err = 1.0e-12;
         c_config.max_eval = 1e5;
@@ -147,7 +146,7 @@ namespace Coherent
     double dsigmadt_test (double Q, double Delta, double phi)
     {
         CubatureConfig c_config;
-        c_config.progress_monitor = progress_monitor_global;
+        c_config.progress_monitor = g_monitor_progress;
         c_config.abs_err = 1.0e-7;
         c_config.rel_err = 1.0e-12;
         c_config.max_eval = 1e5;
@@ -223,7 +222,7 @@ namespace Coherent
         double dsigmadt_test (double Q, double Delta, double phi)
         {
             CubatureConfig c_config;
-            c_config.progress_monitor = progress_monitor_global;
+            c_config.progress_monitor = g_monitor_progress;
             c_config.abs_err = 1.0e-1;
             c_config.rel_err = 1.0e-1;
             c_config.max_eval = 1e5;
@@ -304,7 +303,7 @@ namespace Coherent { namespace Demirci
 
     double Z_integrand_function_factor (double Q, double Delta)
     {
-        return NRPhoton::wave_function_factor(Q) / (4.0*PI) * g2mu02 * NH * CF / PI * exp(-RC_sqr*sqr(Delta)/2.0);
+        return NRPhoton::wave_function_factor(Q) / (4.0*PI) * g_g2mu02 * NH * CF / PI * exp(-RC_sqr*sqr(Delta)/2.0);
     }
 
 
@@ -406,7 +405,10 @@ namespace Coherent { namespace Sampled
     {
         CubatureConfig c_config;
         c_config.max_eval = 2e6;
-        c_config.progress_monitor = progress_monitor_global;
+#ifdef _TEST
+        c_config.max_eval = 1e3;
+#endif
+        c_config.progress_monitor = g_monitor_progress;
 
         IntegrationConfig i_config;
         AIntegrandParams params;

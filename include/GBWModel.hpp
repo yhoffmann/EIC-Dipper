@@ -1,7 +1,6 @@
 #pragma once
 
 
-#include <cuba.h>
 #include "../external/Interpolation3D/include/Interpolator3D.hpp"
 
 
@@ -23,8 +22,6 @@ namespace GBWModel
     double G_mod(double x1, double x2, double y1, double y2);
 
     double G_integrand_function(double u, double v, double x1, double x2, double y1, double y2);
-
-    int G_integrand(const int* ndim, const cubareal xx[], const int* ncomp, cubareal ff[], void* userdata);
 
     double G_by_integration(double x1, double x2, double y1, double y2);
 

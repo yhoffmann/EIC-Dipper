@@ -1,10 +1,9 @@
 #pragma once
 
 
-#include <cuba.h>
-#include <tuple>
 #include "IntegrationRoutines.hpp"
 #include "../external/Nucleus/include/HotspotNucleus.hpp"
+#include <tuple>
 
 
 namespace Coherent {

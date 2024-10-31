@@ -1,10 +1,10 @@
-#include <stdlib.h>
-#include <math.h>
-#include <gsl/gsl_sf.h>
 #include "../include/NRPhoton.hpp"
 #include "../include/utilities.hpp"
 #include "../include/constants.hpp"
 #include "../include/IntegrationRoutines.hpp"
+#include <stdlib.h>
+#include <math.h>
+#include <gsl/gsl_sf.h>
 
 namespace NRPhoton
 {

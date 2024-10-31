@@ -1,8 +1,6 @@
 #pragma once
 
 
-#include <cuba.h>
-#include <tuple>
 #include "IntegrationRoutines.hpp"
 
 

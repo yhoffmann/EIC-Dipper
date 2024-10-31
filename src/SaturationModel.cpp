@@ -1,11 +1,11 @@
-#include <stdlib.h>
-#include <math.h>
-#include <gsl/gsl_math.h>
-#include <iostream>
 #include "../include/SaturationModel.hpp"
 #include "../include/constants.hpp"
 #include "../include/utilities.hpp"
 #include "../include/GBWModel.hpp"
+#include <stdlib.h>
+#include <math.h>
+#include <gsl/gsl_math.h>
+#include <iostream>
 
 
 namespace SaturationModel

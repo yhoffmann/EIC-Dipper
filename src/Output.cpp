@@ -2,7 +2,6 @@
 #include <fstream>
 #include <iomanip>
 #include <thread>
-#include <unistd.h>
 #include <vector>
 #include <array>
 #include "../include/IntegrationRoutines.hpp"
@@ -16,6 +15,19 @@
 #include "../include/SaturationModel.hpp"
 
 
+/*#define _STD_ARRAY(type, name, ...) \
+    constexpr size_t name##_size = sizeof( (type[]){ __VA_ARGS__ })/sizeof(type); \
+    std::array<type, name##_size> name( { __VA_ARGS__ } );
+
+#define _GET_STD_ARRAY(type, name) \
+    std::array<type, name##_size> get_##name()
+
+_STD_ARRAY(double, default_Q_vec, 0.001, 0.01, 0.04, 0.08, 0.12, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 2.0, 2.3, 3.0);
+_GET_STD_ARRAY(double, default_Q_vec)
+{
+    return default_Q_vec;
+}*/
+
 namespace Output
 {
     inline double get_default_Q()
@@ -23,22 +35,21 @@ namespace Output
         return std::sqrt(0.1);
     }
 
-    static const double DELTA_SINGLE = 1.0;
-
     std::vector<double> get_default_Delta_vec()
     {
         return std::vector<double>{0.001, 0.01, 0.04, 0.08, 0.12, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 2.0, 2.3, 3.0}; //{0.001, 0.002, 0.005, 0.007, 0.01, 0.03, 0.05, 0.07, 0.08, 0.09, 0.12, 0.16, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.3, 2.7, 3.0, 3.3, 3.7, 4.0}; //
     }
 
-    std::vector<double> get_default_g2mu02_vec()
+    std::vector<double> get_default_g2mu02_factor_vec()
     {
         return std::vector<double>{0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2, 2.3, 2.4, 2.5};
     }
 
     std::vector<double> get_default_phi_vec()
     {
+        constexpr uint num_angles = 48;
         std::vector<double> default_phi_vec;
-        uint num_angles = 48;
+        default_phi_vec.reserve(num_angles);
         for (uint i=0; i<num_angles; i++)
             default_phi_vec.push_back(PI*double(i)/double(num_angles)); // no num_angles-1 because we do not want to reach the end // NOTE if the calculation of the coherent cross section ever changes to not use sin and cos anymore but something more complicated, this needs to be adjusted to 2pi again and also the writing of data to file needs to be changed (currently I am using that cos and sin are symmetric/antisymmetric to print 2 results for one calculation/angle)
 
@@ -74,7 +85,7 @@ namespace Output
 
             for (uint j=0, jmax=phi_vec.size(); j<jmax; j++)
             {
-                if (progress_monitor_global)
+                if (g_monitor_progress)
                     std::cout << Q << " " << Delta_vec[i] << " " << phi_vec[j] << std::endl;
 
                 if (do_coherent)
@@ -123,16 +134,16 @@ namespace Output
 
     void dsigmadt_nucleus (uint atomic_num, uint num_hotspots, uint seed)
     {
-        std::vector<double> default_value_vec = 
-    #ifndef _G2MU02
-            get_default_Delta_vec();
-    #else
-            get_default_g2mu02_vec();
-    #endif
+        std::vector<double> value_vec;
+        std::vector<double> phi_vec = get_default_phi_vec();
 
-        std::vector<double> default_phi_vec = get_default_phi_vec();
+#ifndef _G2MU02
+        value_vec = get_default_Delta_vec();
+#else
+        value_vec = get_default_g2mu02_factor_vec();
+#endif
 
-        dsigmadt_nucleus(atomic_num, num_hotspots, seed, Q, default_value_vec, default_phi_vec);
+        dsigmadt_nucleus(atomic_num, num_hotspots, seed, Q, value_vec, phi_vec);
     }
 
 
@@ -153,16 +164,10 @@ namespace Output
         nucleus.sample();
 
         ThreadPool pool(num_threads);
-
+#ifndef _G2MU02
         for (uint value_index=0, value_size=value_vec.size(); value_index<value_size; ++value_index)
         {
-    #ifndef _G2MU02
             double Delta = value_vec[value_index];
-    #else
-            double Delta = DELTA_SINGLE;
-            g2mu02_config_factor = value_vec[value_index];
-            g2mu02 = g2mu02_config_factor*g2mu02_demirci;
-    #endif
             pool.enq_job(
                 [value_index, Q, Delta, &nucleus, &incoherent_results_real, &incoherent_results_imag]
                 {
@@ -174,13 +179,7 @@ namespace Output
 
         for (uint value_index=0, value_size=value_vec.size(); value_index<value_size; ++value_index)
         {
-    #ifndef _G2MU02
             double Delta = value_vec[value_index];
-    #else
-            double Delta = DELTA_SINGLE;
-            g2mu02_config_factor = value_vec[value_index];
-            g2mu02 = g2mu02_config_factor*g2mu02_demirci;
-    #endif
             for (uint phi_index=0, phi_size=phi_vec.size(); phi_index<phi_size; ++phi_index)
             {
                 double phi = phi_vec[phi_index];
@@ -195,12 +194,44 @@ namespace Output
                 );
             }
         }
-
         pool.await();
+#else
+        for (uint value_index=0, value_size=value_vec.size(); value_index<value_size; ++value_index)
+        {
+            double Delta = g_Delta_single;
+            g_g2mu02_config_factor = value_vec[value_index];
+            g_g2mu02 = g2mu02_demirci*g_g2mu02_config_factor;
+
+            pool.enq_job(
+                [value_index, Q, Delta, &nucleus, &incoherent_results_real, &incoherent_results_imag]
+                {
+                    incoherent_results_real[value_index] = Incoherent::Sampled::dsigmadt_single_event(Q, Delta, nucleus);
+                    incoherent_results_imag[value_index] = 0.0;
+                }
+            );
+
+            for (uint phi_index=0, phi_size=phi_vec.size(); phi_index<phi_size; ++phi_index)
+            {
+                double phi = phi_vec[phi_index];
+                pool.enq_job(
+                    [value_index, phi_index, Q, Delta, phi_size, phi, &nucleus, &coherent_results_real, &coherent_results_imag]
+                    {
+                        auto [coh_real, coh_imag] = Coherent::Sampled::sqrt_dsigmadt_single_event(Q, Delta, phi, nucleus);
+
+                        coherent_results_real[value_index][phi_index] = coh_real;
+                        coherent_results_imag[value_index][phi_index] = coh_imag;
+                    }
+                );
+            }
+            // waiting for tasks to finish so that g_g2mu02 can be changed
+            pool.await();
+        }
+#endif
         pool.stop();
 
         std::ofstream out("test.dat");//(get_default_filepath_from_parameters()+"_Amplitude.dat");
-
+#warning \
+    MAKE SURE TO FIX THIS LINE, OUTPUT IS NOT DIRECTED CORRECTLY RIGHT NOW
         if (!out.is_open())
             exit(20);
 
@@ -232,23 +263,24 @@ namespace Output
 
     void dsigmadt_demirci (double Q, std::string filepath)
     {
-        const uint DELTA_VEC_SIZE = 50;
+        constexpr uint Delta_vec_size = 50;
         std::vector<double> Delta_vec;
-        for (uint i=0; i<DELTA_VEC_SIZE; ++i)
-            Delta_vec.push_back(std::sqrt(25.0)*double(i)/double(DELTA_VEC_SIZE-1) + 0.001);
+        Delta_vec.reserve(Delta_vec_size);
+        for (uint i=0; i<Delta_vec_size; ++i)
+            Delta_vec.push_back(std::sqrt(25.0)*double(i)/double(Delta_vec_size-1) + 0.001);
 
-        double coherent[DELTA_VEC_SIZE];
-        double color_fluc[DELTA_VEC_SIZE];
-        double hotspot_fluc[DELTA_VEC_SIZE];
+        double coherent[Delta_vec_size];
+        double color_fluc[Delta_vec_size];
+        double hotspot_fluc[Delta_vec_size];
 
         #pragma omp parallel for
-        for (uint i=0; i<DELTA_VEC_SIZE; ++i)
+        for (uint i=0; i<Delta_vec_size; ++i)
         {
             coherent[i] = Coherent::Demirci::dsigmadt(Q, Delta_vec[i]);
             color_fluc[i] = Incoherent::Demirci::color_fluctuations(Q, Delta_vec[i]);
             hotspot_fluc[i] = Incoherent::Demirci::hotspot_fluctuations(Q, Delta_vec[i]);
 
-            if(progress_monitor_global)
+            if (g_monitor_progress)
                 std::cout << i << std::endl;
         }
 
@@ -257,7 +289,7 @@ namespace Output
             exit(20);
 
         out << "t Co Inco Color Hotspot" << std::endl;
-        for (uint i=0; i<DELTA_VEC_SIZE; ++i)
+        for (uint i=0; i<Delta_vec_size; ++i)
             out << sqr(Delta_vec[i]) << " " << coherent[i] << " " << color_fluc[i]+hotspot_fluc[i] << " " << color_fluc[i] << " " << hotspot_fluc[i] << std::endl;
 
         out.close();

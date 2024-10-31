@@ -1,19 +1,16 @@
 #pragma once
 
 
-#define _COUT(x) std::cout << x << std::endl
-
-
+#include "../external/Interpolation3D/include/Interpolator3D.hpp"
+#include "../external/Nucleus/include/HotspotNucleus.hpp"
+#include "constants.hpp"
 #include <gsl/gsl_sf.h>
 #include <string>
 #include <random>
 #include <thread>
-#include "constants.hpp"
-#include "../external/Interpolation3D/include/Interpolator3D.hpp"
-#include "../external/Nucleus/include/HotspotNucleus.hpp"
 
 
-inline DataGenerationConfig default_data_generation_config
+inline Interpolator3D::DataGenerationConfig default_data_generation_config
 {
     .nx = 400,
     .x_max = 8.0/m,
@@ -23,7 +20,9 @@ inline DataGenerationConfig default_data_generation_config
     .z_exp_grid_spacing_parameter = 0.0
 };
 
-inline bool progress_monitor_global = false;
+inline bool g_monitor_progress = false;
+inline double g_Delta_single = 1.0;
+inline bool g_Delta_single_set = false;
 
 inline uint seed = 147541768;
 
@@ -31,18 +30,24 @@ inline uint num_threads = 10;
 
 typedef long unsigned int luint;
 
-double sqr(double x);
+inline double sqr (double x)
+{
+    return x*x;
+}
 
-double bessel_K_safe(int n, double x);
+inline double bessel_K_safe (int n, double x)
+{
+    if (x==0)
+        x = 1.0e-20;
 
-void import_interp_data_by_params(std::string& filepath, const DataGenerationConfig* config = &default_data_generation_config);
+    return gsl_sf_bessel_Kn(n,x);
+}
+
+void import_interp_data_by_params(std::string& filepath, const Interpolator3D::DataGenerationConfig* config = &default_data_generation_config);
 
 inline std::string filepath_global = "";
 
 void set_parameters(int argc, char** argv);
-
-// inline std::mt19937 rng;
-// inline std::uniform_real_distribution<double> dist_01 = std::uniform_real_distribution<double>();
 
 void print_infos(std::ofstream& out, uint seed);
 

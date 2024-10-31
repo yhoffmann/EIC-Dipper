@@ -1,3 +1,8 @@
+#include "../include/utilities.hpp"
+#include "../include/constants.hpp"
+#include "../include/GBWModel.hpp"
+#include "../include/IntegrationRoutines.hpp"
+#include "../include/NRPhoton.hpp"
 #include <cstring>
 #include <gsl/gsl_sf.h>
 #include <gsl/gsl_math.h>
@@ -6,27 +11,21 @@
 #include <sstream>
 #include <string>
 #include <stdlib.h>
-#include <unistd.h>
 #include <time.h>
-#include "../include/utilities.hpp"
-#include "../include/constants.hpp"
-#include "../include/GBWModel.hpp"
-#include "../include/IntegrationRoutines.hpp"
-#include "../include/NRPhoton.hpp"
 
 
-double sqr (double x)
-{
-    return x*x;
-}
+#if (defined(__linux__) || defined(__APPLE__))
+    #include <unistd.h>
+    #define _GET_PROCESS_ID() getpid()
 
+#elif (defined(_WIN32) || defined(_WIN64))
+    #include <windows.h>
+    #define _GET_PROCESS_ID() GetCurrentProcessId()
 
-double bessel_K_safe (int n, double x)
-{
-    if (x==0)
-        x = 1.0e-20;
-    return gsl_sf_bessel_Kn(n,x);
-}
+#else
+    #error Unkown operating system: Unable to define _GET_PROCESS_ID() function
+
+#endif
 
 
 double get_r_max (double m_Q)
@@ -35,7 +34,7 @@ double get_r_max (double m_Q)
 }
 
 
-void import_interp_data_by_params (std::string& filepath, const DataGenerationConfig* config)
+void import_interp_data_by_params (std::string& filepath, const Interpolator3D::DataGenerationConfig* config)
 {
     std::string m_path = std::to_string( int(m*100) );
     std::string rH_sqr_path = (rH_sqr >= 1.0) ? std::to_string( int(std::round(rH_sqr*100)) ) : "0"+std::to_string( int(std::round(rH_sqr*100)) );
@@ -93,20 +92,22 @@ void import_interp_data_by_params (std::string& filepath, const DataGenerationCo
 void set_parameters (int argc, char** argv)
 {
     const std::string error_message = "Invalid use. Valid flags are\n"
-                "[-s <seed>] (rng seed)\n"
-                "[--add-to-seed <number to add to seed>] (add number to seed)\n"
-                "[-t, --threads <number of threads>]\n"
-                "[-p] (progress monitor)\n"
-                "[-Q <photon virtuality>]\n"
-                "[-m <gluon mass>]\n"
-                "[--g2mu02-factor <factor to multiply g2mu02 by>]\n"
-                "[--charm, -c] (select charm quark)\n"
-                "[--bottom, -b] (select bottom quark)\n"
-                "[-A <atomic number>]\n"
-                "[-H <number of hotspots per nucleon>]\n"
-                "[-rH2 <hotspot radius square>]\n"
-                "[-Rp2 <nucleon radius square>]\n"
-                "[-o <output filepath>]";
+                "\t[-s <seed>] (rng seed)\n"
+                "\t[--add-to-seed <number>] (add <number> to seed, use after -s)\n"
+                "\t[-t, --threads <number>] (run any multithreaded operation with <number> threads)\n"
+                "\t[-p] (print progress and intermediate values to stdout)\n"
+                "\t[-Q <photon virtuality>]\n"
+                "\t[-m <gluon mass>]\n"
+                "\t[--g2mu02-factor <number>] (multiplies base value of g2mu02 by <number>)\n"
+                "\t[--charm, -c] (select charm quark)\n"
+                "\t[--bottom, -b] (select bottom quark)\n"
+                "\t[-A <atomic number>]\n"
+                "\t[-H <number of hotspots per nucleon>]\n"
+                "\t[-rH2 <hotspot radius square>]\n"
+                "\t[-Rp2 <nucleon radius square>]\n"
+                "\t[-o <output filepath>] (might not have any effect depending on what is being output)";
+
+    bool Delta_single_set = false;
 
     for (int i=1; i<argc; i+=2)
     {
@@ -114,7 +115,7 @@ void set_parameters (int argc, char** argv)
 
         if (flag.str()=="-p")
         {
-            progress_monitor_global = true;
+            g_monitor_progress = true;
             --i;
             continue;
         }
@@ -177,19 +178,19 @@ void set_parameters (int argc, char** argv)
             H = uint(std::round(arg_number));
             NH = arg_number;
             RC_sqr = rH_sqr + (NH-1.0)/NH*R_sqr;
-            // g2mu02 = g2mu02_factor*RC_sqr/NH;
+            // g_g2mu02 = g2mu02_factor*RC_sqr/NH;
         }
         else if (flag.str()=="-rH2")
         {
             rH_sqr = arg_number;
             RC_sqr = rH_sqr + (NH-1.0)/NH*R_sqr;
-            // g2mu02 = g2mu02_factor*RC_sqr/NH;
+            // g_g2mu02 = g2mu02_factor*RC_sqr/NH;
         }
         else if (flag.str()=="-Rp2")
         {
             R_sqr = arg_number;
             RC_sqr = rH_sqr + (NH-1.0)/NH*R_sqr;
-            // g2mu02 = g2mu02_factor*RC_sqr/NH;
+            // g_g2mu02 = g2mu02_factor*RC_sqr/NH;
         }
         else if (flag.str()=="-A")
             A = uint(std::round(arg_number));
@@ -202,15 +203,27 @@ void set_parameters (int argc, char** argv)
 
         else if (flag.str()=="--g2mu02-factor")
         {
-            g2mu02 *= arg_number;
-            g2mu02_config_factor = arg_number;
+            g_g2mu02 *= arg_number;
+            g_g2mu02_config_factor = arg_number;
+    #ifdef _G2MU02
+            std::cerr << "ERROR: --g2mu02-factor flag was read. This is probably not what you want as this has been compiled with G2MU02=1\033[0." << std::endl;
+            exit(25);
+    #endif
         }
         else if (flag.str()=="-t" || flag.str()=="--threads")
+        {
             num_threads = uint(std::round(arg_number));
-        
+            GBWModel::G_ip.set_num_threads(num_threads);
+        }
         else if (flag.str()=="-Q")
             Q = arg_number;
-            
+
+        else if (flag.str() == "-Delta")
+        {
+            g_Delta_single = arg_number;
+            g_Delta_single_set = true;
+        }
+
         else
         {
             std::cerr << error_message << std::endl;
@@ -254,9 +267,9 @@ uint get_unique_seed()
     std::thread::id thread_id_temp = std::this_thread::get_id();
     std::hash<std::thread::id> hash;
 
-    uint seed = hash(thread_id_temp)*getpid()/time(0);
+    uint seed = hash(thread_id_temp) * _GET_PROCESS_ID() / time(0);
     if (seed==0)
-        seed = hash(thread_id_temp)*getpid()-time(0);
+        seed = hash(thread_id_temp)*_GET_PROCESS_ID() - time(0);
 
     return seed;
 }
@@ -265,12 +278,13 @@ uint get_unique_seed()
 std::string get_default_filepath_from_parameters()
 {
     std::string filepath = "data/samples/";
-#ifndef _G2MU02
-    filepath += "g2mu02/";
+#ifdef _G2MU02
+        filepath += "g2mu02/";
 #endif
     filepath += (char)quark_config;
+
 #ifndef _G2MU02
-    filepath += (g2mu02_config_factor >= 1.0) ? std::to_string( int(std::round(g2mu02_config_factor*10.0)) ) : "0"+std::to_string( int(std::round(g2mu02_config_factor*10.0)) );
+        filepath += (g_g2mu02_config_factor >= 1.0) ? std::to_string( int(std::round(g_g2mu02_config_factor*10.0)) ) : "0"+std::to_string( int(std::round(g_g2mu02_config_factor*10.0)) );
 #endif
     filepath += 
 #ifndef _DILUTE

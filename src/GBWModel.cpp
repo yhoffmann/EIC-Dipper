@@ -1,10 +1,10 @@
 #include "../include/GBWModel.hpp"
 #include "../include/utilities.hpp"
 #include "../include/constants.hpp"
+#include "../include/IntegrationRoutines.hpp"
 #include <iostream>
 #include <gsl/gsl_sf.h>
 #include <gsl/gsl_math.h>
-#include "../include/IntegrationRoutines.hpp"
 
 
 namespace GBWModel
@@ -50,22 +50,22 @@ namespace GBWModel
     }
 
 
-    int G_integrand (const int* ndim, const cubareal xx[], const int* ncomp, cubareal ff[], void* userdata)
-    {
-        GIntegrandParams* params = (GIntegrandParams*)(((IntegrationConfig*)userdata)->integrand_params);
+    // int G_integrand (const int* ndim, const cubareal xx[], const int* ncomp, cubareal ff[], void* userdata)
+    // {
+    //     GIntegrandParams* params = (GIntegrandParams*)(((IntegrationConfig*)userdata)->integrand_params);
 
-        // integration from 0, so no umin needed
-        double umax = 20.0/m;
+    //     // integration from 0, so no umin needed
+    //     double umax = 20.0/m;
 
-        double u = umax*xx[0];
-        double v = umax*xx[1];
+    //     double u = umax*xx[0];
+    //     double v = umax*xx[1];
 
-        double jacobian = umax*umax;
+    //     double jacobian = umax*umax;
 
-        ff[0] = jacobian*G_integrand_function(u, v, params->x1, params->x2, params->y1, params->y2);
+    //     ff[0] = jacobian*G_integrand_function(u, v, params->x1, params->x2, params->y1, params->y2);
 
-        return 0;
-    }
+    //     return 0;
+    // }
 
 
     int G_integrand_cubature (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
@@ -104,7 +104,7 @@ namespace GBWModel
         integration_config.min[1] = 0.0;
         integration_config.max[1] = integration_config.max[0];
 
-        return /*CF * g2mu02 / (16.0*PI*PI) **/ IntegrationRoutines::cubature_integrate(G_integrand_cubature, &cubature_config, &integration_config);
+        return /*CF * g_g2mu02 / (16.0*PI*PI) **/ IntegrationRoutines::cubature_integrate(G_integrand_cubature, &cubature_config, &integration_config);
     }
 
 
@@ -122,6 +122,6 @@ namespace GBWModel
         double rb = std::sqrt(sqr(y1)+sqr(y2));
         float arg = (r==0.0 || rb==0.0) ? 0.0 : (x1*y1+x2*y2)/(r*rb);
 
-        return CF * g2mu02 / (16.0*PI*PI) * G_ip(r, rb, acos(arg));
+        return CF * g_g2mu02 / (16.0*PI*PI) * G_ip(r, rb, acos(arg));
     }
 }

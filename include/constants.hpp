@@ -62,8 +62,8 @@ inline double R_MAX = R_RANGE_FACTOR/m_Q;
 
 const double g2mu02_demirci = std::sqrt(43.22);
 const double g2mu02_factor = g2mu02_demirci/(2.9)*3.0;
-inline double g2mu02_config_factor = 1.0;
-inline double g2mu02 = g2mu02_demirci;
+inline double g_g2mu02_config_factor = 1.0;
+inline double g_g2mu02 = g2mu02_demirci;
 
 
 // useful consts for speed
