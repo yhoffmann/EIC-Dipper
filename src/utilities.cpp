@@ -97,6 +97,7 @@ void set_parameters (int argc, char** argv)
                 "\t[-t, --threads <number>] (run any multithreaded operation with <number> threads)\n"
                 "\t[-p] (print progress and intermediate values to stdout)\n"
                 "\t[-Q <photon virtuality>]\n"
+                "\t[-Delta <Delta>] (output only for this single Delta value)\n"
                 "\t[-m <gluon mass>]\n"
                 "\t[--g2mu02-factor <number>] (multiplies base value of g2mu02 by <number>)\n"
                 "\t[--charm, -c] (select charm quark)\n"
@@ -206,7 +207,7 @@ void set_parameters (int argc, char** argv)
             g_g2mu02 *= arg_number;
             g_g2mu02_config_factor = arg_number;
     #ifdef _G2MU02
-            std::cerr << "ERROR: --g2mu02-factor flag was read. This is probably not what you want as this has been compiled with G2MU02=1\033[0." << std::endl;
+            std::cerr << "ERROR: --g2mu02-factor flag was read. This is probably not what you want as this has been compiled with G2MU02=1." << std::endl;
             exit(25);
     #endif
         }
@@ -223,7 +224,6 @@ void set_parameters (int argc, char** argv)
             g_Delta_single = arg_number;
             g_Delta_single_set = true;
         }
-
         else
         {
             std::cerr << error_message << std::endl;

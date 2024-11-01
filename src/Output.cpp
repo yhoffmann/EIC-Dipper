@@ -138,7 +138,11 @@ namespace Output
         std::vector<double> phi_vec = get_default_phi_vec();
 
 #ifndef _G2MU02
-        value_vec = get_default_Delta_vec();
+        if (!g_Delta_single_set)
+            value_vec = get_default_Delta_vec();
+        
+        else
+            value_vec = {g_Delta_single};
 #else
         value_vec = get_default_g2mu02_factor_vec();
 #endif
@@ -229,9 +233,7 @@ namespace Output
 #endif
         pool.stop();
 
-        std::ofstream out("test.dat");//(get_default_filepath_from_parameters()+"_Amplitude.dat");
-#warning \
-    MAKE SURE TO FIX THIS LINE, OUTPUT IS NOT DIRECTED CORRECTLY RIGHT NOW
+        std::ofstream out(get_default_filepath_from_parameters()+"_Amplitude.dat");
         if (!out.is_open())
             exit(20);
 
