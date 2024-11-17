@@ -1,4 +1,4 @@
-.PHONY: nolibs libs all debug
+.PHONY: local external all debug
 
 FLAGS =-Wall -O3
 
@@ -24,6 +24,7 @@ endif
 
 ifeq ($(PCTWO),1)
 	FLAGS+= -lgslcblas
+	FLAGS+= -D_PC2
 	# FLAGS+= -I external/cuba
 	# FLAGS+= -L external/cuba
 endif
@@ -36,7 +37,7 @@ endif
 local:
 	bash -c 'mkdir -p interpolator-data'
 	bash -c 'mkdir -p data/samples/{c05,c10,c20,b10}/{de,di}'
-	bash -c 'mkdir -p data/samples/g2mu02/{c,b}'
+	bash -c 'mkdir -p data/samples/g2mu02/{c,b}/de'
 	g++ $(FLAGS) src/*.cpp obj/*.o -o eic -lm -lgsl -fopenmp
 
 external:
@@ -61,3 +62,7 @@ debug:
 
 pc2:
 	make all QUIET=1 PCTWO=1
+
+clean:
+	rm obj/*
+	rm eic
