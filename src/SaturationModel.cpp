@@ -6,6 +6,7 @@
 #include <math.h>
 #include <gsl/gsl_math.h>
 #include <iostream>
+#include <vector>
 
 
 namespace SaturationModel
@@ -235,18 +236,15 @@ namespace SaturationModel
             HotspotAverage::num = num;
             inv_num = 1.0/double(num);
 
-            hn = (HotspotNucleus*)malloc(sizeof(HotspotNucleus)*num);
+            hn.reserve(num);
 
             for (uint i=0; i<num; ++i)
-                new (&hn[i]) HotspotNucleus(A, H, start_seed + i);
+                hn.emplace_back(A, H, start_seed + i);
         }
 
         void clear()
         {
-            for (uint i=0; i<HotspotAverage::num; ++i)
-                hn[i].~HotspotNucleus();
-
-            free(hn);
+            hn.clear();
         }
 
         double dsigma_d2b (double x1, double x2, double y1, double y2)

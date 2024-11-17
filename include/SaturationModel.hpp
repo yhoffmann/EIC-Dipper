@@ -26,7 +26,7 @@ namespace SaturationModel
     {
         inline uint num = 0;
         inline double inv_num;
-        inline HotspotNucleus* hn = nullptr;
+        inline std::vector<HotspotNucleus> hn;
         void sample(uint A, uint H, uint num, uint start_seed = seed);
         void clear();
 
