@@ -1,9 +1,3 @@
-#include <iostream>
-#include <fstream>
-#include <iomanip>
-#include <thread>
-#include <vector>
-#include <array>
 #include "../include/IntegrationRoutines.hpp"
 #include "../include/Output.hpp"
 #include "../include/Coherent.hpp"
@@ -13,6 +7,12 @@
 #include "../external/Nucleus/include/HotspotNucleus.hpp"
 #include "../external/thread-pool/include/ThreadPool.hpp"
 #include "../include/SaturationModel.hpp"
+#include <iostream>
+#include <fstream>
+#include <iomanip>
+#include <thread>
+#include <vector>
+#include <array>
 
 
 /*#define _STD_ARRAY(type, name, ...) \
@@ -153,6 +153,7 @@ namespace Output
 
     void dsigmadt_nucleus (uint atomic_num, uint num_hotspots, uint seed, double Q, std::vector<double> value_vec, std::vector<double> phi_vec)
     {
+_TEST_LOG("In dsigmadt_nucleus")
         import_interp_data_by_params(interpolator_filepath);
 
         std::vector<std::vector<double>> coherent_results_real(value_vec.size(), std::vector<double>(phi_vec.size()));
@@ -166,30 +167,44 @@ namespace Output
         HotspotNucleus nucleus(atomic_num, num_hotspots, seed);
         nucleus.set_nucleon_size(std::sqrt(R_sqr));
         nucleus.sample();
-
+_TEST_LOG("Starting ThreadPool")
         ThreadPool pool(num_threads);
-#ifndef _G2MU02
+_TEST_LOG("Queueing incoherent jobs")
         for (uint value_index=0, value_size=value_vec.size(); value_index<value_size; ++value_index)
         {
+    #ifndef _G2MU02
             double Delta = value_vec[value_index];
+    #else
+            double Delta = g_Delta_single;
+    #endif
             pool.enq_job(
-                [value_index, Q, Delta, &nucleus, &incoherent_results_real, &incoherent_results_imag]
+                [value_index, &value_vec, Q, Delta, &nucleus, &incoherent_results_real, &incoherent_results_imag]
                 {
+            #ifdef _G2MU02
+                    t_g2mu02 = G2MU02_DEMIRCI*value_vec[value_index];
+            #endif
                     incoherent_results_real[value_index] = Incoherent::Sampled::dsigmadt_single_event(Q, Delta, nucleus);
                     incoherent_results_imag[value_index] = 0.0;
                 }
             );
         }
-
+_TEST_LOG("Queueing coherent jobs")
         for (uint value_index=0, value_size=value_vec.size(); value_index<value_size; ++value_index)
         {
+    #ifndef _G2MU02
             double Delta = value_vec[value_index];
+    #else
+            double Delta = g_Delta_single;
+    #endif
             for (uint phi_index=0, phi_size=phi_vec.size(); phi_index<phi_size; ++phi_index)
             {
                 double phi = phi_vec[phi_index];
                 pool.enq_job(
-                    [value_index, phi_index, Q, Delta, phi_size, phi, &nucleus, &coherent_results_real, &coherent_results_imag]
+                    [value_index, &value_vec, phi_index, Q, Delta, phi_size, phi, &nucleus, &coherent_results_real, &coherent_results_imag]
                     {
+                #ifdef _G2MU02
+                        t_g2mu02 = G2MU02_DEMIRCI*value_vec[value_index];
+                #endif
                         auto [coh_real, coh_imag] = Coherent::Sampled::sqrt_dsigmadt_single_event(Q, Delta, phi, nucleus);
                         
                         coherent_results_real[value_index][phi_index] = coh_real;
@@ -198,45 +213,15 @@ namespace Output
                 );
             }
         }
+_TEST_LOG("Finished queueing, waiting for jobs to finish")
         pool.await();
-#else
-        for (uint value_index=0, value_size=value_vec.size(); value_index<value_size; ++value_index)
-        {
-            double Delta = g_Delta_single;
-            g_g2mu02_config_factor = value_vec[value_index];
-            g_g2mu02 = g2mu02_demirci*g_g2mu02_config_factor;
-
-            pool.enq_job(
-                [value_index, Q, Delta, &nucleus, &incoherent_results_real, &incoherent_results_imag]
-                {
-                    incoherent_results_real[value_index] = Incoherent::Sampled::dsigmadt_single_event(Q, Delta, nucleus);
-                    incoherent_results_imag[value_index] = 0.0;
-                }
-            );
-
-            for (uint phi_index=0, phi_size=phi_vec.size(); phi_index<phi_size; ++phi_index)
-            {
-                double phi = phi_vec[phi_index];
-                pool.enq_job(
-                    [value_index, phi_index, Q, Delta, phi_size, phi, &nucleus, &coherent_results_real, &coherent_results_imag]
-                    {
-                        auto [coh_real, coh_imag] = Coherent::Sampled::sqrt_dsigmadt_single_event(Q, Delta, phi, nucleus);
-
-                        coherent_results_real[value_index][phi_index] = coh_real;
-                        coherent_results_imag[value_index][phi_index] = coh_imag;
-                    }
-                );
-            }
-            // waiting for tasks to finish so that g_g2mu02 can be changed
-            pool.await();
-        }
-#endif
         pool.stop();
-
+_TEST_LOG("Opening file " << get_default_filepath_from_parameters()+"_Amplitude.dat")
         std::ofstream out(get_default_filepath_from_parameters()+"_Amplitude.dat");
         if (!out.is_open())
             exit(20);
-
+_TEST_LOG("File opened")
+_TEST_LOG("Printing to file")
         out << std::setprecision(10);
         print_infos(out, seed, nucleus);
 
@@ -252,7 +237,7 @@ namespace Output
             out << std::endl;
         }
         out << std::endl;
-
+_TEST_LOG("Finished priting to file")
         out.close();
     }
 

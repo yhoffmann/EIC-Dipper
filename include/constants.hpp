@@ -60,10 +60,11 @@ const double R_RANGE_FACTOR = 20.0;
 inline double B_MAX = B_RANGE_FACTOR*std::sqrt(2.0*RC_sqr);
 inline double R_MAX = R_RANGE_FACTOR/m_Q;
 
-const double g2mu02_demirci = std::sqrt(43.22);
-const double g2mu02_factor = g2mu02_demirci/(2.9)*3.0;
+const double G2MU02_DEMIRCI = std::sqrt(43.22);
+// const double g2mu02_factor = G2MU02_DEMIRCI/(2.9)*3.0;
+inline double g_g2mu02 = G2MU02_DEMIRCI;
 inline double g_g2mu02_config_factor = 1.0;
-inline double g_g2mu02 = g2mu02_demirci;
+thread_local inline double t_g2mu02 = g_g2mu02;
 
 
 // useful consts for speed

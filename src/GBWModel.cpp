@@ -104,7 +104,7 @@ namespace GBWModel
         integration_config.min[1] = 0.0;
         integration_config.max[1] = integration_config.max[0];
 
-        return /*CF * g_g2mu02 / (16.0*PI*PI) **/ IntegrationRoutines::cubature_integrate(G_integrand_cubature, &cubature_config, &integration_config);
+        return /*CF * t_g2mu02 / (16.0*PI*PI) **/ IntegrationRoutines::cubature_integrate(G_integrand_cubature, &cubature_config, &integration_config);
     }
 
 
@@ -122,6 +122,6 @@ namespace GBWModel
         double rb = std::sqrt(sqr(y1)+sqr(y2));
         float arg = (r==0.0 || rb==0.0) ? 0.0 : (x1*y1+x2*y2)/(r*rb);
 
-        return CF * g_g2mu02 / (16.0*PI*PI) * G_ip(r, rb, acos(arg));
+        return CF * t_g2mu02 / (16.0*PI*PI) * G_ip(r, rb, acos(arg));
     }
 }
