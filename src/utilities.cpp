@@ -14,18 +14,11 @@
 #include <time.h>
 
 
-#if (defined(__linux__) || defined(__APPLE__))
-    #include <unistd.h>
-    #define _GET_PROCESS_ID() getpid()
-
-#elif (defined(_WIN32) || defined(_WIN64))
-    #include <windows.h>
-    #define _GET_PROCESS_ID() GetCurrentProcessId()
-
-#else
-    #error Unkown operating system: Unable to define _GET_PROCESS_ID() function
-
-#endif
+void init(int argc, char* argv[])
+{
+    g_time_program_start = std::chrono::high_resolution_clock::now();
+    set_parameters(argc, argv);
+}
 
 
 double get_r_max (double m_Q)
@@ -84,13 +77,21 @@ void import_interp_data_by_params (std::string& filepath, const Interpolator3D::
         }
 #endif
     }
-    else 
+    else
+    {
+_TEST_LOG("Starting interpolator data import")
+        
         GBWModel::G_ip.import_data(filepath);
+
+_TEST_LOG("Finished interpolator data import")
+    }
 }
 
 
 void set_parameters (int argc, char** argv)
 {
+    _TEST_LOG("Setting parameters")
+
     const std::string error_message = "Invalid use. Valid flags are\n"
                 "\t[-s <seed>] (rng seed)\n"
                 "\t[--add-to-seed <number>] (add <number> to seed, use after -s)\n"
@@ -107,8 +108,6 @@ void set_parameters (int argc, char** argv)
                 "\t[-rH2 <hotspot radius square>]\n"
                 "\t[-Rp2 <nucleon radius square>]\n"
                 "\t[-o <output filepath>] (might not have any effect depending on what is being output)";
-
-    bool Delta_single_set = false;
 
     for (int i=1; i<argc; i+=2)
     {
@@ -207,14 +206,16 @@ void set_parameters (int argc, char** argv)
             g_g2mu02 *= arg_number;
             g_g2mu02_config_factor = arg_number;
     #ifdef _G2MU02
-            std::cerr << "ERROR: --g2mu02-factor flag was read. This is probably not what you want as this has been compiled with G2MU02=1." << std::endl;
+            std::cerr << "ERROR: --g2mu02-factor flag was given. This is probably not what you want as this has been compiled with G2MU02=1." << std::endl;
             exit(25);
     #endif
         }
         else if (flag.str()=="-t" || flag.str()=="--threads")
         {
             num_threads = uint(std::round(arg_number));
+    #ifndef _PC2
             GBWModel::G_ip.set_num_threads(num_threads);
+    #endif
         }
         else if (flag.str()=="-Q")
             Q = arg_number;
@@ -230,6 +231,8 @@ void set_parameters (int argc, char** argv)
             exit(23);
         }
     }
+
+    _TEST_LOG("Parameters set")
 }
 
 
@@ -279,12 +282,12 @@ std::string get_default_filepath_from_parameters()
 {
     std::string filepath = "data/samples/";
 #ifdef _G2MU02
-        filepath += "g2mu02/";
+    filepath += "g2mu02/";
 #endif
     filepath += (char)quark_config;
 
 #ifndef _G2MU02
-        filepath += (g_g2mu02_config_factor >= 1.0) ? std::to_string( int(std::round(g_g2mu02_config_factor*10.0)) ) : "0"+std::to_string( int(std::round(g_g2mu02_config_factor*10.0)) );
+    filepath += (g_g2mu02_config_factor >= 1.0) ? std::to_string( int(std::round(g_g2mu02_config_factor*10.0)) ) : "0"+std::to_string( int(std::round(g_g2mu02_config_factor*10.0)) );
 #endif
     filepath += 
 #ifndef _DILUTE

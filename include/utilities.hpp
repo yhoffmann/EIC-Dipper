@@ -8,6 +8,38 @@
 #include <string>
 #include <random>
 #include <thread>
+#include <chrono>
+
+
+#if (defined(__linux__) || defined(__APPLE__))
+    #include <unistd.h>
+    #define _GET_PROCESS_ID() getpid()
+
+#elif (defined(_WIN32) || defined(_WIN64))
+    #include <windows.h>
+    #define _GET_PROCESS_ID() GetCurrentProcessId()
+
+#else
+    #error Unkown operating system: Unable to define _GET_PROCESS_ID() function
+
+#endif
+
+
+inline std::chrono::high_resolution_clock::time_point g_time_program_start;
+
+#ifdef _TEST
+    #define _TEST_LOG(x) \
+        { \
+            auto now = std::chrono::high_resolution_clock::now(); \
+            double time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - g_time_program_start).count(); \
+            std::cerr << "(TEST LOG " << time_ms << "ms) " << x << std::endl; \
+        }
+#else
+    #define _TEST_LOG(x) ;
+#endif
+
+
+void init(int argc, char* argv[]);
 
 
 inline Interpolator3D::DataGenerationConfig default_data_generation_config
