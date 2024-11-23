@@ -19,6 +19,7 @@ namespace NRPhoton
         return -A_Q * std::sqrt(2.0*m_Q*Nc) * e * e_Q;
     }
 
+
     void set_wave_function_factor_T (double m_Q, double e_Q)
     {
         wave_function_factor_T = get_wave_function_factor_T(m_Q, e_Q);
@@ -27,7 +28,7 @@ namespace NRPhoton
 
     double wave_function_factor_L (double Q)
     {
-        return 2.0 * wave_function_factor_T * Q / m_Q;
+        return 0.5 * wave_function_factor_T * Q / m_Q;
     }
 
 
