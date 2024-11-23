@@ -66,3 +66,6 @@ pc2:
 clean:
 	rm obj/*
 	rm eic
+
+cleanRawData:
+	rm -r data/samples/
