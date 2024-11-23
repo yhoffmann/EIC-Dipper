@@ -56,79 +56,118 @@ namespace Output
         return default_phi_vec;
     }
 
-    void dsigmadt (bool do_coherent, bool do_incoherent, std::string output_file = "")
+    void dsigmadt (bool do_coherent, bool do_incoherent)
     {
         double default_Q = get_default_Q();
         std::vector<double> default_Delta_vec = get_default_Delta_vec();
         std::vector<double> default_phi_vec = std::vector<double>{0.0};//get_default_phi_vec();//
 
-        dsigmadt(do_coherent, do_incoherent, default_Q, default_Delta_vec, default_phi_vec, output_file);
+        dsigmadt(do_coherent, do_incoherent, default_Q, default_Delta_vec, default_phi_vec);
     }
 
-    void dsigmadt (bool do_coherent, bool do_incoherent, double Q, std::vector<double> Delta_vec, std::vector<double> phi_vec, std::string filepath)
+    void dsigmadt (bool do_coherent, bool do_incoherent, double Q, std::vector<double> value_vec, std::vector<double> phi_vec)
     {
+_TEST_LOG("In function Output::dsigmadt(bool, bool, double, std::vector<double>, std::vector<double>)")
         if (phi_vec.size()==0)
             phi_vec = std::vector<double>{0.0};
 
-        std::vector<double> coherent_results(Delta_vec.size()*phi_vec.size());
-        std::vector<double> coherent_avg(Delta_vec.size());
+        std::vector<std::vector<double>> coherent_results(value_vec.size(), std::vector<double>(phi_vec.size()));
+        std::vector<double> coherent_avg_results(value_vec.size());
 
-        std::vector<double> incoherent(Delta_vec.size());
-
-        #pragma omp parallel for schedule(static, 1)
-        for (uint i=0; i<Delta_vec.size(); i++)
+        std::vector<double> incoherent_results(value_vec.size());
+_TEST_LOG("Starting ThreadPool")
+        ThreadPool pool(g_num_threads);
+_TEST_LOG("Queueing incoherent jobs")
+        for (uint value_index=0, value_size=value_vec.size(); value_index<value_size; ++value_index)
         {
-            coherent_avg[i] = 0.0;
-            
-            if (do_incoherent)
-                incoherent[i] = Incoherent::dsigmadt(Q, Delta_vec[i]);
-
-            for (uint j=0, jmax=phi_vec.size(); j<jmax; j++)
-            {
-                if (g_monitor_progress)
-                    std::cout << Q << " " << Delta_vec[i] << " " << phi_vec[j] << std::endl;
-
-                if (do_coherent)
+    #ifndef _G2MU02
+            double Delta = value_vec[value_index];
+    #else
+            double Delta = g_Delta_single;
+    #endif
+            pool.enq_job(
+                [value_index, &value_vec, Q, Delta, &incoherent_results]
                 {
-                    coherent_results[i*jmax + j] = Coherent::dsigmadt_test(Q, Delta_vec[i], phi_vec[j]);
-                    coherent_avg[i] += coherent_results[i*jmax + j]/double(jmax);
+            #ifdef _G2MU02
+                    t_g2mu02 = G2MU02_DEMIRCI*value_vec[value_index];
+            #endif
+                    incoherent_results[value_index] = Incoherent::dsigmadt(Q, Delta);
                 }
+            );
+        }
+_TEST_LOG("Queueing coherent jobs")
+        for (uint value_index=0, value_size=value_vec.size(); value_index<value_size; ++value_index)
+        {
+    #ifndef _G2MU02
+            double Delta = value_vec[value_index];
+    #else
+            double Delta = g_Delta_single;
+    #endif
+            for (uint phi_index=0, phi_size=phi_vec.size(); phi_index<phi_size; ++phi_index)
+            {
+                double phi = phi_vec[phi_index];
+                pool.enq_job(
+                    [value_index, &value_vec, phi_index, Q, Delta, phi_size, phi, &coherent_results]
+                    {
+                #ifdef _G2MU02
+                        t_g2mu02 = G2MU02_DEMIRCI*value_vec[value_index];
+                #endif
+                        coherent_results[value_index][phi_index] = Coherent::dsigmadt_test(Q, Delta, phi);
+                    }
+                );
             }
         }
+_TEST_LOG("Finished queueing, waiting for jobs to finish")
+        pool.await();
+        pool.stop();
 
+        for (uint value_index=0; value_index<value_vec.size(); ++value_index)
+        {
+            double coherent_avg = 0.0;
+
+            for (uint phi_index=0; phi_index<phi_vec.size(); ++phi_index)
+            {
+                coherent_avg += coherent_results[value_index][phi_index];
+            }
+            coherent_avg_results[value_index] = coherent_avg/double(phi_vec.size());
+        }
+        
         std::ofstream out;
+        std::string filepath = g_filepath;
 
         if (filepath == "")
-            filepath = "Data/dsigma_dt.dat";
-
+        {
+            filepath = "data/dsigmadt_avg.dat";
+        }
         out.open(filepath);
+
         if (!out.is_open())
             exit(20);
 
         out << std::setprecision(10);
         out << "#Q, Delta, Coher, Incoher; " << std::endl;
         out << "#1, 2,           3,4" << std::endl;
-        out.flush();
 
-        for (uint i=0; i<Delta_vec.size(); i++)
-            out << Delta_vec[i] << " " << Q << " " << coherent_avg[i] << " " << incoherent[i] << std::endl;
+        for (uint i=0; i<value_vec.size(); i++)
+            out << value_vec[i] << " " << Q << " " << coherent_avg_results[i] << " " << incoherent_results[i] << std::endl;
         out << std::endl;
 
+        out.flush();
         out.close();
+
         out.open(filepath + ".all");
         if (!out.is_open())
             exit(20);
 
-        for (uint i=0; i<Delta_vec.size(); i++)
+        for (uint i=0; i<value_vec.size(); i++)
         {
-            out << Delta_vec[i] << " " << Q << "   ";
+            out << value_vec[i] << " " << Q << "   ";
             for (uint j=0, jmax=phi_vec.size(); j<jmax; j++)
-                out << phi_vec[j] << " " << coherent_results[i*jmax + j] << " " << incoherent[i] << "   ";
+                out << phi_vec[j] << " " << coherent_results[i][j] << " " << incoherent_results[i] << "   ";
             out << std::endl;
         }
         out << std::endl;
-
-        out.close();
+_TEST_LOG("Returning from function Output::dsigmadt(bool, bool, double, std::vector<double>, std::vector<double>)")
     }
 
 
@@ -153,8 +192,7 @@ namespace Output
 
     void dsigmadt_nucleus (uint atomic_num, uint num_hotspots, uint seed, double Q, std::vector<double> value_vec, std::vector<double> phi_vec)
     {
-_TEST_LOG("In dsigmadt_nucleus")
-        import_interp_data_by_params(interpolator_filepath);
+_TEST_LOG("In function Output::dsigmadt_nucleus(uint, uint, uint, double, std::vector<double>, std::vector<double>)")
 
         std::vector<std::vector<double>> coherent_results_real(value_vec.size(), std::vector<double>(phi_vec.size()));
         std::vector<std::vector<double>> coherent_results_imag(value_vec.size(), std::vector<double>(phi_vec.size()));
@@ -168,7 +206,7 @@ _TEST_LOG("In dsigmadt_nucleus")
         nucleus.set_nucleon_size(std::sqrt(R_sqr));
         nucleus.sample();
 _TEST_LOG("Starting ThreadPool")
-        ThreadPool pool(num_threads);
+        ThreadPool pool(g_num_threads);
 _TEST_LOG("Queueing incoherent jobs")
         for (uint value_index=0, value_size=value_vec.size(); value_index<value_size; ++value_index)
         {
@@ -216,8 +254,10 @@ _TEST_LOG("Queueing coherent jobs")
 _TEST_LOG("Finished queueing, waiting for jobs to finish")
         pool.await();
         pool.stop();
-_TEST_LOG("Opening file " << get_default_filepath_from_parameters()+"_Amplitude.dat")
-        std::ofstream out(get_default_filepath_from_parameters()+"_Amplitude.dat");
+
+        std::string filepath = (g_filepath != "") ? g_filepath : get_default_filepath_from_parameters()+"_Amplitude.dat";
+_TEST_LOG("Opening file " << filepath)
+        std::ofstream out(filepath);
         if (!out.is_open())
             exit(20);
 _TEST_LOG("File opened")
@@ -239,6 +279,7 @@ _TEST_LOG("Printing to file")
         out << std::endl;
 _TEST_LOG("Finished priting to file")
         out.close();
+_TEST_LOG("Returning from function Output::dsigmadt_nucleus(uint, uint, uint, double, std::vector<double>, std::vector<double>)")
     }
 
 

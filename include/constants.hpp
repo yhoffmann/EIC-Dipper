@@ -64,7 +64,7 @@ const double G2MU02_DEMIRCI = std::sqrt(43.22);
 // const double g2mu02_factor = G2MU02_DEMIRCI/(2.9)*3.0;
 inline double g_g2mu02 = G2MU02_DEMIRCI;
 inline double g_g2mu02_config_factor = 1.0;
-thread_local inline double t_g2mu02 = g_g2mu02;
+thread_local inline double t_g2mu02 = G2MU02_DEMIRCI;
 
 
 // useful consts for speed

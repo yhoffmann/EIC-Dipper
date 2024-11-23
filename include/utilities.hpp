@@ -58,7 +58,7 @@ inline bool g_Delta_single_set = false;
 
 inline uint seed = 147541768;
 
-inline uint num_threads = 10;
+inline size_t g_num_threads = 10;
 
 typedef long unsigned int luint;
 
@@ -75,9 +75,9 @@ inline double bessel_K_safe (int n, double x)
     return gsl_sf_bessel_Kn(n,x);
 }
 
-void import_interp_data_by_params(std::string& filepath, const Interpolator3D::DataGenerationConfig* config = &default_data_generation_config);
+void import_interp_data_by_params(const Interpolator3D::DataGenerationConfig* config = &default_data_generation_config);
 
-inline std::string filepath_global = "";
+inline std::string g_filepath = "";
 
 void set_parameters(int argc, char** argv);
 

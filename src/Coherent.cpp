@@ -117,12 +117,12 @@ namespace Coherent
 
     double A_real (double b1, double b2, double r1, double r2, double Q, double Delta1, double Delta2)
     {
-        return NRPhoton::wave_function(r1, r2, Q) * sin(b1*Delta1 + b2*Delta2) * SaturationModel::HotspotAverage::dsigma_d2b(b1+r1*0.5, b2+r2*0.5, b1-r1*0.5, b2-r2*0.5);
+        return NRPhoton::wave_function(r1, r2, Q) * sin(b1*Delta1 + b2*Delta2) * SaturationModel/*::HotspotAverage*/::dsigma_d2b(b1+r1*0.5, b2+r2*0.5, b1-r1*0.5, b2-r2*0.5);
     }
 
     double A_imag (double b1, double b2, double r1, double r2, double Q, double Delta1, double Delta2)
     {
-        return NRPhoton::wave_function(r1, r2, Q) * cos(b1*Delta1 + b2*Delta2) * SaturationModel::HotspotAverage::dsigma_d2b(b1+r1*0.5, b2+r2*0.5, b1-r1*0.5, b2-r2*0.5);
+        return NRPhoton::wave_function(r1, r2, Q) * cos(b1*Delta1 + b2*Delta2) * SaturationModel/*::HotspotAverage*/::dsigma_d2b(b1+r1*0.5, b2+r2*0.5, b1-r1*0.5, b2-r2*0.5);
     }
 
     int integrand_real (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
@@ -149,7 +149,7 @@ namespace Coherent
         c_config.progress_monitor = g_monitor_progress;
         c_config.abs_err = 1.0e-7;
         c_config.rel_err = 1.0e-12;
-        c_config.max_eval = 1e5;
+        c_config.max_eval = 1e6;
 
         IntegrationConfig i_config;
         AIntegrandParams params;
@@ -176,7 +176,7 @@ namespace Coherent
         i_config.min[3] = 0.0;
         i_config.max[3] = 2.0*PI;
 
-        double ret = 0.0;//sqr(IntegrationRoutines::cubature_integrate_zeros(Coherent::integrand_real, &c_config, &i_config, &sin_zeros));
+        double ret = sqr(IntegrationRoutines::cubature_integrate_zeros(Coherent::integrand_real, &c_config, &i_config, &sin_zeros));
         i_config.max[2] = R_MAX;
         ret += sqr(IntegrationRoutines::cubature_integrate_zeros(Coherent::integrand_imag, &c_config, &i_config, &cos_zeros));
 

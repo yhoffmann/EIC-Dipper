@@ -43,7 +43,7 @@ namespace Incoherent
     {
         CubatureConfig c_config;
         c_config.progress_monitor = g_monitor_progress;
-        c_config.max_eval = 1e7;
+        c_config.max_eval = 1e5;
 
         IntegrationConfig i_config;
 

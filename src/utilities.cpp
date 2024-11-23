@@ -27,8 +27,10 @@ double get_r_max (double m_Q)
 }
 
 
-void import_interp_data_by_params (std::string& filepath, const Interpolator3D::DataGenerationConfig* config)
+void import_interp_data_by_params (const Interpolator3D::DataGenerationConfig* config)
 {
+    std::string filepath;
+
     std::string m_path = std::to_string( int(m*100) );
     std::string rH_sqr_path = (rH_sqr >= 1.0) ? std::to_string( int(std::round(rH_sqr*100)) ) : "0"+std::to_string( int(std::round(rH_sqr*100)) );
 
@@ -79,10 +81,8 @@ void import_interp_data_by_params (std::string& filepath, const Interpolator3D::
     }
     else
     {
-_TEST_LOG("Starting interpolator data import")
-        
-        GBWModel::G_ip.import_data(filepath);
-
+_TEST_LOG("Starting interpolator data import from file: " << filepath)
+    GBWModel::G_ip.import_data(filepath);
 _TEST_LOG("Finished interpolator data import")
     }
 }
@@ -107,7 +107,7 @@ void set_parameters (int argc, char** argv)
                 "\t[-H <number of hotspots per nucleon>]\n"
                 "\t[-rH2 <hotspot radius square>]\n"
                 "\t[-Rp2 <nucleon radius square>]\n"
-                "\t[-o <output filepath>] (might not have any effect depending on what is being output)";
+                "\t[-o <output filepath>]";
 
     for (int i=1; i<argc; i+=2)
     {
@@ -157,7 +157,7 @@ void set_parameters (int argc, char** argv)
 
         if (flag.str()=="-o" && (arg >> arg_string))
         {
-            filepath_global = arg_string;
+            g_filepath = arg_string;
             continue;
         }
 
@@ -212,9 +212,9 @@ void set_parameters (int argc, char** argv)
         }
         else if (flag.str()=="-t" || flag.str()=="--threads")
         {
-            num_threads = uint(std::round(arg_number));
+            g_num_threads = uint(std::round(arg_number));
     #ifndef _PC2
-            GBWModel::G_ip.set_num_threads(num_threads);
+            GBWModel::G_ip.set_num_threads(g_num_threads);
     #endif
         }
         else if (flag.str()=="-Q")
@@ -231,8 +231,9 @@ void set_parameters (int argc, char** argv)
             exit(23);
         }
     }
+    import_interp_data_by_params();
 
-    _TEST_LOG("Parameters set")
+_TEST_LOG("Parameters set")
 }
 
 
