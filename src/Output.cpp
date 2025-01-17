@@ -452,13 +452,13 @@ _TEST_LOG("Returning from function Output::dsigmadt_nucleus(uint, uint, uint, do
 
     void hotspot_nucleus_thickness_avg (uint atomic_num, uint num_hotspots_per_nucleon, uint start_seed, uint num_events, std::string filepath)
     {
-        const uint size_x = 2e2;
-        const uint size_y = 2e2;
+        const uint size_x = 8e2;
+        const uint size_y = 8e2;
 
-        const double xmin = -5.0;
-        const double xmax = 5.0;
-        const double ymin = -5.0;
-        const double ymax = 5.0;
+        const double xmin = -10.0;
+        const double xmax = 10.0;
+        const double ymin = -10.0;
+        const double ymax = 10.0;
 
         const double inverse_num = 1.0/double(num_events);
 

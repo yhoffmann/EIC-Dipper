@@ -56,7 +56,7 @@ inline bool g_monitor_progress = false;
 inline double g_Delta_single = 1.0;
 inline bool g_Delta_single_set = false;
 
-inline uint seed = 147541768;
+inline uint g_seed = 147541768;
 
 inline size_t g_num_threads = 10;
 

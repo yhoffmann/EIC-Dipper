@@ -196,10 +196,10 @@ void set_parameters (int argc, char** argv)
             A = uint(std::round(arg_number));
 
         else if (flag.str()=="-s")
-            seed = uint(std::round(arg_number));
+            g_seed = uint(std::round(arg_number));
 
         else if (flag.str()=="--add-to-seed")
-            seed += uint(std::round(arg_number));
+            g_seed += uint(std::round(arg_number));
 
         else if (flag.str()=="--g2mu02-factor")
         {
@@ -297,7 +297,7 @@ std::string get_default_filepath_from_parameters()
         "/di/";
 #endif
 
-    filepath += std::to_string(seed);
+    filepath += std::to_string(g_seed);
 
     return filepath;
 }

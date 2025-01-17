@@ -27,7 +27,7 @@ namespace SaturationModel
         inline uint num = 0;
         inline double inv_num;
         inline std::vector<HotspotNucleus> hn;
-        void sample(uint A, uint H, uint num, uint start_seed = seed);
+        void sample(uint A, uint H, uint num, uint start_seed = g_seed);
         void clear();
 
         double dsigma_d2b(double x1, double x2, double y1, double y2);
