@@ -239,7 +239,7 @@ namespace SaturationModel
             hn.reserve(num);
 
             for (uint i=0; i<num; ++i)
-                hn.emplace_back(A, H, start_seed + i);
+                hn.emplace_back(start_seed + i, A, H, std::sqrt(R_sqr), std::sqrt(rH_sqr));
         }
 
         void clear()

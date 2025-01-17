@@ -202,9 +202,8 @@ _TEST_LOG("In function Output::dsigmadt_nucleus(uint, uint, uint, double, std::v
         if (seed==0)
             seed = get_unique_seed();
 
-        HotspotNucleus nucleus(atomic_num, num_hotspots, seed);
-        nucleus.set_nucleon_size(std::sqrt(R_sqr));
-        nucleus.sample();
+        HotspotNucleus nucleus(seed, atomic_num, num_hotspots, std::sqrt(R_sqr), std::sqrt(rH_sqr));
+        // nucleus.sample(); // uncomment this line for legacy mode (a change to the Nucleus class removed the need for constructing, then settings the size, then sampling again to have the changed size take effect; only one construction with correct parameters possible now; this means that all old data will contain twice-sampled Nucleus objects, and event IDs are not compatible anymore)
 _TEST_LOG("Starting ThreadPool")
         ThreadPool pool(g_num_threads);
 _TEST_LOG("Queueing incoherent jobs")
@@ -414,7 +413,7 @@ _TEST_LOG("Returning from function Output::dsigmadt_nucleus(uint, uint, uint, do
         if (seed==0)
             seed = get_unique_seed();
 
-        HotspotNucleus hn(atomic_num, num_hotspots_per_nucleon, seed);
+        HotspotNucleus hn(seed, atomic_num, num_hotspots_per_nucleon);
 
         std::vector<double> thickness(num_points, 0.0);
         std::vector<double> x(num_points);
@@ -476,13 +475,12 @@ _TEST_LOG("Returning from function Output::dsigmadt_nucleus(uint, uint, uint, do
         for (uint k=0; k<size_x; ++k)
             x[k] = xmin+(xmax-xmin)*double(k)/double(size_x-1);
 
+        HotspotNucleus hn(start_seed, atomic_num, num_hotspots_per_nucleon, std::sqrt(R_sqr), std::sqrt(rH_sqr));
         for (uint i=0; i<num_events; ++i)
         {
-            uint seed = start_seed + i;
+            hn.seed(start_seed + i);
+            hn.sample();
 
-            HotspotNucleus hn(atomic_num, num_hotspots_per_nucleon, seed);
-            hn.set_hotspot_size(std::sqrt(rH_sqr));
-            hn.set_nucleon_size(std::sqrt(R_sqr));
             for (uint n=0; n<atomic_num; ++n)
                 for (uint h=0; h<num_hotspots_per_nucleon; ++h)
                     pos[i*atomic_num*num_hotspots_per_nucleon + n*num_hotspots_per_nucleon + h] = *hn.get_hotspot_pos(n, h);
@@ -494,11 +492,9 @@ _TEST_LOG("Returning from function Output::dsigmadt_nucleus(uint, uint, uint, do
 
         for (uint i=0; i<num_events; ++i)
         {
-            uint seed = start_seed + i;
+            hn.seed(start_seed + i);
+            hn.sample();
 
-            HotspotNucleus hn(atomic_num, num_hotspots_per_nucleon, seed);
-            hn.set_hotspot_size(std::sqrt(rH_sqr));
-            hn.set_nucleon_size(std::sqrt(R_sqr));
             for (uint j=0; j<size_y; ++j)
                 for (uint k=0; k<size_x; ++k)
                     thickness_stddev[j][k] += sqr(hn.get_hotspot_thickness(x[k], y[j]) - thickness[j][k])*inverse_num;
