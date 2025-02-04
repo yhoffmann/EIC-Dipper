@@ -6,30 +6,30 @@
 
 // DEFINING GLOBAL PARAMETERS //
 
-const double PI = M_PI;
-const double alpha_em = 1.0/137.036; //unit 1
+constexpr const double PI = M_PI;
+constexpr const double alpha_em = 1.0/137.036; //unit 1
 const double e = std::sqrt(4.0*PI*alpha_em); //unit 1
-const double Nc = 3.0;
-const double CF = (Nc*Nc-1.0)/(2.0*Nc);
-const double Qs0 = 1.0; //GeV
-const double A_c = 0.211; //in GeV3/2
+constexpr const double Nc = 3.0;
+constexpr const double CF = (Nc*Nc-1.0)/(2.0*Nc);
+constexpr const double Qs0 = 1.0; //GeV
+constexpr const double A_c = 0.211; //in GeV3/2
 
-const double e_c = 2.0/3.0;
-const double e_b = -1.0/3.0;
-const double e_t = 2.0/3.0;
-const double m_c = 1.275; // GeV
-const double m_b = 4.18; // GeV
+constexpr const double e_c = 2.0/3.0;
+constexpr const double e_b = -1.0/3.0;
+constexpr const double e_t = 2.0/3.0;
+constexpr const double m_c = 1.275; // GeV
+constexpr const double m_b = 4.18; // GeV
 
 
 // Unit conversion factors
-const double hbarc = 0.1973; //GeV fm
+constexpr const double hbarc = 0.1973; //GeV fm
 
-const double fm_to_GeVm1 = 1.0/hbarc;
-const double GeV_to_fmm1 = 1.0/hbarc;
-const double GeVm1_to_fm = hbarc;
-const double fmm1_to_GeV = hbarc;
-const double fm2_to_nb = 1.0e7;
-const double nb_to_fm2 = 1.0e-7;
+constexpr const double fm_to_GeVm1 = 1.0/hbarc;
+constexpr const double GeV_to_fmm1 = 1.0/hbarc;
+constexpr const double GeVm1_to_fm = hbarc;
+constexpr const double fmm1_to_GeV = hbarc;
+constexpr const double fm2_to_nb = 1.0e7;
+constexpr const double nb_to_fm2 = 1.0e-7;
 
 
 // not exactly constant constants
@@ -54,8 +54,8 @@ inline uint H = 3;
 
 
 // Integration ranges
-const double B_RANGE_FACTOR = 15.0;
-const double R_RANGE_FACTOR = 20.0;
+constexpr const double B_RANGE_FACTOR = 15.0;
+constexpr const double R_RANGE_FACTOR = 20.0;
 
 inline double B_MAX = B_RANGE_FACTOR*std::sqrt(2.0*RC_sqr);
 inline double R_MAX = R_RANGE_FACTOR/m_Q;
@@ -68,8 +68,8 @@ thread_local inline double t_g2mu02 = G2MU02_DEMIRCI;
 
 
 // useful consts for speed
-const double Ncsqrm1 = Nc*Nc-1.0;
-const double Ncsqrm1_inverse = 1.0/Ncsqrm1;
-const double twoNc = 2.0*Nc;
-const double twoNc_inverse = 1.0/twoNc;
-const double twoCF_inverse = 1.0/(2.0*CF);
+constexpr const double Ncsqrm1 = Nc*Nc-1.0;
+constexpr const double Ncsqrm1_inverse = 1.0/Ncsqrm1;
+constexpr const double twoNc = 2.0*Nc;
+constexpr const double twoNc_inverse = 1.0/twoNc;
+constexpr const double twoCF_inverse = 1.0/(2.0*CF);
