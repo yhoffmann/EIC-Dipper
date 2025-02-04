@@ -1,4 +1,5 @@
 #include "../include/Coherent.hpp"
+#include "../include/Incoherent.hpp"
 #include "../include/constants.hpp"
 #include "../include/IntegrationRoutines.hpp"
 #include "../include/GBWModel.hpp"
@@ -13,7 +14,7 @@ namespace Coherent
 {
     double A_integrand_function_factor (double Q)
     {
-        return  NRPhoton::wave_function_factor(Q) / (4.0*PI);
+        return NRPhoton::wave_function_factor(Q) / (4.0*PI);
     }
 
 
@@ -449,5 +450,75 @@ namespace Coherent { namespace Sampled
         double imag = IntegrationRoutines::cubature_integrate_zeros(Coherent::Sampled::integrand_imag, c_config, i_config, &cos_zeros);
 
         return {factor*real, factor*imag};
+    }
+} }
+
+
+namespace Coherent { namespace InternalHotspotAvg
+{
+    // <<sigma>c>h <sigmabar>c>h
+    double A_tilde_sch_sbch (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double Delta)
+    {
+        return Incoherent::InternalHotspotAvg::A_tilde(b1, b2, r1, r2, bb1, bb2, rb1, rb2, Q, Delta) * SaturationModel::InternalHotspotAvg::sch_sbch(b1+r1*0.5, b2+r2*0.5, b1-r1*0.5, b2-r2*0.5, bb1+rb1*0.5, bb2+rb2*0.5, bb1-rb1*0.5, bb2-rb2*0.5);
+    }
+
+    // <<sigma>c>h <sigmabar>c>h
+    int integrand_sch_sbch (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
+    {
+        AIntegrandParams* p = (AIntegrandParams*)userdata;
+
+        double db1 = xx[0]*cos(xx[1]);
+        double db2 = xx[0]*sin(xx[1]);
+
+        double B1 = xx[4]*cos(xx[5]);
+        double B2 = xx[4]*sin(xx[5]);
+
+        ff[0] = xx[0]*xx[2]*xx[4]*xx[6] * InternalHotspotAvg::A_tilde_sch_sbch(B1+db1*0.5, B2+db2*0.5, xx[2]*cos(xx[3]), xx[2]*sin(xx[3]), B1-db1*0.5, B2-db2*0.5, xx[6]*cos(xx[7]), xx[6]*sin(xx[7]), p->Q, p->Delta);
+
+        return 0;
+    }
+
+    // <<sigma>c>h <sigmabar>c>h
+    double dsdt_sch_sbch (double Q, double Delta)
+    {
+        CubatureConfig c_config;
+        c_config.max_eval = 5e7;
+#ifdef _TEST
+        c_config.max_eval = 1e3;
+#endif
+        c_config.progress_monitor = g_monitor_progress;
+
+        IntegrationConfig i_config;
+        AIntegrandParams params;
+
+        i_config.integrand_params = &params;
+        
+        params.Q = Q;
+        params.Delta = Delta;
+        params.is_incoherent = true;
+        params.h_nucleus = nullptr;
+
+        return dsdt_sch_sbch(&c_config, &i_config);
+    }
+
+    // <<sigma>c>h <sigmabar>c>h
+    double dsdt_sch_sbch (CubatureConfig* c_config, IntegrationConfig* i_config)
+    {
+        c_config->num_dims = 8;
+
+        i_config->min = (double*)alloca(8*sizeof(double));
+        i_config->max = (double*)alloca(8*sizeof(double));
+
+        double ret = Incoherent::A_integrand_function_factor( ((AIntegrandParams*)(i_config->integrand_params))->Q ) * sqr(GeVm1_to_fm) * fm2_to_nb / (16.0*PI);
+        
+        Incoherent::reset_integration_range(i_config->min, i_config->max);
+        ret *= IntegrationRoutines::cubature_integrate_zeros(InternalHotspotAvg::integrand_sch_sbch, c_config, i_config, &gsl_sf_bessel_zero_J0);
+
+        return ret;
+    }
+
+    double dsdt (double Q, double Delta)
+    {
+        return dsdt_sch_sbch(Q, Delta);
     }
 } }

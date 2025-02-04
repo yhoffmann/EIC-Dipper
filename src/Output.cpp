@@ -193,13 +193,12 @@ _TEST_LOG("Returning from function Output::dsigmadt(bool, bool, double, std::vec
     void dsigmadt_nucleus (uint atomic_num, uint num_hotspots, uint seed, double Q, std::vector<double> value_vec, std::vector<double> phi_vec)
     {
 _TEST_LOG("In function Output::dsigmadt_nucleus(uint, uint, uint, double, std::vector<double>, std::vector<double>)")
-
         std::vector<std::vector<double>> coherent_results_real(value_vec.size(), std::vector<double>(phi_vec.size()));
         std::vector<std::vector<double>> coherent_results_imag(value_vec.size(), std::vector<double>(phi_vec.size()));
         std::vector<double> incoherent_results_real(value_vec.size());
         std::vector<double> incoherent_results_imag(value_vec.size());
 
-        if (seed==0)
+        if (seed == 0)
             seed = get_unique_seed();
 
         HotspotNucleus nucleus(seed, atomic_num, num_hotspots, std::sqrt(R_sqr), std::sqrt(rH_sqr));
@@ -279,6 +278,89 @@ _TEST_LOG("Printing to file")
 _TEST_LOG("Finished priting to file")
         out.close();
 _TEST_LOG("Returning from function Output::dsigmadt_nucleus(uint, uint, uint, double, std::vector<double>, std::vector<double>)")
+    }
+
+
+    void dsdt_nucleus_internal_avg (uint atomic_num, uint num_hotspots, uint seed, double Q, std::vector<double> value_vec)
+    {
+        std::vector<double> dsdt_sch_sbch(value_vec.size());
+        std::vector<double> dsdt_ssbch(value_vec.size());
+        std::vector<double> dsdt_scsbch(value_vec.size());
+
+        if (0 == seed)
+            seed = get_unique_seed();
+
+        SaturationModel::InternalHotspotAvg::init(atomic_num, num_hotspots, 256, g_seed);
+
+        ThreadPool pool(g_num_threads);
+
+        // enqueueing <<sigma>c>h <<sigmabar>c>h (coherent) jobs
+        for (uint value_index=0, value_size=value_vec.size(); value_index<value_size; ++value_index)
+        {
+    #ifndef _G2MU02
+            double Delta = value_vec[value_index];
+    #else
+            double Delta = g_Delta_single;
+    #endif
+            // enqueueing  <<sigma>c>h <<sigmabar>c>h  (coherent) jobs
+            pool.enq_job(
+                [value_index, &value_vec, Q, Delta, &dsdt_sch_sbch]
+                {
+            #ifdef _G2MU02
+                    t_g2mu02 = G2MU02_DEMIRCI*value_vec[value_index];
+            #endif
+                    dsdt_sch_sbch[value_index] = Coherent::InternalHotspotAvg::dsdt_sch_sbch(Q, Delta);
+                }
+            );
+
+            // enqueueing  < <sigma sigmabar>c >h  (color fluc first term) jobs
+            pool.enq_job(
+                [value_index, &value_vec, Q, Delta, &dsdt_ssbch]
+                {
+            #ifdef _G2MU02
+                    t_g2mu02 = G2MU02_DEMIRCI*value_vec[value_index];
+            #endif
+                    dsdt_ssbch[value_index] = Incoherent::InternalHotspotAvg::dsdt_ssbch(Q, Delta);
+                }
+            );
+
+            // enqueueing  < <sigma>c <sigmabar>c >h  (hotspot fluc first term) jobs
+            pool.enq_job(
+                [value_index, &value_vec, Q, Delta, &dsdt_scsbch]
+                {
+            #ifdef _G2MU02
+                    t_g2mu02 = G2MU02_DEMIRCI*value_vec[value_index];
+            #endif
+                    dsdt_scsbch[value_index] = Incoherent::InternalHotspotAvg::dsdt_scsbch(Q, Delta);
+                }
+            );
+        }
+        pool.await();
+        pool.stop();
+
+        for (uint value_index=0, value_size=value_vec.size(); value_index<value_size; ++value_index)
+        {
+            std::cout << dsdt_sch_sbch[value_index] << " " << dsdt_ssbch[value_index] << " " << dsdt_scsbch[value_index] << "\n";
+        }
+    }
+
+
+    void dsdt_nucleus_internal_avg (uint atomic_num, uint num_hotspots, uint seed)
+    {
+        std::vector<double> value_vec;
+        std::vector<double> phi_vec = get_default_phi_vec();
+
+#ifndef _G2MU02
+        if (!g_Delta_single_set)
+            value_vec = get_default_Delta_vec();
+        
+        else
+            value_vec = {g_Delta_single};
+#else
+        value_vec = get_default_g2mu02_factor_vec();
+#endif
+
+        dsdt_nucleus_internal_avg(atomic_num, num_hotspots, seed, Q, value_vec);
     }
 
 

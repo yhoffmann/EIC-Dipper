@@ -40,3 +40,12 @@ namespace Coherent { namespace Sampled
     std::tuple<double,double> sqrt_dsigmadt_single_event (double Q, double Delta, double phi, const HotspotNucleus& nucleus);
     std::tuple<double,double> sqrt_dsigmadt_single_event (CubatureConfig* c_config, IntegrationConfig* i_config);
 } }
+
+
+namespace Coherent { namespace InternalHotspotAvg
+{
+    double dsdt_sch_sbch(double Q, double Delta);
+    double dsdt_sch_sbch(CubatureConfig* c_config, IntegrationConfig* i_config);
+
+    double dsdt(double Q, double Delta);
+} }

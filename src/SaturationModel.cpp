@@ -2,6 +2,8 @@
 #include "../include/constants.hpp"
 #include "../include/utilities.hpp"
 #include "../include/GBWModel.hpp"
+#include "../include/NRPhoton.hpp"
+#include "../include/Incoherent.hpp"
 #include <stdlib.h>
 #include <math.h>
 #include <gsl/gsl_math.h>
@@ -164,7 +166,7 @@ namespace SaturationModel
             
             return 4.0 * (1.0 - D(G_xy) - D(G_xbyb) + DD);
     #else
-            return 0.5*(G_xy*G_xbyb + sqr(G_xxb+G_yyb-G_xyb-G_yxb)*0.5); // probably wrong (but also not in use but) needs to be checked (factor of 1/8 probably missing)
+            return 4.0*(G_xy*G_xbyb + 0.5*Ncsqrm1_inverse*sqr(G_xxb+G_yyb-G_xyb-G_yxb));
     #endif
         }
 
@@ -229,12 +231,13 @@ namespace SaturationModel
     }
 
 
-    namespace HotspotAverage
+    namespace InternalHotspotAvg
     {
-        void sample (uint A, uint H, uint num, uint start_seed)
+        void init (uint A, uint H, uint num, uint start_seed)
         {
-            HotspotAverage::num = num;
+            InternalHotspotAvg::num = num;
             inv_num = 1.0/double(num);
+            inv_num_sqr = inv_num*inv_num;
 
             hn.reserve(num);
 
@@ -250,7 +253,7 @@ namespace SaturationModel
         double dsigma_d2b (double x1, double x2, double y1, double y2)
         {
             double avg = 0.0;
-            for (uint i=0; i<HotspotAverage::num; ++i)
+            for (uint i=0; i<InternalHotspotAvg::num; ++i)
                 avg += Sampled::dsigma_d2b(x1, x2, y1, y2, &hn[i]);
             
             return avg * inv_num;
@@ -259,9 +262,43 @@ namespace SaturationModel
         double dsigma_d2b_sqr_reduced (double x1, double x2, double y1, double y2, double xb1, double xb2, double yb1, double yb2)
         {
             double avg = 0.0;
-            for (uint i=0; i<HotspotAverage::num; ++i)
+            for (uint i=0; i<InternalHotspotAvg::num; ++i)
                 avg += Sampled::dsigma_d2b_sqr_reduced(x1, x2, y1, y2, xb1, xb2, yb1, yb2, &hn[i]);
             
+            return avg * inv_num;
+        }
+
+        // <<sigma>c>h <<sigmabar>c>h
+        double sch_sbch (double x1, double x2, double y1, double y2, double xb1, double xb2, double yb1, double yb2)
+        {
+            double avg_sc = 0.0;
+            double avg_sbc = 0.0;
+            for (uint i=0; i<InternalHotspotAvg::num; i++)
+            {
+                avg_sc += Sampled::dsigma_d2b(x1, x2, y1, y2, &hn[i]);
+                avg_sbc += Sampled::dsigma_d2b(xb1, xb2, yb1, yb2, &hn[i]);
+            }
+
+            return avg_sc * avg_sbc * inv_num_sqr;
+        }
+
+        // < <sigma sigmabar>c >h
+        double ssbch (double x1, double x2, double y1, double y2, double xb1, double xb2, double yb1, double yb2)
+        {
+            double avg = 0.0;
+            for (uint i=0; i<InternalHotspotAvg::num; i++)
+                avg += Sampled::dsigma_d2b_sqr(x1, x2, y1, y2, xb1, xb2, yb1, yb2, &hn[i]);
+
+            return avg * inv_num;
+        }
+
+        // < <sigma>c <sigmabar>c >h
+        double scsbch (double x1, double x2, double y1, double y2, double xb1, double xb2, double yb1, double yb2)
+        {
+            double avg = 0.0;
+            for (uint i=0; i<InternalHotspotAvg::num; i++)
+                avg += Sampled::dsigma_d2b(x1, x2, y1, y2, &hn[i]) * Sampled::dsigma_d2b(xb1, xb2, yb1, yb2, &hn[i]);
+
             return avg * inv_num;
         }
     }

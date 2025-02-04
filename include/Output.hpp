@@ -13,6 +13,9 @@ namespace Output
     void dsigmadt_nucleus(uint atomic_num, uint num_hotspots, uint seed);
     void dsigmadt_nucleus(uint atomic_num, uint num_hotspots, uint seed, double Q, std::vector<double> value_vec, std::vector<double> phi_vec);
 
+    void dsdt_nucleus_internal_avg(uint atomic_num, uint num_hotspots, uint seed);
+    void dsdt_nucleus_internal_avg(uint atomic_num, uint num_hotspots, uint seed, double Q, std::vector<double> value_vec);
+
     // void dsdt_nucleus_avg_test(uint atomic_num, uint num_hotspots, uint seed, uint num_events);
     // void dsdt_nucleus_avg_test(uint atomic_num, uint num_hotspots, uint seed, double Q, std::vector<double> Delta_vec);
 

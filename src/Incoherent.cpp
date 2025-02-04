@@ -13,7 +13,7 @@ namespace Incoherent
 {
     double A_integrand_function_factor (double Q)
     {
-        return NRPhoton::wave_function_factor(Q) / (4.0*PI);
+        return sqr(Coherent::A_integrand_function_factor(Q));
     }
 
 
@@ -58,7 +58,7 @@ namespace Incoherent
     }
 
 
-    void set_integration_range(double min[], double max[])
+    void reset_integration_range (double min[], double max[])
     {
         min[1] = 0.0;
         max[1] = 2.0*M_PI;
@@ -89,8 +89,8 @@ namespace Incoherent
         i_config->min = (double*)alloca(8*sizeof(double));
         i_config->max = (double*)alloca(8*sizeof(double));
 
-        set_integration_range(i_config->min, i_config->max);
-        double ret = sqr(A_integrand_function_factor(((AIntegrandParams*)(i_config->integrand_params))->Q)) * IntegrationRoutines::cubature_integrate_zeros(Incoherent::integrand, c_config, i_config, &gsl_sf_bessel_zero_J0);
+        reset_integration_range(i_config->min, i_config->max);
+        double ret = Incoherent::A_integrand_function_factor(((AIntegrandParams*)(i_config->integrand_params))->Q) * IntegrationRoutines::cubature_integrate_zeros(Incoherent::integrand, c_config, i_config, &gsl_sf_bessel_zero_J0);
 
         ret *= (GeVm1_to_fm*GeVm1_to_fm*fm2_to_nb)/(16.0*PI);
         
@@ -103,7 +103,7 @@ namespace Incoherent { namespace Demirci
 {
     double one_connected_factor (double Q)
     {
-        return sqr( NRPhoton::wave_function_factor(Q)/(4.0*PI) ) / (16.0*PI) * sqr(g_g2mu02) * (sqr(Nc)-1.0) / (2.0*sqr(PI*Nc)) * 3.0;
+        return Incoherent::A_integrand_function_factor(Q) / (16.0*PI) * sqr(g_g2mu02) * (sqr(Nc)-1.0) / (2.0*sqr(PI*Nc)) * 3.0;
     }
 
 
@@ -263,11 +263,159 @@ namespace Incoherent { namespace Sampled
         i_config->min = (double*)alloca(8*sizeof(double));
         i_config->max = (double*)alloca(8*sizeof(double));
 
-        double ret = sqr(Incoherent::A_integrand_function_factor( ((AIntegrandParams*)(i_config->integrand_params))->Q )) * sqr(GeVm1_to_fm) * fm2_to_nb / (16.0*PI);
+        double ret = Incoherent::A_integrand_function_factor( ((AIntegrandParams*)(i_config->integrand_params))->Q ) * sqr(GeVm1_to_fm) * fm2_to_nb / (16.0*PI);
         
-        set_integration_range(i_config->min, i_config->max);
+        reset_integration_range(i_config->min, i_config->max);
         ret *= IntegrationRoutines::cubature_integrate_zeros(Incoherent::Sampled::integrand, c_config, i_config, &gsl_sf_bessel_zero_J0);
 
         return ret;
+    }
+} }
+
+
+namespace Incoherent { namespace InternalHotspotAvg
+{
+    // A, including the new hotspot averaged dipole cross sections directly
+    double A_tilde (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double Delta)
+    {
+        return gsl_sf_bessel_J0(std::sqrt(sqr(b1-bb1)+sqr(b2-bb2))*Delta) * NRPhoton::wave_function(r1, r2, Q) * NRPhoton::wave_function(rb1, rb2, Q);
+    }
+
+    // < <sigma sigmabar>c >h
+    double A_tilde_ssbch (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double Delta)
+    {
+        return A_tilde(b1, b2, r1, r2, bb1, bb2, rb1, rb2, Q, Delta) * SaturationModel::InternalHotspotAvg::ssbch(b1+r1*0.5, b2+r2*0.5, b1-r1*0.5, b2-r2*0.5, bb1+rb1*0.5, bb2+rb2*0.5, bb1-rb1*0.5, bb2-rb2*0.5);
+    }
+
+    // < <sigma sigmabar>c >h
+    int integrand_ssbch (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
+    {
+        AIntegrandParams* p = (AIntegrandParams*)userdata;
+
+        double db1 = xx[0]*cos(xx[1]);
+        double db2 = xx[0]*sin(xx[1]);
+
+        double B1 = xx[4]*cos(xx[5]);
+        double B2 = xx[4]*sin(xx[5]);
+
+        ff[0] = xx[0]*xx[2]*xx[4]*xx[6] * A_tilde_ssbch(B1+db1*0.5, B2+db2*0.5, xx[2]*cos(xx[3]), xx[2]*sin(xx[3]), B1-db1*0.5, B2-db2*0.5, xx[6]*cos(xx[7]), xx[6]*sin(xx[7]), p->Q, p->Delta);
+
+        return 0;
+    }
+
+    // < <sigma sigmabar>c >h
+    double dsdt_ssbch (double Q, double Delta)
+    {
+        CubatureConfig c_config;
+        c_config.max_eval = 5e7;
+#ifdef _TEST
+        c_config.max_eval = 1e3;
+#endif
+        c_config.progress_monitor = g_monitor_progress;
+
+        IntegrationConfig i_config;
+        AIntegrandParams params;
+
+        i_config.integrand_params = &params;
+        
+        params.Q = Q;
+        params.Delta = Delta;
+        params.is_incoherent = true;
+        params.h_nucleus = nullptr;
+
+        return dsdt_ssbch(&c_config, &i_config);
+    }
+
+    // < <sigma sigmabar>c >h
+    double dsdt_ssbch (CubatureConfig* c_config, IntegrationConfig* i_config)
+    {
+        c_config->num_dims = 8;
+
+        i_config->min = (double*)alloca(8*sizeof(double));
+        i_config->max = (double*)alloca(8*sizeof(double));
+
+        double ret = A_integrand_function_factor( ((AIntegrandParams*)(i_config->integrand_params))->Q ) * sqr(GeVm1_to_fm) * fm2_to_nb / (16.0*PI);
+        
+        reset_integration_range(i_config->min, i_config->max);
+        ret *= IntegrationRoutines::cubature_integrate_zeros(integrand_ssbch, c_config, i_config, &gsl_sf_bessel_zero_J0);
+
+        return ret;
+    }
+
+    // < <sigma>c <sigmabar>c >h
+    double A_tilde_scsbch (double b1, double b2, double r1, double r2, double bb1, double bb2, double rb1, double rb2, double Q, double Delta)
+    {
+        return A_tilde(b1, b2, r1, r2, bb1, bb2, rb1, rb2, Q, Delta) * SaturationModel::InternalHotspotAvg::scsbch(b1+r1*0.5, b2+r2*0.5, b1-r1*0.5, b2-r2*0.5, bb1+rb1*0.5, bb2+rb2*0.5, bb1-rb1*0.5, bb2-rb2*0.5);
+    }
+
+    // < <sigma>c <sigmabar>c >h
+    int integrand_scsbch (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
+    {
+        AIntegrandParams* p = (AIntegrandParams*)userdata;
+
+        double db1 = xx[0]*cos(xx[1]);
+        double db2 = xx[0]*sin(xx[1]);
+
+        double B1 = xx[4]*cos(xx[5]);
+        double B2 = xx[4]*sin(xx[5]);
+
+        ff[0] = xx[0]*xx[2]*xx[4]*xx[6] * A_tilde_scsbch(B1+db1*0.5, B2+db2*0.5, xx[2]*cos(xx[3]), xx[2]*sin(xx[3]), B1-db1*0.5, B2-db2*0.5, xx[6]*cos(xx[7]), xx[6]*sin(xx[7]), p->Q, p->Delta);
+
+        return 0;
+    }
+
+    // < <sigma>c <sigmabar>c >h
+    double dsdt_scsbch (double Q, double Delta)
+    {
+        CubatureConfig c_config;
+        c_config.max_eval = 5e7;
+#ifdef _TEST
+        c_config.max_eval = 1e3;
+#endif
+        c_config.progress_monitor = g_monitor_progress;
+
+        IntegrationConfig i_config;
+        AIntegrandParams params;
+
+        i_config.integrand_params = &params;
+        
+        params.Q = Q;
+        params.Delta = Delta;
+        params.is_incoherent = true;
+        params.h_nucleus = nullptr;
+
+        return dsdt_scsbch(&c_config, &i_config);
+    }
+
+    // < <sigma>c <sigmabar>c >h
+    double dsdt_scsbch (CubatureConfig* c_config, IntegrationConfig* i_config)
+    {
+        c_config->num_dims = 8;
+
+        i_config->min = (double*)alloca(8*sizeof(double));
+        i_config->max = (double*)alloca(8*sizeof(double));
+
+        double ret = A_integrand_function_factor( ((AIntegrandParams*)(i_config->integrand_params))->Q ) * sqr(GeVm1_to_fm) * fm2_to_nb / (16.0*PI);
+        
+        reset_integration_range(i_config->min, i_config->max);
+        ret *= IntegrationRoutines::cubature_integrate_zeros(integrand_scsbch, c_config, i_config, &gsl_sf_bessel_zero_J0);
+
+        return ret;
+    }
+
+    // these functions are slow, use Output::dsdt_nucleus_internal_avg() or call the needed contributing functions directly to combine manually later
+    double color_fluc (double Q, double Delta)
+    {
+        return dsdt_ssbch(Q, Delta) - dsdt_scsbch(Q, Delta);
+    }
+
+    double hotspot_fluc (double Q, double Delta)
+    {
+        return dsdt_scsbch(Q, Delta) - Coherent::InternalHotspotAvg::dsdt_sch_sbch(Q, Delta);
+    }
+
+    double dsdt (double Q, double Delta)
+    {
+        return InternalHotspotAvg::dsdt_ssbch(Q, Delta) - Coherent::InternalHotspotAvg::dsdt(Q, Delta);
     }
 } }
