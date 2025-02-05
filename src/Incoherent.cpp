@@ -378,7 +378,7 @@ namespace Incoherent { namespace InternalHotspotAvg
         AIntegrandParams params;
 
         i_config.integrand_params = &params;
-        
+
         params.Q = Q;
         params.Delta = Delta;
         params.is_incoherent = true;
