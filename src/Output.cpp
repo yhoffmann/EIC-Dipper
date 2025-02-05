@@ -290,7 +290,7 @@ _TEST_LOG("Returning from function Output::dsigmadt_nucleus(uint, uint, uint, do
         if (0 == seed)
             seed = get_unique_seed();
 
-        SaturationModel::InternalHotspotAvg::init(atomic_num, num_hotspots, 256, g_seed);
+        SaturationModel::InternalHotspotAvg::init(atomic_num, num_hotspots, 256, seed);
 
         ThreadPool pool(g_num_threads);
 
