@@ -271,9 +271,9 @@ uint get_unique_seed()
     std::thread::id thread_id_temp = std::this_thread::get_id();
     std::hash<std::thread::id> hash;
 
-    uint seed = hash(thread_id_temp) * _GET_PROCESS_ID() / time(0);
+    uint seed = hash(thread_id_temp) * GET_PROCESS_ID() / time(0);
     if (seed==0)
-        seed = hash(thread_id_temp)*_GET_PROCESS_ID() - time(0);
+        seed = hash(thread_id_temp)*GET_PROCESS_ID() - time(0);
 
     return seed;
 }

@@ -13,14 +13,14 @@
 
 #if (defined(__linux__) || defined(__APPLE__))
     #include <unistd.h>
-    #define _GET_PROCESS_ID() getpid()
+    #define GET_PROCESS_ID() getpid()
 
 #elif (defined(_WIN32) || defined(_WIN64))
     #include <windows.h>
-    #define _GET_PROCESS_ID() GetCurrentProcessId()
+    #define GET_PROCESS_ID() GetCurrentProcessId()
 
 #else
-    #error Unkown operating system: Unable to define _GET_PROCESS_ID() function
+    #error Unkown operating system: Unable to define GET_PROCESS_ID() function
 
 #endif
 
