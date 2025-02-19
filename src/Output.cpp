@@ -67,7 +67,7 @@ namespace Output
 
     void dsigmadt (bool do_coherent, bool do_incoherent, double Q, std::vector<double> value_vec, std::vector<double> phi_vec)
     {
-_TEST_LOG("In function Output::dsigmadt(bool, bool, double, std::vector<double>, std::vector<double>)")
+TEST_LOG("In function Output::dsigmadt(bool, bool, double, std::vector<double>, std::vector<double>)")
         if (phi_vec.size()==0)
             phi_vec = std::vector<double>{0.0};
 
@@ -75,9 +75,9 @@ _TEST_LOG("In function Output::dsigmadt(bool, bool, double, std::vector<double>,
         std::vector<double> coherent_avg_results(value_vec.size());
 
         std::vector<double> incoherent_results(value_vec.size());
-_TEST_LOG("Starting ThreadPool")
+TEST_LOG("Starting ThreadPool")
         ThreadPool pool(g_num_threads);
-_TEST_LOG("Queueing incoherent jobs")
+TEST_LOG("Queueing incoherent jobs")
         for (uint value_index=0, value_size=value_vec.size(); value_index<value_size; ++value_index)
         {
     #ifndef _G2MU02
@@ -95,7 +95,7 @@ _TEST_LOG("Queueing incoherent jobs")
                 }
             );
         }
-_TEST_LOG("Queueing coherent jobs")
+TEST_LOG("Queueing coherent jobs")
         for (uint value_index=0, value_size=value_vec.size(); value_index<value_size; ++value_index)
         {
     #ifndef _G2MU02
@@ -117,7 +117,7 @@ _TEST_LOG("Queueing coherent jobs")
                 );
             }
         }
-_TEST_LOG("Finished queueing, waiting for jobs to finish")
+TEST_LOG("Finished queueing, waiting for jobs to finish")
         pool.await();
         pool.stop();
 
@@ -167,7 +167,7 @@ _TEST_LOG("Finished queueing, waiting for jobs to finish")
             out << std::endl;
         }
         out << std::endl;
-_TEST_LOG("Returning from function Output::dsigmadt(bool, bool, double, std::vector<double>, std::vector<double>)")
+TEST_LOG("Returning from function Output::dsigmadt(bool, bool, double, std::vector<double>, std::vector<double>)")
     }
 
 
@@ -192,7 +192,7 @@ _TEST_LOG("Returning from function Output::dsigmadt(bool, bool, double, std::vec
 
     void dsigmadt_nucleus (uint atomic_num, uint num_hotspots, uint seed, double Q, std::vector<double> value_vec, std::vector<double> phi_vec)
     {
-_TEST_LOG("In function Output::dsigmadt_nucleus(uint, uint, uint, double, std::vector<double>, std::vector<double>)")
+TEST_LOG("In function Output::dsigmadt_nucleus(uint, uint, uint, double, std::vector<double>, std::vector<double>)")
         std::vector<std::vector<double>> coherent_results_real(value_vec.size(), std::vector<double>(phi_vec.size()));
         std::vector<std::vector<double>> coherent_results_imag(value_vec.size(), std::vector<double>(phi_vec.size()));
         std::vector<double> incoherent_results_real(value_vec.size());
@@ -203,9 +203,9 @@ _TEST_LOG("In function Output::dsigmadt_nucleus(uint, uint, uint, double, std::v
 
         HotspotNucleus nucleus(seed, atomic_num, num_hotspots, std::sqrt(R_sqr), std::sqrt(rH_sqr));
         // nucleus.sample(); // uncomment this line for legacy mode (a change to the Nucleus class removed the need for constructing, then settings the size, then sampling again to have the changed size take effect; only one construction with correct parameters possible now; this means that all old data will contain twice-sampled Nucleus objects, and event IDs are not compatible anymore)
-_TEST_LOG("Starting ThreadPool")
+TEST_LOG("Starting ThreadPool")
         ThreadPool pool(g_num_threads);
-_TEST_LOG("Queueing incoherent jobs")
+TEST_LOG("Queueing incoherent jobs")
         for (uint value_index=0, value_size=value_vec.size(); value_index<value_size; ++value_index)
         {
     #ifndef _G2MU02
@@ -224,7 +224,7 @@ _TEST_LOG("Queueing incoherent jobs")
                 }
             );
         }
-_TEST_LOG("Queueing coherent jobs")
+TEST_LOG("Queueing coherent jobs")
         for (uint value_index=0, value_size=value_vec.size(); value_index<value_size; ++value_index)
         {
     #ifndef _G2MU02
@@ -249,17 +249,17 @@ _TEST_LOG("Queueing coherent jobs")
                 );
             }
         }
-_TEST_LOG("Finished queueing, waiting for jobs to finish")
+TEST_LOG("Finished queueing, waiting for jobs to finish")
         pool.await();
         pool.stop();
 
         std::string filepath = (g_filepath != "") ? g_filepath : get_default_filepath_from_parameters()+"_Amplitude.dat";
-_TEST_LOG("Opening file " << filepath)
+TEST_LOG("Opening file " << filepath)
         std::ofstream out(filepath);
         if (!out.is_open())
             exit(20);
-_TEST_LOG("File opened")
-_TEST_LOG("Printing to file")
+TEST_LOG("File opened")
+TEST_LOG("Printing to file")
         out << std::setprecision(10);
         print_infos(out, seed, nucleus);
 
@@ -275,9 +275,9 @@ _TEST_LOG("Printing to file")
             out << std::endl;
         }
         out << std::endl;
-_TEST_LOG("Finished priting to file")
+TEST_LOG("Finished priting to file")
         out.close();
-_TEST_LOG("Returning from function Output::dsigmadt_nucleus(uint, uint, uint, double, std::vector<double>, std::vector<double>)")
+TEST_LOG("Returning from function Output::dsigmadt_nucleus(uint, uint, uint, double, std::vector<double>, std::vector<double>)")
     }
 
 

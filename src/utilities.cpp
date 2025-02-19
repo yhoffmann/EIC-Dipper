@@ -81,16 +81,16 @@ void import_interp_data_by_params (const Interpolator3D::DataGenerationConfig* c
     }
     else
     {
-_TEST_LOG("Starting interpolator data import from file: " << filepath)
+TEST_LOG("Starting interpolator data import from file: " << filepath)
     GBWModel::G_ip.import_data(filepath);
-_TEST_LOG("Finished interpolator data import")
+TEST_LOG("Finished interpolator data import")
     }
 }
 
 
 void set_parameters (int argc, char** argv)
 {
-    _TEST_LOG("Setting parameters")
+    TEST_LOG("Setting parameters")
 
     const std::string error_message = "Invalid use. Valid flags are\n"
                 "\t[-s <seed>] (rng seed)\n"
@@ -233,7 +233,7 @@ void set_parameters (int argc, char** argv)
     }
     import_interp_data_by_params();
 
-_TEST_LOG("Parameters set")
+TEST_LOG("Parameters set")
 }
 
 

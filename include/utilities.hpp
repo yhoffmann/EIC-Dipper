@@ -28,14 +28,14 @@
 inline std::chrono::high_resolution_clock::time_point g_time_program_start;
 
 #ifdef _TEST
-    #define _TEST_LOG(x) \
+    #define TEST_LOG(x) \
         { \
             auto now = std::chrono::high_resolution_clock::now(); \
             double time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - g_time_program_start).count(); \
             std::cerr << "(TEST LOG " << time_ms << "ms) " << x << std::endl; \
         }
 #else
-    #define _TEST_LOG(x) ;
+    #define TEST_LOG(x) ;
 #endif
 
 
