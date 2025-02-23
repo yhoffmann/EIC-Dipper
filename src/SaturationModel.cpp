@@ -103,13 +103,12 @@ namespace SaturationModel
         {
             double G_sum = 0.0;
             
-            for (uint n=0, a=nucleus->get_atomic_num(); n<a; ++n)
-                for (uint i=0, nh=nucleus->get_num_hotspots_per_nucleon(); i<nh; ++i)
-                {
-                    HotspotPos b0 = *nucleus->get_hotspot_pos(n, i);
+            for (uint i=0, nh=nucleus->get_num_hotspots_total(); i<nh; ++i)
+            {
+                HotspotPos b0 = *nucleus->get_hotspot_pos(i);
 
-                    G_sum += GBWModel::G(x1-b0.x, x2-b0.y, y1-b0.x, y2-b0.y);
-                }
+                G_sum += nucleus->get_hotspot_weight(i) * GBWModel::G(x1-b0.x, x2-b0.y, y1-b0.x, y2-b0.y);
+            }
 
             return 2.0*( 1.0-D(G_sum) );
         }
@@ -124,27 +123,28 @@ namespace SaturationModel
             double G_yxb = 0.0;
             double G_yyb = 0.0;
 
-            for (uint n=0, a=nucleus->get_atomic_num(); n<a; ++n)
-                for (uint i=0, nh=nucleus->get_num_hotspots_per_nucleon(); i<nh; ++i)
-                {
-                    HotspotPos b0 = *nucleus->get_hotspot_pos(n, i);
+            for (uint i=0, nh=nucleus->get_num_hotspots_total(); i<nh; ++i)
+            {
+                HotspotPos b0 = *nucleus->get_hotspot_pos(i);
 
-                    double x1_mod = x1-b0.x;
-                    double x2_mod = x2-b0.y;
-                    double y1_mod = y1-b0.x;
-                    double y2_mod = y2-b0.y;
-                    double xb1_mod = xb1-b0.x;
-                    double xb2_mod = xb2-b0.y;
-                    double yb1_mod = yb1-b0.x;
-                    double yb2_mod = yb2-b0.y;
+                double x1_mod = x1-b0.x;
+                double x2_mod = x2-b0.y;
+                double y1_mod = y1-b0.x;
+                double y2_mod = y2-b0.y;
+                double xb1_mod = xb1-b0.x;
+                double xb2_mod = xb2-b0.y;
+                double yb1_mod = yb1-b0.x;
+                double yb2_mod = yb2-b0.y;
 
-                    G_xy += GBWModel::G(x1_mod, x2_mod, y1_mod, y2_mod);
-                    G_xbyb += GBWModel::G(xb1_mod, xb2_mod, yb1_mod, yb2_mod);
-                    G_xxb += GBWModel::G(x1_mod, x2_mod, xb1_mod, xb2_mod);
-                    G_xyb += GBWModel::G(x1_mod, x2_mod, yb1_mod, yb2_mod);
-                    G_yxb += GBWModel::G(xb1_mod, xb2_mod, y1_mod, y2_mod);
-                    G_yyb += GBWModel::G(y1_mod, y2_mod, yb1_mod, yb2_mod);
-                }
+                double weight = nucleus->get_hotspot_weight(i);
+
+                G_xy += weight * GBWModel::G(x1_mod, x2_mod, y1_mod, y2_mod);
+                G_xbyb += weight * GBWModel::G(xb1_mod, xb2_mod, yb1_mod, yb2_mod);
+                G_xxb += weight * GBWModel::G(x1_mod, x2_mod, xb1_mod, xb2_mod);
+                G_xyb += weight * GBWModel::G(x1_mod, x2_mod, yb1_mod, yb2_mod);
+                G_yxb += weight * GBWModel::G(xb1_mod, xb2_mod, y1_mod, y2_mod);
+                G_yyb += weight * GBWModel::G(y1_mod, y2_mod, yb1_mod, yb2_mod);
+            }
     #ifndef _DILUTE
             double T_xy_xbyb = G_xyb + G_yxb - G_xxb - G_yyb;
             double T_xyb_xby = G_xy + G_xbyb - G_xxb - G_yyb;
@@ -182,28 +182,29 @@ namespace SaturationModel
             double G_yxb = 0.0;
             double G_yyb = 0.0;
 
-            for (uint n=0, a=nucleus->get_atomic_num(); n<a; ++n)
-                for (uint i=0, nh=nucleus->get_num_hotspots_per_nucleon(); i<nh; ++i)
-                {
-                    HotspotPos b0 = *nucleus->get_hotspot_pos(n, i);
+            for (uint i=0, nh=nucleus->get_num_hotspots_total(); i<nh; ++i)
+            {
+                HotspotPos b0 = *nucleus->get_hotspot_pos(i);
 
-                    double x1_mod = x1-b0.x;
-                    double x2_mod = x2-b0.y;
-                    double y1_mod = y1-b0.x;
-                    double y2_mod = y2-b0.y;
-                    double xb1_mod = xb1-b0.x;
-                    double xb2_mod = xb2-b0.y;
-                    double yb1_mod = yb1-b0.x;
-                    double yb2_mod = yb2-b0.y;
-            #ifndef _DILUTE
-                    G_xy += GBWModel::G(x1_mod, x2_mod, y1_mod, y2_mod);
-                    G_xbyb += GBWModel::G(xb1_mod, xb2_mod, yb1_mod, yb2_mod);
-            #endif
-                    G_xxb += GBWModel::G(x1_mod, x2_mod, xb1_mod, xb2_mod);
-                    G_xyb += GBWModel::G(x1_mod, x2_mod, yb1_mod, yb2_mod);
-                    G_yxb += GBWModel::G(y1_mod, y2_mod, xb1_mod, xb2_mod);
-                    G_yyb += GBWModel::G(y1_mod, y2_mod, yb1_mod, yb2_mod);
-                }
+                double x1_mod = x1-b0.x;
+                double x2_mod = x2-b0.y;
+                double y1_mod = y1-b0.x;
+                double y2_mod = y2-b0.y;
+                double xb1_mod = xb1-b0.x;
+                double xb2_mod = xb2-b0.y;
+                double yb1_mod = yb1-b0.x;
+                double yb2_mod = yb2-b0.y;
+
+                double weight = nucleus->get_hotspot_weight(i);
+        #ifndef _DILUTE
+                G_xy += weight * GBWModel::G(x1_mod, x2_mod, y1_mod, y2_mod);
+                G_xbyb += weight * GBWModel::G(xb1_mod, xb2_mod, yb1_mod, yb2_mod);
+        #endif
+                G_xxb += weight * GBWModel::G(x1_mod, x2_mod, xb1_mod, xb2_mod);
+                G_xyb += weight * GBWModel::G(x1_mod, x2_mod, yb1_mod, yb2_mod);
+                G_yxb += weight * GBWModel::G(y1_mod, y2_mod, xb1_mod, xb2_mod);
+                G_yyb += weight * GBWModel::G(y1_mod, y2_mod, yb1_mod, yb2_mod);
+            }
     #ifndef _DILUTE
             double T_xy_xbyb = G_xyb + G_yxb - G_xxb - G_yyb;
             double T_xyb_xby = G_xy + G_xbyb - G_xxb - G_yyb;
