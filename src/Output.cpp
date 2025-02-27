@@ -203,7 +203,7 @@ TEST_LOG("In function Output::dsigmadt_nucleus(uint, uint, uint, double, std::ve
 
         HotspotNucleus nucleus(seed, atomic_num, num_hotspots, std::sqrt(R_sqr), std::sqrt(rH_sqr));
         // nucleus.sample(); // uncomment this line for legacy mode (a change to the Nucleus class removed the need for constructing, then setting the size, then sampling again to have the changed size take effect; only one construction with correct parameters possible now; this means that all old data will contain twice-sampled Nucleus objects, and event IDs are not compatible anymore)
-        nucleus.sample_hotspot_weights();
+        nucleus.sample_hotspot_weights_fixed_avg();
 
 TEST_LOG("Starting ThreadPool")
         ThreadPool pool(g_num_threads);
