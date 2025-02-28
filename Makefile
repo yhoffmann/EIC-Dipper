@@ -1,6 +1,4 @@
-.PHONY: local external all debug
-
-FLAGS =-Wall -O3
+FLAGS =-Wextra -O3
 
 ifeq ($(QUIET),1)
 	FLAGS+= -D_QUIET
@@ -40,6 +38,7 @@ local:
 	bash -c 'mkdir -p data/samples/g2mu02/{c,b}/de'
 	g++ $(FLAGS) src/*.cpp obj/*.o -o eic -lm -lgsl -fopenmp
 
+.PHONY: external
 external:
 	mkdir -p obj
 	g++ $(FLAGS) -c -o obj/hcubature.o  external/cubature/hcubature.c
@@ -47,10 +46,9 @@ external:
 	g++ $(FLAGS) -c -o obj/Nucleus.o external/Nucleus/src/Nucleus.cpp
 	g++ $(FLAGS) -c -o obj/HotspotNucleus.o external/Nucleus/src/HotspotNucleus.cpp
 
-all:
-	make external
-	make local
+all: external local
 
+.PHONY: debug
 debug:
 # mkdir -p debug
 	@echo "\033[1;31mDEBUG DOES NOT WORK AND NEEDS TO BE UPDATED\033[0m"
