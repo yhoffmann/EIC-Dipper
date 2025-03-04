@@ -68,7 +68,7 @@ namespace GBWModel
     // }
 
 
-    int G_integrand_cubature (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
+    int G_integrand_cubature ([[maybe_unused]]unsigned ndim, const double* xx, void* userdata, [[maybe_unused]]unsigned fdim, double* ff)
     {
         GIntegrandParams* params = (GIntegrandParams*)userdata;
 

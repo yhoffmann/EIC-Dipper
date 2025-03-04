@@ -23,7 +23,7 @@ namespace Incoherent
     }
 
 
-    int integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
+    int integrand ([[maybe_unused]]unsigned ndim, const double* xx, void* userdata, [[maybe_unused]]unsigned fdim, double* ff)
     {
         AIntegrandParams* p = (AIntegrandParams*)userdata;
 
@@ -119,7 +119,7 @@ namespace Incoherent { namespace Demirci
     }
 
 
-    int one_connected_integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
+    int one_connected_integrand ([[maybe_unused]]unsigned ndim, const double* xx, void* userdata, [[maybe_unused]]unsigned fdim, double* ff)
     {
         AIntegrandParams* p = (AIntegrandParams*)userdata;
         ff[0] = xx[0]*xx[2]*K_integrand_function(xx[0], xx[1], xx[2], xx[3], rH_sqr, p->Delta, m*m, sqr(NRPhoton::epsilon(p->Q)) );
@@ -128,7 +128,7 @@ namespace Incoherent { namespace Demirci
     }
 
 
-    int two_connected_integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
+    int two_connected_integrand ([[maybe_unused]]unsigned ndim, const double* xx, void* userdata, [[maybe_unused]]unsigned fdim, double* ff)
     {
         AIntegrandParams* p = (AIntegrandParams*)userdata;
         ff[0] = xx[0]*xx[2]*K_integrand_function(xx[0], xx[1], xx[2], xx[3], R_sqr+rH_sqr, p->Delta, m*m, sqr(NRPhoton::epsilon(p->Q)) );
@@ -217,7 +217,7 @@ namespace Incoherent { namespace Sampled
         return gsl_sf_bessel_J0(std::sqrt(sqr(b1-bb1)+sqr(b2-bb2))*Delta) * NRPhoton::wave_function(r1, r2, Q) * NRPhoton::wave_function(rb1, rb2, Q) * SaturationModel::Sampled::dsigma_d2b_sqr_reduced(b1+r1*0.5, b2+r2*0.5, b1-r1*0.5, b2-r2*0.5, bb1+rb1*0.5, bb2+rb2*0.5, bb1-rb1*0.5, bb2-rb2*0.5, h_nucleus);
     }
 
-    int integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
+    int integrand ([[maybe_unused]]unsigned ndim, const double* xx, void* userdata, [[maybe_unused]]unsigned fdim, double* ff)
     {
         AIntegrandParams* p = (AIntegrandParams*)userdata;
 
@@ -288,7 +288,7 @@ namespace Incoherent { namespace InternalHotspotAvg
     }
 
     // < <sigma sigmabar>c >h
-    int integrand_ssbch (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
+    int integrand_ssbch ([[maybe_unused]]unsigned ndim, const double* xx, void* userdata, [[maybe_unused]]unsigned fdim, double* ff)
     {
         AIntegrandParams* p = (AIntegrandParams*)userdata;
 
@@ -349,7 +349,7 @@ namespace Incoherent { namespace InternalHotspotAvg
     }
 
     // < <sigma>c <sigmabar>c >h
-    int integrand_scsbch (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
+    int integrand_scsbch ([[maybe_unused]]unsigned ndim, const double* xx, void* userdata, [[maybe_unused]]unsigned fdim, double* ff)
     {
         AIntegrandParams* p = (AIntegrandParams*)userdata;
 

@@ -24,7 +24,7 @@ namespace Coherent
     }
 
 
-    int integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
+    int integrand ([[maybe_unused]]unsigned ndim, const double* xx, void* userdata, [[maybe_unused]]unsigned fdim, double* ff)
     {
         AIntegrandParams* p = (AIntegrandParams*)userdata;
 
@@ -126,7 +126,7 @@ namespace Coherent
         return NRPhoton::wave_function(r1, r2, Q) * cos(b1*Delta1 + b2*Delta2) * SaturationModel/*::HotspotAverage*/::dsigma_d2b(b1+r1*0.5, b2+r2*0.5, b1-r1*0.5, b2-r2*0.5);
     }
 
-    int integrand_real (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
+    int integrand_real ([[maybe_unused]]unsigned ndim, const double* xx, void* userdata, [[maybe_unused]]unsigned fdim, double* ff)
     {
         AIntegrandParams* p = (AIntegrandParams*)userdata;
 
@@ -135,7 +135,7 @@ namespace Coherent
         return 0;
     }
 
-    int integrand_imag (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
+    int integrand_imag ([[maybe_unused]]unsigned ndim, const double* xx, void* userdata, [[maybe_unused]]unsigned fdim, double* ff)
     {
         AIntegrandParams* p = (AIntegrandParams*)userdata;
 
@@ -202,7 +202,7 @@ namespace Coherent
             return NRPhoton::wave_function(r1, r2, Q) * cos(bII*Delta) * SaturationModel::dsigma_d2b(b1+r1*0.5, b2+r2*0.5, b1-r1*0.5, b2-r2*0.5);
         }
 
-        int integrand_real (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
+        int integrand_real ([[maybe_unused]]unsigned ndim, const double* xx, void* userdata, [[maybe_unused]]unsigned fdim, double* ff)
         {
             AIntegrandParams* p = (AIntegrandParams*)userdata;
 
@@ -211,7 +211,7 @@ namespace Coherent
             return 0;
         }
 
-        int integrand_imag (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
+        int integrand_imag ([[maybe_unused]]unsigned ndim, const double* xx, void* userdata, [[maybe_unused]]unsigned fdim, double* ff)
         {
             AIntegrandParams* p = (AIntegrandParams*)userdata;
 
@@ -314,7 +314,7 @@ namespace Coherent { namespace Demirci
     }
 
 
-    int integrand (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
+    int integrand ([[maybe_unused]]unsigned ndim, const double* xx, void* userdata, [[maybe_unused]]unsigned fdim, double* ff)
     {
         AIntegrandParams* params = (AIntegrandParams*)userdata;
 
@@ -383,7 +383,7 @@ namespace Coherent { namespace Sampled
     }
 
 
-    int integrand_real (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
+    int integrand_real ([[maybe_unused]]unsigned ndim, const double* xx, void* userdata, [[maybe_unused]]unsigned fdim, double* ff)
     {
         AIntegrandParams* p = (AIntegrandParams*)userdata;
 
@@ -392,7 +392,7 @@ namespace Coherent { namespace Sampled
         return 0;
     }
 
-    int integrand_imag (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
+    int integrand_imag ([[maybe_unused]]unsigned ndim, const double* xx, void* userdata, [[maybe_unused]]unsigned fdim, double* ff)
     {
         AIntegrandParams* p = (AIntegrandParams*)userdata;
 
@@ -463,7 +463,7 @@ namespace Coherent { namespace InternalHotspotAvg
     }
 
     // <<sigma>c>h <sigmabar>c>h
-    int integrand_sch_sbch (unsigned ndim, const double* xx, void* userdata, unsigned fdim, double* ff)
+    int integrand_sch_sbch ([[maybe_unused]]unsigned ndim, const double* xx, void* userdata, [[maybe_unused]]unsigned fdim, double* ff)
     {
         AIntegrandParams* p = (AIntegrandParams*)userdata;
 

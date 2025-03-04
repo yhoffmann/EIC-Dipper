@@ -65,7 +65,7 @@ namespace Output
         dsigmadt(do_coherent, do_incoherent, default_Q, default_Delta_vec, default_phi_vec);
     }
 
-    void dsigmadt (bool do_coherent, bool do_incoherent, double Q, std::vector<double> value_vec, std::vector<double> phi_vec)
+    void dsigmadt ([[maybe_unused]]bool do_coherent, [[maybe_unused]]bool do_incoherent, double Q, std::vector<double> value_vec, std::vector<double> phi_vec)
     {
 TEST_LOG("In function Output::dsigmadt(bool, bool, double, std::vector<double>, std::vector<double>)")
         if (phi_vec.size()==0)
@@ -107,7 +107,7 @@ TEST_LOG("Queueing coherent jobs")
             {
                 double phi = phi_vec[phi_index];
                 pool.enq_job(
-                    [value_index, &value_vec, phi_index, Q, Delta, phi_size, phi, &coherent_results]
+                    [value_index, &value_vec, phi_index, Q, Delta, phi, &coherent_results]
                     {
                 #ifdef _G2MU02
                         t_g2mu02 = G2MU02_DEMIRCI*value_vec[value_index];
@@ -203,7 +203,7 @@ TEST_LOG("In function Output::dsigmadt_nucleus(uint, uint, uint, double, std::ve
 
         HotspotNucleus nucleus(seed, atomic_num, num_hotspots, std::sqrt(R_sqr), std::sqrt(rH_sqr));
         // nucleus.sample(); // uncomment this line for legacy mode (a change to the Nucleus class removed the need for constructing, then setting the size, then sampling again to have the changed size take effect; only one construction with correct parameters possible now; this means that all old data will contain twice-sampled Nucleus objects, and event IDs are not compatible anymore)
-        nucleus.sample_hotspot_weights_fixed_avg();
+        nucleus.sample_hotspot_weights();
 
 TEST_LOG("Starting ThreadPool")
         ThreadPool pool(g_num_threads);
@@ -238,7 +238,7 @@ TEST_LOG("Queueing coherent jobs")
             {
                 double phi = phi_vec[phi_index];
                 pool.enq_job(
-                    [value_index, &value_vec, phi_index, Q, Delta, phi_size, phi, &nucleus, &coherent_results_real, &coherent_results_imag]
+                    [value_index, &value_vec, phi_index, Q, Delta, phi, &nucleus, &coherent_results_real, &coherent_results_imag]
                     {
                 #ifdef _G2MU02
                         t_g2mu02 = G2MU02_DEMIRCI*value_vec[value_index];
