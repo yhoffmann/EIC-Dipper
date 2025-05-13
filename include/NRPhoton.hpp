@@ -1,7 +1,6 @@
 #pragma once
 
-#include "IntegrationRoutines.hpp"
-
+#include "constants.hpp"
 
 namespace NRPhoton
 {
