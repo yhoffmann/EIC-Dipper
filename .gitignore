@@ -1,0 +1,10 @@
+backups
+slurm-jobs
+mathematica-scripts
+interpolator-data
+eic
+data
+obj
+.vscode
+plots
+analysis/.ipynb_checkpoints
