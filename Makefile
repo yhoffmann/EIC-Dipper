@@ -25,7 +25,7 @@ ifeq ($(QBOTTOM), 1) # use bottom quark instead of charm
 	OPTS+= -D_Q_B
 endif
 
-ifeq ($(QTOP), 1) # use bottom quark instead of charm
+ifeq ($(QTOP), 1) # use top quark instead of charm
 	OPTS+= -D_Q_T
 endif
 
