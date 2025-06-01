@@ -1,18 +1,17 @@
 #pragma once
+#ifndef EIC_NRPHOTON_CPP_
+#define EIC_NRPHOTON_CPP_
 
-#include "constants.hpp"
+namespace NRPhoton {
+double epsilon();
 
-namespace NRPhoton
-{
-    double epsilon(double Q);
+double wave_function_factor_T();
 
-    double get_wave_function_factor_T(double m_Q, double e_Q);
-    void set_wave_function_factor_T(double m_Q, double e_Q);
-    inline double wave_function_factor_T = get_wave_function_factor_T(m_Q, e_Q);
+double wave_function_factor_L();
 
-    double wave_function_factor_L(double Q);
+double wave_function_factor_combined();
 
-    double wave_function_factor(double Q);
+double wave_function(double r1, double r2);
+}  // namespace NRPhoton
 
-    double wave_function(double r1, double r2, double Q);
-}
+#endif  // EIC_NRPHOTON_CPP_
