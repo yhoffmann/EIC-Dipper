@@ -24,6 +24,13 @@
 
 #endif
 
+// error definitions
+#define EIC_ERROR_COULDNT_OPEN 20
+#define EIC_ERROR_NO_INTERP_DATA 21
+#define EIC_ERROR_INTERP_USER_NO 22
+#define EIC_ERROR_UNKNOWN_OPT 23
+#define EIC_ERROR_BAD_ALLOC 24
+
 inline std::chrono::high_resolution_clock::time_point g_time_program_start;
 
 #ifdef _TEST

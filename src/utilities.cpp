@@ -66,7 +66,7 @@ void import_interp_data_by_params(
         input_accepted = true;
 
         std::cout << "Aborting" << std::endl;
-        exit(21);
+        exit(EIC_ERROR_INTERP_USER_NO);
       } else {
         std::cout << "Please enter either \"y\" or \"n\"." << std::endl;
       }
@@ -133,7 +133,7 @@ void set_parameters(int argc, char** argv) {
 
     if (i + 1 == argc) {
       std::cerr << error_message << std::endl;
-      exit(23);
+      exit(EIC_ERROR_UNKNOWN_OPT);
     }
 
     std::istringstream arg(argv[i + 1]);
@@ -152,7 +152,7 @@ void set_parameters(int argc, char** argv) {
                 << "\". Either the option or the argument are invalid."
                 << std::endl;
       std::cerr << error_message << std::endl;
-      exit(23);
+      exit(EIC_ERROR_UNKNOWN_OPT);
     }
 
     if (flag.str() == "-m")
@@ -173,7 +173,6 @@ void set_parameters(int argc, char** argv) {
       // g_g2mu02 = g2mu02_factor*RC_sqr/NH;
     } else if (flag.str() == "-A")
       A = uint(std::round(arg_number));
-
     else if (flag.str() == "-s")
       g_seed = uint(std::round(arg_number));
 
@@ -187,7 +186,7 @@ void set_parameters(int argc, char** argv) {
       std::cerr << "ERROR: --g2mu02-factor flag was given. This is probably "
                    "not what you want as this has been compiled with G2MU02=1."
                 << std::endl;
-      exit(25);
+      exit(EIC_ERROR_BAD_ALLOC);
 #endif
     } else if (flag.str() == "-t" || flag.str() == "--threads") {
       g_num_threads = uint(std::round(arg_number));
@@ -202,7 +201,7 @@ void set_parameters(int argc, char** argv) {
       g_Delta_single_set = true;
     } else {
       std::cerr << error_message << std::endl;
-      exit(23);
+      exit(EIC_ERROR_UNKNOWN_OPT);
     }
   }
   import_interp_data_by_params();

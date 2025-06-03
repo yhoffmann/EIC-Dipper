@@ -158,7 +158,7 @@ void dsigmadt([[maybe_unused]] bool do_coherent,
   }
   out.open(filepath);
 
-  if (!out.is_open()) exit(20);
+  if (!out.is_open()) exit(EIC_ERROR_COULDNT_OPEN);
 
   out << std::setprecision(10);
   out << "#Q, Delta, Coher, Incoher; " << std::endl;
@@ -173,7 +173,7 @@ void dsigmadt([[maybe_unused]] bool do_coherent,
   out.close();
 
   out.open(filepath + ".all");
-  if (!out.is_open()) exit(20);
+  if (!out.is_open()) exit(EIC_ERROR_COULDNT_OPEN);
 
   for (uint i = 0; i < value_vec.size(); i++) {
     out << value_vec[i] << " " << Q << "   ";
@@ -284,7 +284,7 @@ void dsigmadt_nucleus(uint atomic_num, uint num_hotspots, uint seed,
           : get_default_filepath_from_parameters() + "_Amplitude.dat";
   TEST_LOG("Opening file " << filepath)
   std::ofstream out(filepath);
-  if (!out.is_open()) exit(20);
+  if (!out.is_open()) exit(EIC_ERROR_COULDNT_OPEN);
   TEST_LOG("File opened")
   TEST_LOG("Printing to file")
   out << std::setprecision(10);
@@ -416,7 +416,7 @@ void dsigmadt_demirci(std::string filepath) {
   }
 
   std::ofstream out(filepath);
-  if (!out.is_open()) exit(20);
+  if (!out.is_open()) exit(EIC_ERROR_COULDNT_OPEN);
 
   out << "t Co Inco Color Hotspot" << std::endl;
   for (uint i = 0; i < Delta_vec_size; ++i)
@@ -482,7 +482,7 @@ void G(uint num_points, std::string filepath) {
 #ifndef _QUIET
     std::cout << "couldnt open" << std::endl;
 #endif
-    exit(20);
+    exit(EIC_ERROR_COULDNT_OPEN);
   }
 
   out << std::setprecision(10);
@@ -535,7 +535,7 @@ void hotspot_nucleus_thickness_1d(uint atomic_num,
   if (filepath == "") filepath = "Data/hotspot_nucleus_thickness_1d.dat";
 
   std::ofstream out(filepath);
-  if (!out.is_open()) exit(20);
+  if (!out.is_open()) exit(EIC_ERROR_COULDNT_OPEN);
 
   for (uint i = 0; i < num_points; i++)
     out << x[i] << " " << thickness[i] << std::endl;
@@ -606,7 +606,7 @@ void hotspot_nucleus_thickness_avg(uint atomic_num,
       thickness_stddev[j][k] = std::sqrt(thickness_stddev[j][k]);
 
   std::ofstream out(filepath);
-  if (!out.is_open()) exit(20);
+  if (!out.is_open()) exit(EIC_ERROR_COULDNT_OPEN);
   // out << "x y thickness" << std::endl;
   for (uint j = 0; j < size_y; ++j)
     for (uint k = 0; k < size_x; ++k)
@@ -614,14 +614,14 @@ void hotspot_nucleus_thickness_avg(uint atomic_num,
   out.close();
 
   out.open(filepath + ".stddev");
-  if (!out.is_open()) exit(20);
+  if (!out.is_open()) exit(EIC_ERROR_COULDNT_OPEN);
   for (uint j = 0; j < size_y; ++j)
     for (uint k = 0; k < size_x; ++k)
       out << x[k] << " " << y[j] << " " << thickness_stddev[j][k] << std::endl;
   out.close();
 
   out.open(filepath + ".pos");
-  if (!out.is_open()) exit(20);
+  if (!out.is_open()) exit(EIC_ERROR_COULDNT_OPEN);
   out << "x y" << std::endl;
   for (uint i = 0; i < num_events; ++i)
     for (uint n = 0; n < atomic_num; ++n)
