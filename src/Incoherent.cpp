@@ -97,8 +97,8 @@ double dsigmadt(CubatureConfig* c_config, IntegrationConfig* i_config) {
 namespace Incoherent {
 namespace Demirci {
 double one_connected_factor() {
-  return 1.0 / (16.0 * PI) * sqr(g_g2mu02) * (sqr(Nc) - 1.0) /
-         (2.0 * sqr(PI * Nc)) * 3.0;
+  return sqr(sqr(NRPhoton::wave_function_factor_combined())) / (16.0 * PI) *
+         sqr(g_g2mu02) * (sqr(Nc) - 1.0) / (2.0 * sqr(PI * Nc)) * 3.0;
 }
 
 double two_connected_factor() { return one_connected_factor() * 2.0; }
