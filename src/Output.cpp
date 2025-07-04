@@ -543,17 +543,20 @@ void hotspot_nucleus_thickness_1d(uint atomic_num,
   out.close();
 }
 
+// Avg over many different configurations of hotspots/nucleons inside nuclei and
+// write avg and stddev to file
 void hotspot_nucleus_thickness_avg(uint atomic_num,
                                    uint num_hotspots_per_nucleon,
                                    uint start_seed, uint num_events,
                                    std::string filepath) {
-  const uint size_x = 8e2;
-  const uint size_y = 8e2;
+TEST_LOG("In function: hotspot_nucleus_thickness_avg")
+  const uint size_x = 1e2;
+  const uint size_y = 1e2;
 
-  const double xmin = -10.0;
-  const double xmax = 10.0;
-  const double ymin = -10.0;
-  const double ymax = 10.0;
+  const double xmin = -40.0;
+  const double xmax = 40.0;
+  const double ymin = -40.0;
+  const double ymax = 40.0;
 
   const double inverse_num = 1.0 / double(num_events);
 
@@ -564,7 +567,7 @@ void hotspot_nucleus_thickness_avg(uint atomic_num,
 
   std::vector<double> x(size_x);
   std::vector<double> y(size_y);
-
+TEST_LOG("Allocating HotspotPos array")
   HotspotPos* pos =
       new HotspotPos[atomic_num * num_hotspots_per_nucleon * num_events];
 
@@ -578,7 +581,9 @@ void hotspot_nucleus_thickness_avg(uint atomic_num,
                     std::sqrt(R_sqr), std::sqrt(rH_sqr));
   for (uint i = 0; i < num_events; ++i) {
     hn.seed(start_seed + i);
+    TEST_LOG("Sampling HotspotNucleus with seed " << start_seed + i)
     hn.sample();
+    TEST_LOG("Finished sampling that HotspotNucleus")
 
     for (uint n = 0; n < atomic_num; ++n)
       for (uint h = 0; h < num_hotspots_per_nucleon; ++h)
@@ -604,7 +609,7 @@ void hotspot_nucleus_thickness_avg(uint atomic_num,
   for (uint j = 0; j < size_y; ++j)
     for (uint k = 0; k < size_x; ++k)
       thickness_stddev[j][k] = std::sqrt(thickness_stddev[j][k]);
-
+TEST_LOG("Writing to file")
   std::ofstream out(filepath);
   if (!out.is_open()) exit(EIC_ERROR_COULDNT_OPEN);
   // out << "x y thickness" << std::endl;
