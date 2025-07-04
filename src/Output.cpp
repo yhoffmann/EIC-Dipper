@@ -395,16 +395,12 @@ void dsdt_nucleus_internal_avg(uint atomic_num, uint num_hotspots, uint seed) {
 }
 
 void dsigmadt_demirci(std::string filepath) {
-  constexpr uint Delta_vec_size = 10;
-  constexpr double tmax = 8.0;
-  constexpr double tmin = 0.0001;
+  constexpr uint Delta_vec_size = 50;
   std::vector<double> Delta_vec;
   Delta_vec.reserve(Delta_vec_size);
   for (uint i = 0; i < Delta_vec_size; ++i)
-    Delta_vec.push_back(std::sqrt(tmin) +
-                        (std::sqrt(tmax) - std::sqrt(tmin)) * double(i) /
-                            double(Delta_vec_size - 1) +
-                        0.001);
+    Delta_vec.push_back(
+        std::sqrt(25.0) * double(i) / double(Delta_vec_size - 1) + 0.001);
 
   double coherent[Delta_vec_size];
   double color_fluc[Delta_vec_size];
