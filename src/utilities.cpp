@@ -44,7 +44,7 @@ void import_interp_data_by_params(
 
     std::cout << "No data for this combination of m(=" << m
               << ") and rH2(=" << rH_sqr
-              << "). Do you want to generate that data set? (y/n)\n"
+              << "). Do you want to generate that data set? (y/n/N (for unsafe continue))\n"
                  "(The path to the new file would be "
               << filepath << ". File size would be "
               << ((config->nx + 3) * (config->ny + 3) * (config->nz + 3) +
@@ -67,6 +67,8 @@ void import_interp_data_by_params(
 
         std::cout << "Aborting" << std::endl;
         exit(EIC_ERROR_INTERP_USER_NO);
+      } else if (answer == "N") {
+        return;
       } else {
         std::cout << "Please enter either \"y\" or \"n\"." << std::endl;
       }
