@@ -7,6 +7,7 @@
 [submodule "Nucleus"]
 	path = external/Nucleus
 	url = https://github.com/yhoffmann/Nucleus.git
+	branch = dev
 [submodule "external/thread-pool"]
 	path = external/thread-pool
 	url = https://github.com/yhoffmann/thread-pool.git
