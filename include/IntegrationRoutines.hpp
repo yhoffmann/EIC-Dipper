@@ -45,14 +45,14 @@ struct CubatureConfig {
   uint num_dims = 2;
   uint num_f_dims = 1;
   size_t max_eval = 1e8;
-  double abs_err = 1.0e-14;
-  double rel_err = 1.0e-8;
+  double abs_err = 0.0;
+  double rel_err = 1.0e-1;
   error_norm err_norm = ERROR_INDIVIDUAL;
 
-  double bessel_tolerance = 1.0e-4;
+  double bessel_tolerance = 1.0e-1;
   uint min_oscillations = 5;
-  uint max_oscillations = 100;
-  uint ocillations_per_partial_sum = 3;
+  uint max_oscillations = 60;
+  uint ocillations_per_partial_sum = 2;
 
   ProgressLogLevel progress_log_level = Converged;
 };

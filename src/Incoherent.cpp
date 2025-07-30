@@ -243,7 +243,7 @@ int integrand([[maybe_unused]] unsigned ndim, const double* xx, void* userdata,
 
 double dsigmadt_single_event(double Delta, const HotspotNucleus& h_nucleus) {
   CubatureConfig c_config;
-  c_config.max_eval = 5e7;
+  c_config.max_eval = 5e6;
 #ifdef _TEST
   c_config.max_eval = 1e3;
 #endif
