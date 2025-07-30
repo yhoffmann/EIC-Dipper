@@ -1,4 +1,5 @@
 #pragma once
+#include <cstddef>
 #ifndef EIC_INTEGRATIONROUTINES_HPP_
 #define EIC_INTEGRATIONROUTINES_HPP_
 
@@ -32,6 +33,12 @@ struct CubaConfig {
   bool progress_monitor = false;
 };
 
+struct CubatureResult {
+  double val, err;
+
+  operator double() { return val; }
+};
+
 struct CubatureConfig {
   CubatureIntegrator integrator = CubatureIntegrator::H;
 
@@ -47,7 +54,7 @@ struct CubatureConfig {
   uint max_oscillations = 100;
   uint ocillations_per_partial_sum = 3;
 
-  bool progress_monitor = false;
+  ProgressLogLevel progress_log_level = Converged;
 };
 
 struct AIntegrandParams {
@@ -73,12 +80,13 @@ struct IntegrationConfig {
 };
 
 namespace IntegrationRoutines {
-double cubature_integrate(integrand integrand, CubatureConfig* cubature_config,
-                          IntegrationConfig* integration_config);
-double cubature_integrate_zeros(integrand integrand,
-                                CubatureConfig* cubature_config,
-                                IntegrationConfig* integration_config,
-                                double (*zeros)(uint n));
+CubatureResult cubature_integrate(integrand integrand,
+                                  CubatureConfig* cubature_config,
+                                  IntegrationConfig* integration_config);
+CubatureResult cubature_integrate_zeros(integrand integrand,
+                                        CubatureConfig* cubature_config,
+                                        IntegrationConfig* integration_config,
+                                        double (*zeros)(uint n));
 }  // namespace IntegrationRoutines
 
 #endif  // EIC_INTEGRATIONROUTINES_HPP_

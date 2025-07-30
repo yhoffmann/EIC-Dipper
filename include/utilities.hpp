@@ -56,7 +56,9 @@ inline Interpolator3D::DataGenerationConfig default_data_generation_config{
     .nz = 60,
     .z_exp_grid_spacing_parameter = 0.0};
 
-inline bool g_monitor_progress = false;
+enum ProgressLogLevel : size_t { None = 0, Converged, All };
+
+inline ProgressLogLevel g_progress_log_level = Converged;
 inline double g_Delta_single = 1.0;
 inline bool g_Delta_single_set = false;
 

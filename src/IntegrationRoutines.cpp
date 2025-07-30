@@ -97,7 +97,7 @@ namespace IntegrationRoutines {
 //     double partial_sum = 0.0;
 //     double total_sum = 0.0;
 
-//     double current_oscillation_value;
+//     double current_oscillation_result;
 
 //     for (uint n=0; n<cuba_config->max_oscillations; n++)
 //     {
@@ -138,12 +138,12 @@ namespace IntegrationRoutines {
 //             gsl_sf_bessel_zero_J0(1)/Delta : B_MAX/2.0;
 //         }
 
-//         current_oscillation_value = cuba_integrate(integrand, cuba_config,
+//         current_oscillation_result = cuba_integrate(integrand, cuba_config,
 //         integration_config);
 
 //         // Adding current integration results to overall result
-//         total_sum += current_oscillation_value;
-//         partial_sum += current_oscillation_value;
+//         total_sum += current_oscillation_result;
+//         partial_sum += current_oscillation_result;
 // #ifndef _QUIET
 //         if (cuba_config->progress_monitor)
 //         {
@@ -152,7 +152,7 @@ namespace IntegrationRoutines {
 //             ? "inco " : "co ") << Q << " " << Delta << " " << p->phi << "\t"
 //             << n << "\t(" << integration_config->min[0] << "," <<
 //             integration_config->max[0] << ")\t" << total_sum << "(+" <<
-//             current_oscillation_value << ")" << std::endl;
+//             current_oscillation_result << ")" << std::endl;
 //         }
 // #endif
 //     }
@@ -160,8 +160,9 @@ namespace IntegrationRoutines {
 //     return total_sum;
 // }
 
-double cubature_integrate(integrand integrand, CubatureConfig* cubature_config,
-                          IntegrationConfig* integration_config) {
+CubatureResult cubature_integrate(integrand integrand,
+                                  CubatureConfig* cubature_config,
+                                  IntegrationConfig* integration_config) {
   double result = 0.0;
   double result_err = 0.0;
 
@@ -181,13 +182,13 @@ double cubature_integrate(integrand integrand, CubatureConfig* cubature_config,
               &result_err);
   }
 
-  return result;
+  return CubatureResult{.val = result, .err = result_err};
 }
 
-double cubature_integrate_zeros(integrand integrand,
-                                CubatureConfig* cubature_config,
-                                IntegrationConfig* integration_config,
-                                double (*zeros)(uint n)) {
+CubatureResult cubature_integrate_zeros(integrand integrand,
+                                        CubatureConfig* cubature_config,
+                                        IntegrationConfig* integration_config,
+                                        double (*zeros)(uint n)) {
   AIntegrandParams* p = (AIntegrandParams*)integration_config->integrand_params;
 
   double Delta = p->Delta;  // std::sqrt(sqr(p->Delta1) + sqr(p->Delta2));
@@ -195,8 +196,8 @@ double cubature_integrate_zeros(integrand integrand,
 
   double partial_sum = 0.0;
   double total_sum = 0.0;
-
-  double current_oscillation_value;
+  double total_err = 0.0;
+  CubatureResult current_oscillation_result;
 
   for (uint n = 0; n < cubature_config->max_oscillations; n++) {
     // Check if partial_sum is small compared to overall total_sum, if yes then
@@ -205,14 +206,14 @@ double cubature_integrate_zeros(integrand integrand,
       if (std::abs(partial_sum) <
               cubature_config->bessel_tolerance * std::abs(total_sum) &&
           (n + 1) > cubature_config->min_oscillations) {
-        if (cubature_config->progress_monitor)
+        if (cubature_config->progress_log_level >= Converged)
           std::cout
               << (((AIntegrandParams*)integration_config->integrand_params)
                           ->is_incoherent
                       ? "inco "
                       : "co ")
               << Q << " " << Delta << " " << n << " Converged " << total_sum
-              << std::endl;
+              << " +- " << std::sqrt(total_err) << std::endl;
 
         break;
       } else {
@@ -240,13 +241,15 @@ double cubature_integrate_zeros(integrand integrand,
           std::max(integration_config->max[6], integration_config->max[0]);
     }
 
-    current_oscillation_value =
+    current_oscillation_result =
         cubature_integrate(integrand, cubature_config, integration_config);
 
-    total_sum += current_oscillation_value;
-    partial_sum += current_oscillation_value;
+    total_sum += current_oscillation_result.val;
+    partial_sum += current_oscillation_result.val;
 
-    if (cubature_config->progress_monitor) {
+    total_err += sqr(current_oscillation_result.err);
+
+    if (cubature_config->progress_log_level >= All) {
       std::cout << (((AIntegrandParams*)integration_config->integrand_params)
                             ->is_incoherent
                         ? "inco "
@@ -255,14 +258,15 @@ double cubature_integrate_zeros(integrand integrand,
                 << (use_zeros ? "root" : "") << "("
                 << integration_config->min[0] << ","
                 << integration_config->max[0] << ")\t" << total_sum
-                << ((current_oscillation_value > 0.0) ? "(+" : "(")
-                << current_oscillation_value << ")" << std::endl;
+                << ((current_oscillation_result.val > 0.0) ? "(+" : "(")
+                << current_oscillation_result.val << ")"
+                << " Error: " << current_oscillation_result.err << std::endl;
 
       if (n == cubature_config->max_oscillations - 1)
         std::cout << "### WARNING SLOW CONVERGENCE ###" << std::endl;
     }
   }
 
-  return total_sum;
+  return CubatureResult{.val = total_sum, .err = std::sqrt(total_err)};
 }
 }  // namespace IntegrationRoutines

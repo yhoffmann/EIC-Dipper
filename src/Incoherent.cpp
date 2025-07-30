@@ -41,7 +41,7 @@ int integrand([[maybe_unused]] unsigned ndim, const double* xx, void* userdata,
 
 double dsigmadt(double Delta) {
   CubatureConfig c_config;
-  c_config.progress_monitor = g_monitor_progress;
+  c_config.progress_log_level = g_progress_log_level;
   c_config.max_eval = 1e5;
 
   IntegrationConfig i_config;
@@ -155,7 +155,7 @@ double color_fluctuations(double Delta) {
   p.Delta = Delta;
 
   CubatureConfig c_config;
-  c_config.progress_monitor = g_monitor_progress;
+  c_config.progress_log_level = g_progress_log_level;
 
   IntegrationConfig i_config;
 
@@ -247,7 +247,7 @@ double dsigmadt_single_event(double Delta, const HotspotNucleus& h_nucleus) {
 #ifdef _TEST
   c_config.max_eval = 1e3;
 #endif
-  c_config.progress_monitor = g_monitor_progress;
+  c_config.progress_log_level = g_progress_log_level;
 
   IntegrationConfig i_config;
   AIntegrandParams params;
@@ -326,7 +326,7 @@ double dsdt_ssbch(double Delta) {
 #ifdef _TEST
   c_config.max_eval = 1e3;
 #endif
-  c_config.progress_monitor = g_monitor_progress;
+  c_config.progress_log_level = g_progress_log_level;
 
   IntegrationConfig i_config;
   AIntegrandParams params;
@@ -393,7 +393,7 @@ double dsdt_scsbch(double Delta) {
 #ifdef _TEST
   c_config.max_eval = 1e3;
 #endif
-  c_config.progress_monitor = g_monitor_progress;
+  c_config.progress_log_level = g_progress_log_level;
 
   IntegrationConfig i_config;
   AIntegrandParams params;

@@ -60,7 +60,7 @@ int integrand([[maybe_unused]] unsigned ndim, const double* xx, void* userdata,
 
 double dsigmadt(double Delta, double phi) {
   CubatureConfig c_config;
-  c_config.progress_monitor = g_monitor_progress;
+  c_config.progress_log_level = g_progress_log_level;
   c_config.abs_err = 1.0e-7;
   c_config.rel_err = 1.0e-12;
   c_config.max_eval = 1e5;
@@ -151,7 +151,7 @@ int integrand_imag([[maybe_unused]] unsigned ndim, const double* xx,
 
 double dsigmadt_test(double Delta, double phi) {
   CubatureConfig c_config;
-  c_config.progress_monitor = g_monitor_progress;
+  c_config.progress_log_level = g_progress_log_level;
   c_config.abs_err = 1.0e-7;
   c_config.rel_err = 1.0e-12;
   c_config.max_eval = 1e6;
@@ -236,7 +236,7 @@ xx[2]*sin(xx[3]), p->Delta, p->Delta1, p->Delta2);
     double dsigmadt_test ( double Delta, double phi)
     {
         CubatureConfig c_config;
-        c_config.progress_monitor = g_monitor_progress;
+        c_config.progress_log_level = g_progress_log_level;
         c_config.abs_err = 1.0e-1;
         c_config.rel_err = 1.0e-1;
         c_config.max_eval = 1e5;
@@ -337,7 +337,7 @@ int integrand([[maybe_unused]] unsigned ndim, const double* xx, void* userdata,
 
 double dsigmadt(double Delta) {
   CubatureConfig c_config;
-  c_config.progress_monitor = false;
+  c_config.progress_log_level = Converged;
   c_config.rel_err = 1.0e-14;
   c_config.max_eval = 2e6;
 
@@ -427,7 +427,7 @@ std::tuple<double, double> sqrt_dsigmadt_single_event(
 #ifdef _TEST
   c_config.max_eval = 1e3;
 #endif
-  c_config.progress_monitor = g_monitor_progress;
+  c_config.progress_log_level = g_progress_log_level;
 
   IntegrationConfig i_config;
   AIntegrandParams params;
@@ -459,11 +459,19 @@ std::tuple<double, double> sqrt_dsigmadt_single_event(
   i_config->min[3] = 0.0;
   i_config->max[3] = 2.0 * M_PI;
 
-  double real = IntegrationRoutines::cubature_integrate_zeros(
-      Coherent::Sampled::integrand_real, c_config, i_config, &sin_zeros);
+  double factor =
+      GeVm1_to_fm * std::sqrt(fm2_to_nb) / (4.0 * M_SQRTPI) / (4.0 * PI);
+
+  CubatureResult real_res = IntegrationRoutines::cubature_integrate_zeros(
+                             Coherent::Sampled::integrand_real, c_config,
+                             i_config, &sin_zeros);
   i_config->max[2] = R_MAX;
-  double imag = IntegrationRoutines::cubature_integrate_zeros(
-      Coherent::Sampled::integrand_imag, c_config, i_config, &cos_zeros);
+  CubatureResult imag_res = IntegrationRoutines::cubature_integrate_zeros(
+                             Coherent::Sampled::integrand_imag, c_config,
+                             i_config, &cos_zeros);
+
+  double real = factor * real_res.val;
+  double imag = factor * imag_res.val;
 
   return {real, imag};
 }
@@ -511,7 +519,7 @@ double dsdt_sch_sbch(double Delta) {
 #ifdef _TEST
   c_config.max_eval = 1e3;
 #endif
-  c_config.progress_monitor = g_monitor_progress;
+  c_config.progress_log_level = g_progress_log_level;
 
   IntegrationConfig i_config;
   AIntegrandParams params;

@@ -90,7 +90,9 @@ void set_parameters(int argc, char** argv) {
       "\t[--add-to-seed <number>] (add <number> to seed, use after -s)\n"
       "\t[-t, --threads <number>] (run any multithreaded operation with "
       "<number> threads)\n"
-      "\t[-p] (print progress and intermediate values to stdout)\n"
+      "\t[-p] (print progress: only total integration results)\n"
+      "\t[-pp] (print progress: same as -p, but also print single oscillation "
+      "results)\n"
       "\t[-Q <photon virtuality>]\n"
       "\t[-Delta <Delta>] (output only for this single Delta value)\n"
       "\t[-m <gluon mass>]\n"
@@ -108,7 +110,11 @@ void set_parameters(int argc, char** argv) {
     std::istringstream flag(argv[i]);
 
     if (flag.str() == "-p") {
-      g_monitor_progress = true;
+      g_progress_log_level = Converged;
+      --i;
+      continue;
+    } else if (flag.str() == "-pp") {
+      g_progress_log_level = All;
       --i;
       continue;
     } else if (flag.str() == "--bottom" || flag.str() == "-b") {

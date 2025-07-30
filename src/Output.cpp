@@ -414,7 +414,7 @@ void dsigmadt_demirci(std::string filepath) {
     color_fluc[i] = Incoherent::Demirci::color_fluctuations(Delta_vec[i]);
     hotspot_fluc[i] = Incoherent::Demirci::hotspot_fluctuations(Delta_vec[i]);
 
-    if (g_monitor_progress) std::cout << i << std::endl;
+    if (g_progress_log_level) std::cout << i << std::endl;
   }
 
   std::ofstream out(filepath);
