@@ -551,7 +551,7 @@ void hotspot_nucleus_thickness_avg(uint atomic_num,
                                    uint num_hotspots_per_nucleon,
                                    uint start_seed, uint num_events,
                                    std::string filepath) {
-TEST_LOG("In function: hotspot_nucleus_thickness_avg")
+  TEST_LOG("In function: hotspot_nucleus_thickness_avg")
   const uint size_x = 1e2;
   const uint size_y = 1e2;
 
@@ -569,7 +569,7 @@ TEST_LOG("In function: hotspot_nucleus_thickness_avg")
 
   std::vector<double> x(size_x);
   std::vector<double> y(size_y);
-TEST_LOG("Allocating HotspotPos array")
+  TEST_LOG("Allocating HotspotPos array")
   HotspotPos* pos =
       new HotspotPos[atomic_num * num_hotspots_per_nucleon * num_events];
 
@@ -613,7 +613,7 @@ TEST_LOG("Allocating HotspotPos array")
   for (uint j = 0; j < size_y; ++j)
     for (uint k = 0; k < size_x; ++k)
       thickness_stddev[j][k] = std::sqrt(thickness_stddev[j][k]);
-TEST_LOG("Writing to file")
+  TEST_LOG("Writing to file")
   std::ofstream out(filepath);
   if (!out.is_open()) exit(EIC_ERROR_COULDNT_OPEN);
   // out << "x y thickness" << std::endl;
