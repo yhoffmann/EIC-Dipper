@@ -57,9 +57,9 @@ double G_by_integration(double x1, double x2, double y1, double y2) {
   integration_config.min[1] = 0.0;
   integration_config.max[1] = integration_config.max[0];
 
-  return /*CF * t_g2mu02 / (16.0*PI*PI) **/ IntegrationRoutines::
-      cubature_integrate(G_integrand_cubature, &cubature_config,
-                         &integration_config);
+  return CF * t_g2mu02 / (16.0 * PI * PI) *
+         IntegrationRoutines::cubature_integrate(
+             G_integrand_cubature, &cubature_config, &integration_config);
 }
 
 double G_wrapper(double r, double rb, double phi) {
