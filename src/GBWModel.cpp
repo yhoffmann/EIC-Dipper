@@ -74,6 +74,9 @@ double G(double x1, double x2, double y1, double y2) {
   double rb = std::sqrt(sqr(y1) + sqr(y2));
   float arg = (r == 0.0 || rb == 0.0) ? 0.0 : (x1 * y1 + x2 * y2) / (r * rb);
 
-  return CF_div_16pipi * t_g2mu02 * G_ip(r, rb, acos(arg));
+  double interp_val = G_ip(r, rb, acos(arg), Interpolator3D::Tricubic);
+  if (interp_val > 0.0) return 0.0;
+
+  return CF_div_16pipi * t_g2mu02 * interp_val;
 }
 }  // namespace GBWModel
