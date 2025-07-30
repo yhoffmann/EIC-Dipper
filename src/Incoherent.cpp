@@ -268,12 +268,11 @@ double dsigmadt_single_event(CubatureConfig* c_config,
   i_config->min = (double*)alloca(8 * sizeof(double));
   i_config->max = (double*)alloca(8 * sizeof(double));
 
-  double ret = sqr(GeVm1_to_fm) * fm2_to_nb / (16.0 * PI);
-
   reset_integration_range(i_config->min, i_config->max);
-  ret *= IntegrationRoutines::cubature_integrate_zeros(
-      Incoherent::Sampled::integrand, c_config, i_config,
-      &gsl_sf_bessel_zero_J0);
+  double ret = sqr(GeVm1_to_fm) * fm2_to_nb / (16.0 * PI) / (16.0 * sqr(PI)) *
+               IntegrationRoutines::cubature_integrate_zeros(
+                   Incoherent::Sampled::integrand, c_config, i_config,
+                   &gsl_sf_bessel_zero_J0);
 
   return ret;
 }
