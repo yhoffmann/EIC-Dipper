@@ -222,13 +222,15 @@ void dsigmadt_nucleus(uint atomic_num, uint num_hotspots, uint seed,
 
   HotspotNucleus nucleus(seed, atomic_num, num_hotspots, std::sqrt(R_sqr),
                          std::sqrt(rH_sqr));
-  // nucleus.sample(); // uncomment this line for legacy mode (a change to the
-  // Nucleus class removed the need for constructing, then setting the size,
-  // then sampling again to have the changed size take effect; only one
-  // construction with correct parameters possible now; this means that all old
-  // data will contain twice-sampled Nucleus objects, and event IDs are not
-  // compatible anymore)
-  nucleus.sample_hotspot_weights();
+  /* uncomment this line for legacy mode (a change to the
+   * Nucleus class removed the need for constructing, then setting the size,
+   * then sampling again to have the changed size take effect; only one
+   * construction with correct parameters possible now; this means that all old
+   * data will contain twice-sampled Nucleus objects, and event IDs are not
+   * compatible anymore)
+   */
+  // nucleus.sample();
+  // nucleus.sample_hotspot_weights();
 
   TEST_LOG("Starting ThreadPool")
   ThreadPool pool(g_num_threads);
@@ -583,6 +585,8 @@ TEST_LOG("Allocating HotspotPos array")
     hn.seed(start_seed + i);
     TEST_LOG("Sampling HotspotNucleus with seed " << start_seed + i)
     hn.sample();
+    hn.sample_hotspot_weights();
+    hn.reset_hotspot_weights();
     TEST_LOG("Finished sampling that HotspotNucleus")
 
     for (uint n = 0; n < atomic_num; ++n)
