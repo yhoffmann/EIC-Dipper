@@ -4,7 +4,7 @@ C =gcc
 OPTIMOPTS =-O3
 WOPTS =-Wall -Wextra -Wpedantic -pedantic-errors
 CPPSTD =-std=c++20
-LIBINCOPTS = -lm -lgsl
+LIBINCOPTS = -lm -lgsl -fopenmp
 OPTS =$(OPTIMOPTS) $(WOPTS)
 CXX +=$(CPPSTD)
 
@@ -43,7 +43,7 @@ endif
 
 local:
 	bash -c 'mkdir -p interpolator-data'
-	bash -c 'mkdir -p data/samples/{c05,c10,c20,b10}/{de,di}'
+	bash -c 'mkdir -p data/samples/{c05,c10,c20,b10,O16,Si28,S32,Ca40,Ni58,Cu62,Cu63,Xe129,W186,Au197,Pb207,Pb208}/{de,di}'
 	bash -c 'mkdir -p data/samples/g2mu02/{c,b}/de'
 	$(CXX) -o eic src/*.cpp obj/*.o $(OPTS) $(LIBINCOPTS)
 
