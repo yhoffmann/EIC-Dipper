@@ -4,6 +4,7 @@
 int main(int argc, char** argv) {
   init(argc, argv);
 
-  // Output::dsigmadt_nucleus(1, 3, g_seed);
-  Output::hotspot_nucleus_thickness_avg(A, H, g_seed, 16, g_filepath);
+  // Output::G(1000, g_filepath);
+  Output::dsigmadt_nucleus(A, H, g_seed);
+  // Output::hotspot_nucleus_thickness_avg(A, H, g_seed, 512, g_filepath);
 }
