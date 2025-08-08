@@ -213,7 +213,9 @@ CubatureResult cubature_integrate_zeros(integrand integrand,
                       ? "inco "
                       : "co ")
               << Q << " " << Delta << " " << n << " Converged " << total_sum
-              << " +- " << std::sqrt(total_err) << std::endl;
+              << " +-" << std::sqrt(total_err)
+              << " rel err: " << std::abs(std::sqrt(total_err) / total_sum)
+              << std::endl;
 
         break;
       } else {
