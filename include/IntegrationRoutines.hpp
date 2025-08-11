@@ -35,6 +35,7 @@ struct CubaConfig {
 
 struct CubatureResult {
   double val, err;
+  size_t num_evals;
 
   operator double() { return val; }
 };
