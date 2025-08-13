@@ -30,10 +30,12 @@
 #include <gsl/gsl_sf.h>
 #include <stdlib.h>
 
+#include <iomanip>
 #include <iostream>
 
 #include "../external/cubature/cubature.h"
 #include "../include/constants.hpp"
+#include "../include/utilities.hpp"
 
 namespace IntegrationRoutines {
 // double cuba_integrate (integrand_t integrand, CubaConfig* cuba_config,
@@ -191,6 +193,9 @@ CubatureResult cubature_integrate_zeros(integrand integrand,
                                         CubatureConfig* cubature_config,
                                         IntegrationConfig* integration_config,
                                         double (*zeros)(uint n)) {
+  std::ostringstream log;
+  double start_time_ms = get_time_ms_since_program_start();
+
   AIntegrandParams* p = (AIntegrandParams*)integration_config->integrand_params;
 
   double Delta = p->Delta;  // std::sqrt(sqr(p->Delta1) + sqr(p->Delta2));
@@ -209,17 +214,17 @@ CubatureResult cubature_integrate_zeros(integrand integrand,
       if (std::abs(partial_sum) <
               cubature_config->bessel_tolerance * std::abs(total_sum) &&
           (n + 1) > cubature_config->min_oscillations) {
-        if (cubature_config->progress_log_level >= Converged)
-          std::cout
-              << (((AIntegrandParams*)integration_config->integrand_params)
+        if (cubature_config->progress_log_level >= Converged) {
+          log << (((AIntegrandParams*)integration_config->integrand_params)
                           ->is_incoherent
                       ? "inco "
                       : "co ")
-              << Q << " " << Delta << " " << n << " Converged " << total_sum
-              << " +-" << std::sqrt(total_err)
+              << Q << " " << Delta << " " << " Converged after " << n << ": "
+              << total_sum << " +-" << std::sqrt(total_err)
               << " rel err: " << std::abs(std::sqrt(total_err) / total_sum)
-              << " after " << num_evals_total << std::endl;
-
+              << " after " << std::scientific << std::setprecision(2)
+              << num_evals_total << std::defaultfloat << std::endl;
+        }
         break;
       } else {
         partial_sum = 0.0;
@@ -256,23 +261,36 @@ CubatureResult cubature_integrate_zeros(integrand integrand,
     total_err += sqr(current_oscillation_result.err);
 
     if (cubature_config->progress_log_level >= All) {
-      std::cout << (((AIntegrandParams*)integration_config->integrand_params)
-                            ->is_incoherent
-                        ? "inco "
-                        : "co ")
-                << Q << " " << Delta << " " << p->phi << "\t" << n << "\t"
-                << (use_zeros ? "root" : "") << "("
-                << integration_config->min[0] << ","
-                << integration_config->max[0] << ")\t" << total_sum
-                << ((current_oscillation_result.val > 0.0) ? "(+" : "(")
-                << current_oscillation_result.val << ")"
-                << " Error: " << current_oscillation_result.err << " after "
-                << current_oscillation_result.num_evals << std::endl;
+      log << (((AIntegrandParams*)integration_config->integrand_params)
+                      ->is_incoherent
+                  ? "inco "
+                  : "co ")
+          << Q << " " << Delta << " " << p->phi << "\t" << n << "\t"
+          << (use_zeros ? "root" : "") << "(" << integration_config->min[0]
+          << "," << integration_config->max[0] << ")\t" << total_sum
+          << ((current_oscillation_result.val > 0.0) ? "(+" : "(")
+          << current_oscillation_result.val << ")"
+          << " Error: " << current_oscillation_result.err << " after "
+          << std::scientific << std::setprecision(2)
+          << current_oscillation_result.num_evals
+          << ((current_oscillation_result.num_evals >=
+               cubature_config->max_eval)
+                  ? std::string(" !!! EXCEEDED max_eval")
+                  : "")
+          << std::defaultfloat << std::endl;
 
-      if (n == cubature_config->max_oscillations - 1)
-        std::cout << "### WARNING SLOW CONVERGENCE ###" << std::endl;
+      if (n == cubature_config->max_oscillations - 1) {
+        log << "### WARNING SLOW CONVERGENCE ###" << std::endl;
+      }
     }
   }
+
+  double end_time_ms = get_time_ms_since_program_start();
+  log << "The following took this long(s): "
+      << (end_time_ms - start_time_ms) / 1e3 << std::endl;
+  std::lock_guard<std::mutex> cout_lock(cout_mutex);
+  std::cout << log.str();
+  std::cout.flush();
 
   return CubatureResult{.val = total_sum,
                         .err = std::sqrt(total_err),

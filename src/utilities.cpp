@@ -13,6 +13,14 @@
 #include "../include/GBWModel.hpp"
 #include "../include/constants.hpp"
 
+double get_time_ms_since_program_start() {
+  auto now = std::chrono::high_resolution_clock::now();
+
+  return std::chrono::duration_cast<std::chrono::milliseconds>(
+             now - g_time_program_start)
+      .count();
+}
+
 void init(int argc, char* argv[]) {
   g_time_program_start = std::chrono::high_resolution_clock::now();
   set_parameters(argc, argv);
