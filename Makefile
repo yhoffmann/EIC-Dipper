@@ -67,8 +67,14 @@ debug:
 # $(CXX) $(OPTS) -g -c external/Interpolation3D/external/easy-progress-monitor/src/*.cpp -o debug/obj/easy-progress-monitor.o -O0
 # $(CXX) $(OPTS) -g src/*.cpp debug/obj/*.o -o debug/eic -O0 -lcuba -lm -lgsl -fopenmp
 
-pc2:
+pc2-single:
 	make all QUIET=1 PCTWO=1
+
+pc2:
+	make pc2-single DILUTE=0
+	mv eic eic-sde
+	make pc2-single DILUTE=1
+	mv eic eic-sdi
 
 clean:
 	rm obj/*
