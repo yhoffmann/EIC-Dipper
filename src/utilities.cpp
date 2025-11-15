@@ -10,7 +10,7 @@
 #include <sstream>
 #include <string>
 
-#include "../include/GBWModel.hpp"
+#include "../include/DipoleModel.hpp"
 #include "../include/constants.hpp"
 
 double get_time_ms_since_program_start() {
@@ -68,8 +68,8 @@ void import_interp_data_by_params(
 
         std::cout << "Generating new data set..." << std::endl;
 #endif
-        GBWModel::G_ip.generate_data(GBWModel::G_wrapper, config, true);
-        GBWModel::G_ip.export_data(filepath);
+        DipoleModel::G_ip.generate_data(DipoleModel::G_wrapper, config, true);
+        DipoleModel::G_ip.export_data(filepath);
 #ifndef _QUIET
       } else if (answer == "n") {
         input_accepted = true;
@@ -85,7 +85,7 @@ void import_interp_data_by_params(
 #endif
   } else {
     TEST_LOG("Starting interpolator data import from file: " << filepath)
-    GBWModel::G_ip.import_data(filepath);
+    DipoleModel::G_ip.import_data(filepath);
     TEST_LOG("Finished interpolator data import")
   }
 }
@@ -208,7 +208,7 @@ void set_parameters(int argc, char** argv) {
     } else if (flag.str() == "-t" || flag.str() == "--threads") {
       g_num_threads = uint(std::round(arg_number));
 #ifndef _PC2
-      GBWModel::G_ip.set_num_threads(g_num_threads);
+      DipoleModel::G_ip.set_num_threads(g_num_threads);
 #endif
     } else if (flag.str() == "-Q")
       Q = arg_number;

@@ -6,7 +6,7 @@
 
 #include <vector>
 
-#include "../include/GBWModel.hpp"
+#include "../include/DipoleModel.hpp"
 #include "../include/constants.hpp"
 #include "../include/utilities.hpp"
 
@@ -20,17 +20,17 @@ inline double D(double G) {
 }
 
 double dsigma_d2b(double x1, double x2, double y1, double y2) {
-  return 2.0 * (1.0 - D(NH * GBWModel::G(x1, x2, y1, y2)));
+  return 2.0 * (1.0 - D(NH * DipoleModel::G(x1, x2, y1, y2)));
 }
 
 double dsigma_d2b_sqr(double x1, double x2, double y1, double y2, double xb1,
                       double xb2, double yb1, double yb2) {
-  double G_xy = NH * GBWModel::G(x1, x2, y1, y2);
-  double G_xbyb = NH * GBWModel::G(xb1, xb2, yb1, yb2);
-  double G_xxb = NH * GBWModel::G(x1, x2, xb1, xb2);
-  double G_xyb = NH * GBWModel::G(x1, x2, yb1, yb2);
-  double G_yxb = NH * GBWModel::G(xb1, xb2, y1, y2);
-  double G_yyb = NH * GBWModel::G(y1, y2, yb1, yb2);
+  double G_xy = NH * DipoleModel::G(x1, x2, y1, y2);
+  double G_xbyb = NH * DipoleModel::G(xb1, xb2, yb1, yb2);
+  double G_xxb = NH * DipoleModel::G(x1, x2, xb1, xb2);
+  double G_xyb = NH * DipoleModel::G(x1, x2, yb1, yb2);
+  double G_yxb = NH * DipoleModel::G(xb1, xb2, y1, y2);
+  double G_yyb = NH * DipoleModel::G(y1, y2, yb1, yb2);
 #ifndef _DILUTE
   double T_xy_xbyb = G_xyb + G_yxb - G_xxb - G_yyb;
   double T_xyb_xby = G_xy + G_xbyb - G_xxb - G_yyb;
@@ -61,13 +61,13 @@ double dsigma_d2b_sqr(double x1, double x2, double y1, double y2, double xb1,
 
 double dsigma_d2b_sqr_reduced(double x1, double x2, double y1, double y2,
                               double xb1, double xb2, double yb1, double yb2) {
-  double G_xxb = NH * GBWModel::G(x1, x2, xb1, xb2);
-  double G_xyb = NH * GBWModel::G(x1, x2, yb1, yb2);
-  double G_yxb = NH * GBWModel::G(xb1, xb2, y1, y2);
-  double G_yyb = NH * GBWModel::G(y1, y2, yb1, yb2);
+  double G_xxb = NH * DipoleModel::G(x1, x2, xb1, xb2);
+  double G_xyb = NH * DipoleModel::G(x1, x2, yb1, yb2);
+  double G_yxb = NH * DipoleModel::G(xb1, xb2, y1, y2);
+  double G_yyb = NH * DipoleModel::G(y1, y2, yb1, yb2);
 #ifndef _DILUTE
-  double G_xy = NH * GBWModel::G(x1, x2, y1, y2);
-  double G_xbyb = NH * GBWModel::G(xb1, xb2, yb1, yb2);
+  double G_xy = NH * DipoleModel::G(x1, x2, y1, y2);
+  double G_xbyb = NH * DipoleModel::G(xb1, xb2, yb1, yb2);
 
   double T_xy_xbyb = G_xyb + G_yxb - G_xxb - G_yyb;
   double T_xyb_xby = G_xy + G_xbyb - G_xxb - G_yyb;
@@ -102,7 +102,7 @@ double dsigma_d2b(double x1, double x2, double y1, double y2,
     HotspotPos b0 = *nucleus->get_hotspot_pos(i);
 
     G_sum += nucleus->get_hotspot_weight(i) *
-             GBWModel::G(x1 - b0.x, x2 - b0.y, y1 - b0.x, y2 - b0.y);
+             DipoleModel::G(x1 - b0.x, x2 - b0.y, y1 - b0.x, y2 - b0.y);
   }
 
   return 2.0 * (1.0 - D(G_sum));
@@ -132,12 +132,12 @@ double dsigma_d2b_sqr(double x1, double x2, double y1, double y2, double xb1,
 
     double weight = nucleus->get_hotspot_weight(i);
 
-    G_xy += weight * GBWModel::G(x1_mod, x2_mod, y1_mod, y2_mod);
-    G_xbyb += weight * GBWModel::G(xb1_mod, xb2_mod, yb1_mod, yb2_mod);
-    G_xxb += weight * GBWModel::G(x1_mod, x2_mod, xb1_mod, xb2_mod);
-    G_xyb += weight * GBWModel::G(x1_mod, x2_mod, yb1_mod, yb2_mod);
-    G_yxb += weight * GBWModel::G(xb1_mod, xb2_mod, y1_mod, y2_mod);
-    G_yyb += weight * GBWModel::G(y1_mod, y2_mod, yb1_mod, yb2_mod);
+    G_xy += weight * DipoleModel::G(x1_mod, x2_mod, y1_mod, y2_mod);
+    G_xbyb += weight * DipoleModel::G(xb1_mod, xb2_mod, yb1_mod, yb2_mod);
+    G_xxb += weight * DipoleModel::G(x1_mod, x2_mod, xb1_mod, xb2_mod);
+    G_xyb += weight * DipoleModel::G(x1_mod, x2_mod, yb1_mod, yb2_mod);
+    G_yxb += weight * DipoleModel::G(xb1_mod, xb2_mod, y1_mod, y2_mod);
+    G_yyb += weight * DipoleModel::G(y1_mod, y2_mod, yb1_mod, yb2_mod);
   }
 #ifndef _DILUTE
   double T_xy_xbyb = G_xyb + G_yxb - G_xxb - G_yyb;
@@ -191,13 +191,13 @@ double dsigma_d2b_sqr_reduced(double x1, double x2, double y1, double y2,
 
     double weight = nucleus->get_hotspot_weight(i);
 #ifndef _DILUTE
-    G_xy += weight * GBWModel::G(x1_mod, x2_mod, y1_mod, y2_mod);
-    G_xbyb += weight * GBWModel::G(xb1_mod, xb2_mod, yb1_mod, yb2_mod);
+    G_xy += weight * DipoleModel::G(x1_mod, x2_mod, y1_mod, y2_mod);
+    G_xbyb += weight * DipoleModel::G(xb1_mod, xb2_mod, yb1_mod, yb2_mod);
 #endif
-    G_xxb += weight * GBWModel::G(x1_mod, x2_mod, xb1_mod, xb2_mod);
-    G_xyb += weight * GBWModel::G(x1_mod, x2_mod, yb1_mod, yb2_mod);
-    G_yxb += weight * GBWModel::G(y1_mod, y2_mod, xb1_mod, xb2_mod);
-    G_yyb += weight * GBWModel::G(y1_mod, y2_mod, yb1_mod, yb2_mod);
+    G_xxb += weight * DipoleModel::G(x1_mod, x2_mod, xb1_mod, xb2_mod);
+    G_xyb += weight * DipoleModel::G(x1_mod, x2_mod, yb1_mod, yb2_mod);
+    G_yxb += weight * DipoleModel::G(y1_mod, y2_mod, xb1_mod, xb2_mod);
+    G_yyb += weight * DipoleModel::G(y1_mod, y2_mod, yb1_mod, yb2_mod);
   }
 #ifndef _DILUTE
   double T_xy_xbyb = G_xyb + G_yxb - G_xxb - G_yyb;

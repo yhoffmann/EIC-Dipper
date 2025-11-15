@@ -1,13 +1,13 @@
-#include "../include/GBWModel.hpp"
-
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_sf.h>
+#include "../include/DipoleModel.hpp"
 
 #include "../include/IntegrationRoutines.hpp"
 #include "../include/constants.hpp"
 #include "../include/utilities.hpp"
 
-namespace GBWModel {
+#include <gsl/gsl_math.h>
+#include <gsl/gsl_sf.h>
+
+namespace DipoleModel {
 double T_times_sigma0(double b1, double b2) {
   return exp(-(sqr(b1) + sqr(b2)) / (2.0 * rH_sqr));
 }

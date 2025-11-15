@@ -9,7 +9,7 @@
 #include "../external/Nucleus/include/HotspotNucleus.hpp"
 #include "../external/thread-pool/include/ThreadPool.hpp"
 #include "../include/Coherent.hpp"
-#include "../include/GBWModel.hpp"
+#include "../include/DipoleModel.hpp"
 #include "../include/Incoherent.hpp"
 #include "../include/SaturationModel.hpp"
 #include "../include/constants.hpp"
@@ -432,7 +432,7 @@ void dsigmadt_demirci(std::string filepath) {
 // void dsdt_nucleus_avg_test (uint atomic_num, uint num_hotspots, uint seed,
 // std::vector<double> Delta_vec, std::vector<double> phi_vec)
 // {
-//     GBWModel::G_ip.import_data(interpolator_filepath);
+//     DipoleModel::G_ip.import_data(interpolator_filepath);
 
 //     SaturationModel::HotspotAverage::sample(A, H, 32, time(0));
 
@@ -472,8 +472,8 @@ void G(uint num_points, std::string filepath) {
       y1 = b1 - 0.5 * r1;
       y2 = b2 - 0.5 * r2;
 
-      results[i][j][0] = GBWModel::G(x1, x2, y1, y2);
-      results[i][j][1] = GBWModel::G_by_integration(x1, x2, y1, y2);
+      results[i][j][0] = DipoleModel::G(x1, x2, y1, y2);
+      results[i][j][1] = DipoleModel::G_by_integration(x1, x2, y1, y2);
     }
     std::cout << i << std::endl;
   }
