@@ -5,7 +5,7 @@ OPTIMOPTS =-O3
 WOPTS =-Wall -Wextra -Wpedantic -pedantic-errors
 CPPSTD =-std=c++20
 LIBINCOPTS = -lm -lgsl -fopenmp
-OPTS =$(OPTIMOPTS) $(WOPTS)
+OPTS =$(OPTIMOPTS) $(WOPTS) $(EXTRAS)
 CXX +=$(CPPSTD)
 
 
