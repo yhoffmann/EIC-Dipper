@@ -2,10 +2,10 @@
 #ifndef EIC_COHERENT_HPP_
 #define EIC_COHERENT_HPP_
 
-#include <tuple>
-
 #include "../external/Nucleus/include/HotspotNucleus.hpp"
 #include "IntegrationRoutines.hpp"
+
+#include <tuple>
 
 namespace Coherent {
 double A_integrand_function(double b1, double b2, double r1, double r2,

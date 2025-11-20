@@ -2,15 +2,14 @@
 #ifndef EIC_UTILITIES_HPP_
 #define EIC_UTILITIES_HPP_
 
-#include <gsl/gsl_sf.h>
-
-#include <chrono>
-#include <mutex>
-#include <string>
-
 #include "../external/Interpolation3D/include/Interpolator3D.hpp"
 #include "../external/Nucleus/include/HotspotNucleus.hpp"
 #include "constants.hpp"
+
+#include <chrono>
+#include <gsl/gsl_sf.h>
+#include <mutex>
+#include <string>
 
 #if (defined(__linux__) || defined(__APPLE__))
 #include <unistd.h>

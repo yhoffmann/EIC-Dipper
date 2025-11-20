@@ -1,17 +1,16 @@
 #include "../include/utilities.hpp"
 
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_sf.h>
-#include <stdlib.h>
-#include <time.h>
-
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <string>
-
 #include "../include/DipoleModel.hpp"
 #include "../include/constants.hpp"
+
+#include <fstream>
+#include <gsl/gsl_math.h>
+#include <gsl/gsl_sf.h>
+#include <iostream>
+#include <sstream>
+#include <stdlib.h>
+#include <string>
+#include <time.h>
 
 double get_time_ms_since_program_start() {
   auto now = std::chrono::high_resolution_clock::now();
@@ -50,16 +49,16 @@ void import_interp_data_by_params(
 #ifndef _QUIET
     std::string answer;
 
-    std::cout << "No data for this combination of m(=" << m
-              << ") and rH2(=" << rH_sqr
-              << "). Do you want to generate that data set? (y/n/N (N for unsafe "
-                 "continue))\n"
-                 "(The path to the new file would be "
-              << filepath << ". File size would be "
-              << ((config->nx + 3) * (config->ny + 3) * (config->nz + 3) +
-                  config->nx + config->ny + config->nz + 13) *
-                     8.0 * 1.0e-6
-              << "MB.)" << std::endl;
+    std::cout
+        << "No data for this combination of m(=" << m << ") and rH2(=" << rH_sqr
+        << "). Do you want to generate that data set? (y/n/N (N for unsafe "
+           "continue))\n"
+           "(The path to the new file would be "
+        << filepath << ". File size would be "
+        << ((config->nx + 3) * (config->ny + 3) * (config->nz + 3) +
+            config->nx + config->ny + config->nz + 13) *
+               8.0 * 1.0e-6
+        << "MB.)" << std::endl;
     bool input_accepted = false;
     while (!input_accepted) {
       std::cin >> answer;

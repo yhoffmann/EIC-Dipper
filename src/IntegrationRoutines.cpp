@@ -27,15 +27,14 @@
 
 #include "../include/IntegrationRoutines.hpp"
 
-#include <gsl/gsl_sf.h>
-#include <stdlib.h>
-
-#include <iomanip>
-#include <iostream>
-
 #include "../external/cubature/cubature.h"
 #include "../include/constants.hpp"
 #include "../include/utilities.hpp"
+
+#include <gsl/gsl_sf.h>
+#include <iomanip>
+#include <iostream>
+#include <stdlib.h>
 
 namespace IntegrationRoutines {
 // double cuba_integrate (integrand_t integrand, CubaConfig* cuba_config,

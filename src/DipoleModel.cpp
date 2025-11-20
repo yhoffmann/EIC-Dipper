@@ -68,7 +68,7 @@ double G_wrapper(double r, double rb, double phi) {
 
 Interpolator3D G_ip;
 constexpr const double CF_div_16pipi = CF / (16.0 * PI * PI);
-
+#ifndef EIC_GBWMODEL
 double G(double x1, double x2, double y1, double y2) {
   double r = std::sqrt(sqr(x1) + sqr(x2));
   double rb = std::sqrt(sqr(y1) + sqr(y2));

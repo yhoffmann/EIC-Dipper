@@ -1,14 +1,13 @@
 #include "../include/SaturationModel.hpp"
 
-#include <gsl/gsl_math.h>
-#include <math.h>
-#include <stdlib.h>
-
-#include <vector>
-
 #include "../include/DipoleModel.hpp"
 #include "../include/constants.hpp"
 #include "../include/utilities.hpp"
+
+#include <gsl/gsl_math.h>
+#include <math.h>
+#include <stdlib.h>
+#include <vector>
 
 namespace SaturationModel {
 inline double D(double G) {

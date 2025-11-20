@@ -1,11 +1,5 @@
 #include "../include/Output.hpp"
 
-#include <array>
-#include <fstream>
-#include <iomanip>
-#include <iostream>
-#include <vector>
-
 #include "../external/Nucleus/include/HotspotNucleus.hpp"
 #include "../external/thread-pool/include/ThreadPool.hpp"
 #include "../include/Coherent.hpp"
@@ -13,6 +7,12 @@
 #include "../include/Incoherent.hpp"
 #include "../include/SaturationModel.hpp"
 #include "../include/constants.hpp"
+
+#include <array>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <vector>
 
 /*#define _STD_ARRAY(type, name, ...) \
     constexpr size_t name##_size = sizeof( (type[]){ __VA_ARGS__

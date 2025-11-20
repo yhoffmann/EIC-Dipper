@@ -1,11 +1,11 @@
 #include "../include/NRPhoton.hpp"
 
+#include "../include/constants.hpp"
+#include "../include/utilities.hpp"
+
 #include <gsl/gsl_sf.h>
 #include <math.h>
 #include <stdlib.h>
-
-#include "../include/constants.hpp"
-#include "../include/utilities.hpp"
 
 namespace NRPhoton {
 double epsilon() { return std::sqrt(sqr(Q) * 0.25 + sqr(m_Q)); }
