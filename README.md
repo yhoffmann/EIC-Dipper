@@ -1,8 +1,6 @@
 # EIC-Dipper  
 
-Documentation:  
-https://www.overleaf.com/read/fxvswvktwmfd
-https://www.overleaf.com/read/rtjrybdvgprj#db7d9b
+## Paper (to be added once it's published)
 
 ## How to install  
 
