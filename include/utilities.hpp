@@ -61,7 +61,7 @@ inline ProgressLogLevel g_progress_log_level = Converged;
 inline double g_Delta_single = 1.0;
 inline bool g_Delta_single_set = false;
 
-inline uint g_seed = 147541768;
+inline uint g_seed = 0;
 
 inline size_t g_num_threads = 10;
 
