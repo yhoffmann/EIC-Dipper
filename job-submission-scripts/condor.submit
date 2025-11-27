@@ -1,0 +1,47 @@
+universe = 'vanilla'
+
+## notes on file transfer
+# -the executable needs to load in interpolator data from file if you don't
+# want it to generate it again for every execution
+# -> it automatically loads the correct file based on the parameters set
+# -not copying over any files will lead to the executable not seeing any
+# interpolator data, which prompts it to recalculate it for every execution
+# -the interpolator-data.tar.gz contains any interpolator data available
+# (which might be none)
+# -if you generate your own interplator data, just specify it under the
+# `tranfer_input_files` option or add it to interpolator-data.tar.gz
+should_transfer_files = YES
+tranfer_input_files   = job-submission-scripts/condor-job.sh, \
+  job-submission-scripts/condor-mock-job.sh, \
+  Makefile, \
+  interpolator-data.tar.gz, \
+  eic-sde, \
+  eic-sdi
+# -most of these things are true for the output file as well; this contains
+# the calculated amplitudes to be used in further analysis
+ID=$(Cluster)-$(ProcID)
+transfer_output_files = data/samples/$(ID).dat
+
+getenv = FALSE
+
+
+## edit the following 2 lines to actually run the executable
+# executable = job-submission-scripts/condor-job.sh
+executable = job-submission-scripts/condor-mock-job.sh
+arguments  = -t '$(nproc)' -A 1 -H 3 -rH2 0.7 -p -s 1 --add-to-seed $(ProdID) \
+  -o data/samples/$(ID).dat
+
+output  = logs/condor/$(ID).stdout
+error   = logs/condor/$(ID).stderr
+log     = logs/condor/$(ID).condor
+
+request_cpus    = 10
+request_memory  = 10GB
+request_disk    = 4GB
+
+## some jobs (especially the dense-model ones) can run for quite long,
+# this is 30h (probably too much but we want to prevent partial runs)
++MaxRuntime     = 108000
+
+number_of_events = 256
+queue $(number_of_events)

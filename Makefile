@@ -29,11 +29,9 @@ ifeq ($(QTOP), 1) # use top quark instead of charm
 	OPTS+= -D_Q_T
 endif
 
-ifeq ($(PCTWO),1)
+ifeq ($(CLUSTER),1)
 	OPTS+= -lgslcblas
 	OPTS+= -D_PC2
-	# OPTS+= -Iexternal/cuba
-	# OPTS+= -Lexternal/cuba
 endif
 
 ifeq ($(TEST), 1)
@@ -41,11 +39,14 @@ ifeq ($(TEST), 1)
 endif
 
 
-local:
+local: dirs
+	$(CXX) -o eic src/*.cpp obj/*.o $(OPTS) $(LIBINCOPTS)
+
+dirs:
 	bash -c 'mkdir -p interpolator-data'
 	bash -c 'mkdir -p data/samples/{c05,c10,c20,b10,O16,Si28,S32,Ca40,Ni58,Cu62,Cu63,Xe129,W186,Au197,Pb207,Pb208}/{de,di}'
 	bash -c 'mkdir -p data/samples/g2mu02/{c,b}/de'
-	$(CXX) -o eic src/*.cpp obj/*.o $(OPTS) $(LIBINCOPTS)
+	bash -c 'mkdir -p logs/{condor,slurm}'
 
 .PHONY: external
 external:
@@ -67,13 +68,14 @@ debug:
 # $(CXX) $(OPTS) -g -c external/Interpolation3D/external/easy-progress-monitor/src/*.cpp -o debug/obj/easy-progress-monitor.o -O0
 # $(CXX) $(OPTS) -g src/*.cpp debug/obj/*.o -o debug/eic -O0 -lcuba -lm -lgsl -fopenmp
 
-pc2-single:
+cluster-single:
 	make all QUIET=1 PCTWO=1
 
-pc2:
-	make pc2-single DILUTE=0
+cluster:
+	tar -czf interpolator-data.tar.gz interpolator-data/
+	make cluster-single DILUTE=0
 	mv eic eic-sde
-	make pc2-single DILUTE=1
+	make cluster-single DILUTE=1
 	mv eic eic-sdi
 
 clean:
