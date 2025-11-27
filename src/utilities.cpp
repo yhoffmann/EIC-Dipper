@@ -92,8 +92,9 @@ void import_interp_data_by_params(
 void set_parameters(int argc, char** argv) {
   TEST_LOG("Setting parameters")
 
-  const std::string error_message =
-      "Invalid use. Valid flags are\n"
+  const std::string error_message_invalid_use =
+      "Invalid use. Valid flags are\n";
+  const std::string help_message =
       "\t[-s <seed>] (rng seed)\n"
       "\t[--add-to-seed <number>] (add <number> to seed, use after -s)\n"
       "\t[-t, --threads <number>] (run any multithreaded operation with "
@@ -113,11 +114,15 @@ void set_parameters(int argc, char** argv) {
       "\t[-rH2 <hotspot radius square>]\n"
       "\t[-Rp2 <nucleon radius square>]\n"
       "\t[-o <output filepath>]";
+  const std::string error_message = error_message_invalid_use + help_message;
 
   for (int i = 1; i < argc; i += 2) {
     std::istringstream flag(argv[i]);
 
-    if (flag.str() == "-p") {
+    if (flag.str() == "--help") {
+      std::cout << argv[0] << " - help:\n" << help_message;
+      exit(0);
+    } else if (flag.str() == "-p") {
       g_progress_log_level = Converged;
       --i;
       continue;
