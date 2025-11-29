@@ -47,11 +47,11 @@ struct CubatureConfig {
   uint num_f_dims = 1;
   size_t max_eval = 1e8;
   double abs_err = 0.0;
-  double rel_err = 1.0e-3;
+  double rel_err = 0.5e-2;
   error_norm err_norm = ERROR_INDIVIDUAL;
 
-  double bessel_tolerance = 1.0e-2;
-  uint min_oscillations = 5;
+  double bessel_tolerance = 0.5e-2;
+  uint min_oscillations = 3;
   uint max_oscillations = 60;
   uint ocillations_per_partial_sum = 2;
 

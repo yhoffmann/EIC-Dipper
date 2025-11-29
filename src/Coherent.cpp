@@ -423,7 +423,7 @@ int integrand_imag([[maybe_unused]] unsigned ndim, const double* xx,
 std::tuple<double, double> sqrt_dsigmadt_single_event(
     double Delta, double phi, const HotspotNucleus& h_nucleus) {
   CubatureConfig c_config;
-  c_config.max_eval = 2e5;
+  c_config.max_eval = 4e5;
 #ifdef _TEST
   c_config.max_eval = 1e3;
 #endif
