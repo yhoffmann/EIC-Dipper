@@ -28,6 +28,7 @@ double wave_function(double r1, double r2) {
 
   if (rsqr == 0.0) rsqr = 2.0e-15;
 
-  return wave_function_factor_combined() * gsl_sf_bessel_K0(epsilon() * std::sqrt(rsqr));
+  return wave_function_factor_combined() *
+         gsl_sf_bessel_K0(epsilon() * std::sqrt(rsqr));
 }
 }  // namespace NRPhoton

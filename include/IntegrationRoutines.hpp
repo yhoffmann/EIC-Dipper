@@ -77,7 +77,8 @@ struct IntegrationConfig {
   double* min;
   double* max;
 
-  void* integrand_params;  // integrand specific parameters, see above
+  // integrand-specific parameters, like AIntegrandParams
+  void* integrand_params;
 };
 
 namespace IntegrationRoutines {
