@@ -10,3 +10,4 @@ plots/
 analysis/.ipynb_checkpoints
 compile_commands.json
 .cache/
+*.pdf
