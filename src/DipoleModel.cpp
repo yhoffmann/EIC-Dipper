@@ -79,4 +79,17 @@ double G(double x1, double x2, double y1, double y2) {
 
   return CF_div_16pipi * t_g2mu02 * interp_val;
 }
-}  // namespace GBWModel
+#else
+double G(double x1, double x2, double y1, double y2) {
+  double r = std::sqrt(sqr(x1 - y1) + sqr(x2 - y2));
+  if (r == 0.0) return 0.0;
+  double rm = r * m;
+  double sigma0 = 2.0 * PI * rH_sqr;
+
+  return -t_g2mu02 * CF / (4.0 * PI) / sqr(m) *
+         T_times_sigma0(0.5 * (x1 + y1), 0.5 * (x2 + y2)) / sigma0 *
+         (1.0 - rm * gsl_sf_bessel_K1(rm));
+}
+#endif
+
+}  // namespace DipoleModel

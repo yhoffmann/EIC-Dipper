@@ -454,7 +454,7 @@ void G(uint num_points, std::string filepath) {
   std::vector<std::vector<std::array<double, 2>>> results(
       num_points, std::vector<std::array<double, 2>>(num_angles));
 
-#pragma omp parallel for schedule(dynamic, 1)
+  // #pragma omp parallel for schedule(dynamic, 1)
   for (uint i = 0; i < num_points; ++i) {
     double x1, x2, y1, y2;
     double b = 100.0 * double(i) / double(num_points - 1);
@@ -482,7 +482,7 @@ void G(uint num_points, std::string filepath) {
   out.open(filepath);
   if (!out.is_open()) {
 #ifndef _QUIET
-    std::cout << "couldnt open" << std::endl;
+    std::cout << "couldnt open " << filepath << std::endl;
 #endif
     exit(EIC_ERROR_COULDNT_OPEN);
   }
