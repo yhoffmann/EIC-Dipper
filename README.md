@@ -16,7 +16,13 @@ For the rest of the sources, also refer to our paper.
 
 ## Paper (to be added once it's published)
 
-## Functionality
+## Data management
+
+The data and plot scripts for the figures in the paper are located in the
+`figures` directory.
+
+
+## Functionality of the binary
 
 A brief explanation of the functionality of the code:
   * Each execution of the binary calculates scattering amplitudes for a single
@@ -68,14 +74,51 @@ A brief explanation of the functionality of the code:
       is specifically run before executing the binary when using the job
       submission scripts
 
-4. Additional steps that are necessary for cross-section calculation
-    * run a few events (128 could be a good start)
-    * open `analysis/dsigma_dt.ipynb` and in `enter the folder where data for the
-    process was saved (for example `data/samples/c10/de`, meaning sampled
-    results, not analytical, charm with a factor of `1.0` ("10") on g²µ_0² and
-    dense model ("de") using a proton target)  
-    → due to too many parameters and not getting this far in the analysis, any
-    nucleus runs don't specify quarkonium type or the factor
+
+## Generating scattering amplitudes
+* Run a few events (128 could be a good start for ep) (see section [**How to
+  build and run**](https://github.com/yhoffmann/EIC-Dipper/tree/dev#how-to-build-and-run))
+* Surprisingly, even with large nuclei, density fluctuations arising from
+  fluctuations in hotspot positions are still quite high, leading to large
+  uncertainties in cross sections for small numbers of events. This means, that
+  if you want any precision for medium-large `t`, you need to generate quite a
+  few events for eA as well, which is computationally intensive.
+
+
+## Analysis of scattering amplitudes
+
+Once a bunch of sets of scattering amplitudes for different events have been
+calculated and output, you need to run the analysis notebooks on that data.
+
+For this, open `analysis/dsigma_dt.ipynb`:
+* If you know that a directory `dir` only contains files from a run with the same
+  parameter set, do this:
+  ```python
+  files = os.listdir(dir)
+  ```
+
+* If you have a directory with results from runs with different parameters, you
+can do the following:  
+  _NOTE: this is probably the method to use when running on HTCondor_
+  1. globally set the parameters you want with either
+      * `set_parameters(file)`: it will read the run parameters from `file`
+      * `set_parameters_manually(...)`: will set the parameters passed to it
+
+  2. then pass the name of a dir that contains the amplitude output files to
+    function `get_files_with_same_parameters(dir)`, the return of
+    which you should pass to `read_data_from_files(files)` like this
+    ```python
+    files = get_files_with_same_parameters(dir)
+    ```
+
+Finally, get the data from the files in `files`:
+```python
+data_dict = get_data_from_files(files)
+```
+
+→ See the rest of what to do with `data_dict` in how I use it in the notebook,
+and how I plot the results of the cross section calculation in the directory
+`figures`.
 
 ## How to install
 
