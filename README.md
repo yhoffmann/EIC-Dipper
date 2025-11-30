@@ -9,7 +9,7 @@ Definitely also check out [this paper](https://arxiv.org/abs/2206.05207)
 Phys. Rev. D **106** (2022) no.7, 074025
 [doi:10.1103/PhysRevD.106.074025](https://doi.org/10.1103/PhysRevD.106.074025)
 
-as some of their results are used for verification of the calulations described
+as some of their results are used for verification of the calculations described
 in our paper (see following section).
 
 For the rest of the sources, also refer to our paper.
