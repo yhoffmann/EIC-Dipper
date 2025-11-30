@@ -43,6 +43,7 @@ double G_by_integration(double x1, double x2, double y1, double y2) {
   cubature_config.num_dims = 2;
   cubature_config.max_eval = 5e6;
   cubature_config.abs_err = 0.0;
+  cubature_config.rel_err = 1.0e-7;
 
   IntegrationConfig integration_config;
   GIntegrandParams G_integrand_params{x1, x2, y1, y2};
