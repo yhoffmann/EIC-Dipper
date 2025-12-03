@@ -29,7 +29,6 @@ t = sdic10['t']
 
 DEMIRCI = pd.read_csv('data/dsdt_demirci.dat', sep=' ')
 
-H1_co = pd.read_csv('data/dsigmadt_H1_co.dat', sep=' ')
 H1_inco = pd.read_csv('data/dsigmadt_H1_inco.dat', sep=' ')
 H1_inco_ht = pd.read_csv('data/dsigmadt_H1_inco_high_t.dat', sep=' ')
 
