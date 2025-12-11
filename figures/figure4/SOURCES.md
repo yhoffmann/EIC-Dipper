@@ -2,10 +2,10 @@
 
 - **`./data/dsdt_demirci.dat`**
 
-  > S. Demirci, T. Lappi, and S. Schlichting, _Hot spots
-  > and gluon field fluctuations as causes of eccentricity
-  > in small systems_, [Phys. Rev. D **103**, 094025 (2021)](https://doi.org/10.1103/PhysRevD.106.074025),
-  > [arXiv:2101.03791 \[hep-ph\]](https://arxiv.org/abs/2206.05207)
+  > S. Demirci, T. Lappi, and S. Schlichting,
+  > _Proton hot spots and exclusive vector meson production_,
+  > [Phys. Rev. D **106**, 074025 (2022)](https://doi.org/10.1103/PhysRevD.106.074025),
+  > [arXiv:2206.05207 \[hep-ph\]](https://arxiv.org/abs/2206.05207)
 
 - **`./data/dsigmadt_H1_inco.dat`**
 

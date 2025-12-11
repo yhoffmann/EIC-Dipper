@@ -3,24 +3,32 @@
 _I will probably make the entire calculation a bit more streamlined in the
 future._
 
-## Sources
-Definitely also check out [this paper](https://arxiv.org/abs/2206.05207)
->_Proton hot spots and exclusive vector meson production_,
-Phys. Rev. D **106** (2022) no.7, 074025
-[doi:10.1103/PhysRevD.106.074025](https://doi.org/10.1103/PhysRevD.106.074025)
+## Publication, explanation of the physics modelled etc
 
-as some of their results are used for verification of the calculations described
-in our paper (see following section).
+Check out [our paper on the `arXiv`](https://arxiv.org/pdf/2511.22763)
 
-For the rest of the sources, also refer to our paper.
-
-## Paper (to be added once it's published)
+> O. Garcia-Montero, Y. Hoffmann and S. Schlichting,
+> _Saturation effects in exclusive vector meson production in DIS_,
+> [arXiv:2511.22763 \[hep-ph\]](https://arxiv.org/abs/2511.22763).
 
 ## Data management
 
 The data and plot scripts for the figures in the paper are located in the
 `figures` directory.
 
+## Other papers
+
+Definitely also check out [this paper](https://arxiv.org/abs/2206.05207)
+
+> S. Demirci, T. Lappi, and S. Schlichting,
+> _Proton hot spots and exclusive vector meson production_,
+> [Phys. Rev. D **106**, 074025 (2022)](https://doi.org/10.1103/PhysRevD.106.074025),
+> [arXiv:2206.05207 \[hep-ph\]](https://arxiv.org/abs/2206.05207)
+
+as some of their results are used for verification of the calculations described
+in our paper (see following section).
+
+For other, indirect sources, refer to our paper.
 
 ## Functionality of the binary
 
