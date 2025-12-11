@@ -33,65 +33,61 @@ For other, indirect sources, refer to our paper.
 ## Functionality of the binary
 
 A brief explanation of the functionality of the code:
-  * Each execution of the binary calculates scattering amplitudes for a single
-    event (meaning a single configuration of hotspots)  
-     → a seed of `0` (which is the default) results in a random seed; enter a
-    seed other than `0` with `--seed` or `-s` for reproducibility, for example
-    to remove event-dependence in dense-vs-dilute tests  
-    → the main way to change parameters and options (for example number of
-    nucleons or size of hotspot) is via command-line arguments
-  * There are default values for most settings, but make sure to set the
-    `--threads` option, otherwise running will be slow
+
+- Each execution of the binary calculates scattering amplitudes for a single
+  event (meaning a single configuration of hotspots)  
+   → a seed of `0` (which is the default) results in a random seed; enter a
+  seed other than `0` with `--seed` or `-s` for reproducibility, for example
+  to remove event-dependence in dense-vs-dilute tests  
+  → the main way to change parameters and options (for example number of
+  nucleons or size of hotspot) is via command-line arguments
+- There are default values for most settings, but make sure to set the
+  `--threads` option, otherwise running will be slow
 
 1. Some parameters are set based on the provided command-line arguments (see
    below)
-    * In this step, interpolator data will also be either loaded from file if a
-      matching file exists, and if no such file exists, it will be generated and
-      written to disk
-      * since we do not want every invocation of the executable to rerun the data
-        generation, it is recommended to run a single execution with the desired
-        parameters and then start a batch job, where every instance can now read
-        fully prepared interpolation data
-      * I might make precalculated sets of interpolator data available in
-      [my CERNBOX](https://cernbox.cern.ch/s/E2nfl1eqASaEcCv) at some point
+   - In this step, interpolator data will also be either loaded from file if a
+     matching file exists, and if no such file exists, it will be generated and
+     written to disk
+     - since we do not want every invocation of the executable to rerun the data
+       generation, it is recommended to run a single execution with the desired
+       parameters and then start a batch job, where every instance can now read
+       fully prepared interpolation data
+     - I might make precalculated sets of interpolator data available in
+       [my CERNBOX](https://cernbox.cern.ch/s/E2nfl1eqASaEcCv) at some point
 
 2. Amplitude results are calculated
-    * Calculation might be slow, especially if you forget to specify the number
-      of threads to run using the `--threads` (equivalent to `-t`) option
-    * You can enable logging to stdout of calculated results with the `-p` or
-    `-pp` options
-      * `-p`: log only finished results (you usually want this unless testing
-        convergence)  
+   - Calculation might be slow, especially if you forget to specify the number
+     of threads to run using the `--threads` (equivalent to `-t`) option
+   - You can enable logging to stdout of calculated results with the `-p` or
+     `-pp` options
+     - `-p`: log only finished results (you usually want this unless testing
+       convergence)  
         → one amplitude result for one set of parameters (Delta, phi, etc.)  
         → the output can be understood as follows:  
-         `<co/inco> <Delta> Converged after <num of sub-domains in b/bbar> <val> <err> rel err: <rel_err> after <num of integration points total>`
-      * `-pp`: also log intermediate results from the integration in sub-domains  
-         → intermediate results, meaning results from when an integration over
-        a sub-domain finishes  
-         → the output for each sub-domain integration is  
-          `<co/inco> <Q> <Delta> <phi_Delta> <sub-domain count>
-          <"root" if Bessel root else "">(<bmin>,<bmax>)
-          <sum>(<partial result>) Error: <partial result err> after
-          <num evals for partial><warning if precision not reached>`
+        `<co/inco> <Delta> Converged after <num of sub-domains in b/bbar> <val> <err> rel err: <rel_err> after <num of integration points total>`
+     - `-pp`: also log intermediate results from the integration in sub-domains  
+        → intermediate results, meaning results from when an integration over
+       a sub-domain finishes  
+        → the output for each sub-domain integration is  
+        `<co/inco> <Q> <Delta> <phi_Delta> <sub-domain count> <"root" if Bessel root else "">(<bmin>,<bmax>) <sum>(<partial result>) Error: <partial result err> after <num evals for partial><warning if precision not reached>`
 
 3. Amplitude results are written to file
-
-    * If no output file is specified with the `-o` option, the binary will take
-      care of automatically placing the file in the correct directory  
-      → the directory structure is created when running most `make` targets; it
-      is specifically run before executing the binary when using the job
-      submission scripts
-
+   - If no output file is specified with the `-o` option, the binary will take
+     care of automatically placing the file in the correct directory  
+     → the directory structure is created when running most `make` targets; it
+     is specifically run before executing the binary when using the job
+     submission scripts
 
 ## Generating scattering amplitudes
-* Run a few events (128 could be a good start for ep) (see section [**How to
+
+- Run a few events (128 could be a good start for ep) (see section [**How to
   build and run**](https://github.com/yhoffmann/EIC-Dipper/tree/dev#how-to-build-and-run))
-* Surprisingly, even with large nuclei, density fluctuations arising from
+- Surprisingly, even with large nuclei, density fluctuations arising from
   fluctuations in hotspot positions are still quite high, leading to large
   uncertainties in cross sections for small numbers of events. This means, that
   if you want any precision for medium-large `t`, you need to generate quite a
   few events for eA as well, which is computationally intensive.
-
 
 ## Analysis of scattering amplitudes
 
@@ -99,27 +95,31 @@ Once a bunch of sets of scattering amplitudes for different events have been
 calculated and output, you need to run the analysis notebooks on that data.
 
 For this, open `analysis/dsigma_dt.ipynb`:
-* If you know that a directory `dir` only contains files from a run with the same
+
+- If you know that a directory `dir` only contains files from a run with the same
   parameter set, do this:
+
   ```python
   files = os.listdir(dir)
   ```
 
-* If you have a directory with results from runs with different parameters, you
-can do the following:  
-  _NOTE: this is probably the method to use when running on HTCondor_
+- If you have a directory with results from runs with different parameters, you
+  can do the following:  
+   _NOTE: this is probably the method to use when running on HTCondor_
   1. globally set the parameters you want with either
-      * `set_parameters(file)`: it will read the run parameters from `file`
-      * `set_parameters_manually(...)`: will set the parameters passed to it
+     - `set_parameters(file)`: it will read the run parameters from `file`
+     - `set_parameters_manually(...)`: will set the parameters passed to it
 
   2. then pass the name of a dir that contains the amplitude output files to
-    function `get_files_with_same_parameters(dir)`, the return of
-    which you should pass to `read_data_from_files(files)` like this
-    ```python
-    files = get_files_with_same_parameters(dir)
-    ```
+     function `get_files_with_same_parameters(dir)`, the return of
+     which you should pass to `read_data_from_files(files)` like this
+
+     ```python
+     files = get_files_with_same_parameters(dir)
+     ```
 
 Finally, get the data from the files in `files`:
+
 ```python
 data_dict = get_data_from_files(files)
 ```
@@ -179,10 +179,10 @@ For now, do not set `--g2mu02-factor` to anything but `0.5`, `1.0`, or `2.0`.
 - The directory `job-submission-scripts` contains a few mock scripts to easily be configured for use on `HTCondor` or `slurm`. _NOTE: The scripts will intentionally not work as provided because the necessary setup might be slightly different on different systems._
   - I've never used HTCondor for this specifically, so the code is not really set up to be comfortable to run on it
     - You will need to manually adjust the dir to read from in the analysis scripts  
-      → basically just set it to `data/samlpes/` and then set the parameters manually with `set_parameters_manually(...)`  
+      → basically just set it to `data/samples/` and then set the parameters manually with `set_parameters_manually(...)`  
       → only files that have matching parameters (so presumably only files from the same run) are read and analyzed
     - If you're on a shared filesystem (between login and compute nodes), the above steps are probably not necessary either
-  - The `slurm` submit script assumes that you are on a shared filesystem because it is basically always the case  
+  - The `slurm` submit script assumes that you are on a shared filesystem because it is usually the case  
     → will require some manual setup if your system does not use shared filesystems
 - Make sure to submit the scripts while the project root is cwd
   - Example: `condor_submit job-submission-scripts/condor.submit`
