@@ -26,7 +26,7 @@ Definitely also check out [this paper](https://arxiv.org/abs/2206.05207)
 > [arXiv:2206.05207 \[hep-ph\]](https://arxiv.org/abs/2206.05207)
 
 as some of their results are used for verification of the calculations described
-in our paper (see following section).
+in our paper.
 
 For other, indirect sources, refer to our paper.
 
