@@ -1,6 +1,7 @@
 [submodule "Interpolation3D"]
   path = external/Interpolation3D
   url = https://github.com/yhoffmann/Interpolation3D.git
+  branch = dev
 [submodule "cubature"]
   path = external/cubature
   url = https://github.com/yhoffmann/cubature.git
