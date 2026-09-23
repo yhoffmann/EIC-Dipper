@@ -183,15 +183,12 @@ void set_parameters(int argc, char** argv) {
       H = uint(std::round(arg_number));
       NH = arg_number;
       RC_sqr = rH_sqr + (NH - 1.0) / NH * R_sqr;
-      // g_g2mu02 = g2mu02_factor*RC_sqr/NH;
     } else if (flag.str() == "-rH2") {
       rH_sqr = arg_number;
       RC_sqr = rH_sqr + (NH - 1.0) / NH * R_sqr;
-      // g_g2mu02 = g2mu02_factor*RC_sqr/NH;
     } else if (flag.str() == "-Rp2") {
       R_sqr = arg_number;
       RC_sqr = rH_sqr + (NH - 1.0) / NH * R_sqr;
-      // g_g2mu02 = g2mu02_factor*RC_sqr/NH;
     } else if (flag.str() == "-A")
       A = uint(std::round(arg_number));
     else if (flag.str() == "-s")

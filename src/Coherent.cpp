@@ -1,14 +1,14 @@
 #include "../include/Coherent.hpp"
 
-#include <gsl/gsl_math.h>
-#include <math.h>
-
 #include "../external/Nucleus/include/HotspotNucleus.hpp"
 #include "../include/Incoherent.hpp"
 #include "../include/IntegrationRoutines.hpp"
 #include "../include/NRPhoton.hpp"
 #include "../include/SaturationModel.hpp"
 #include "../include/constants.hpp"
+
+#include <gsl/gsl_math.h>
+#include <math.h>
 
 namespace Coherent {
 double A_integrand_function(double b1, double b2, double r1, double r2,

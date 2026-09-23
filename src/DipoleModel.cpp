@@ -38,6 +38,12 @@ int G_integrand_cubature([[maybe_unused]] unsigned ndim, const double* xx,
   return 0;
 }
 
+#ifdef _G2MU02
+#define G2MU02 t_g2mu02
+#else
+#define G2MU02 g_g2mu02
+#endif
+
 double G_by_integration(double x1, double x2, double y1, double y2) {
   CubatureConfig cubature_config;
   cubature_config.num_dims = 2;
@@ -58,7 +64,7 @@ double G_by_integration(double x1, double x2, double y1, double y2) {
   integration_config.min[1] = 0.0;
   integration_config.max[1] = integration_config.max[0];
 
-  return CF * t_g2mu02 / (16.0 * PI * PI) *
+  return CF * G2MU02 / (16.0 * PI * PI) *
          IntegrationRoutines::cubature_integrate(
              G_integrand_cubature, &cubature_config, &integration_config);
 }
@@ -78,7 +84,7 @@ double G(double x1, double x2, double y1, double y2) {
   double interp_val = G_ip(r, rb, acos(arg), Interpolator3D::Tricubic);
   if (interp_val > 0.0) return 0.0;
 
-  return CF_div_16pipi * t_g2mu02 * interp_val;
+  return CF_div_16pipi * G2MU02 * interp_val;
 }
 #else
 double G(double x1, double x2, double y1, double y2) {
@@ -87,10 +93,12 @@ double G(double x1, double x2, double y1, double y2) {
   double rm = r * m;
   double sigma0 = 2.0 * PI * rH_sqr;
 
-  return -t_g2mu02 * CF / (4.0 * PI) / sqr(m) *
+  return -G2MU02 * CF / (4.0 * PI) / sqr(m) *
          T_times_sigma0(0.5 * (x1 + y1), 0.5 * (x2 + y2)) / sigma0 *
          (1.0 - rm * gsl_sf_bessel_K1(rm));
 }
 #endif
+
+#undef G2MU02
 
 }  // namespace DipoleModel

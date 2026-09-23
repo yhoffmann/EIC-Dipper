@@ -1,14 +1,14 @@
 #include "../include/Incoherent.hpp"
 
-#include <gsl/gsl_math.h>
-#include <gsl/gsl_sf.h>
-
 #include "../external/Nucleus/include/HotspotNucleus.hpp"
 #include "../include/Coherent.hpp"
 #include "../include/NRPhoton.hpp"
 #include "../include/SaturationModel.hpp"
 #include "../include/constants.hpp"
 #include "../include/utilities.hpp"
+
+#include <gsl/gsl_math.h>
+#include <gsl/gsl_sf.h>
 
 namespace Incoherent {
 double A_real(double b1, double b2, double r1, double r2, double bb1,
