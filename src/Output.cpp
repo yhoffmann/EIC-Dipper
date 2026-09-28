@@ -473,7 +473,8 @@ void G(uint num_points, std::string filepath) {
       y2 = b2 - 0.5 * r2;
 
       results[i][j][0] = DipoleModel::G(x1, x2, y1, y2);
-      results[i][j][1] = DipoleModel::G_by_integration(x1, x2, y1, y2);
+      results[i][j][1] =
+          DipoleModel::G_div_g2mu02_by_integration(x1, x2, y1, y2);
     }
     std::cout << i << std::endl;
   }

@@ -12,13 +12,14 @@ double T_times_sigma0(double b1, double b2) {
   return exp(-(sqr(b1) + sqr(b2)) / (2.0 * rH_sqr));
 }
 
-double G_integrand_function(double u, double v, double x1, double x2, double y1,
-                            double y2) {
+constexpr const double CF_div_16pipi = CF / (16.0 * PI * PI);
+double G_div_g2mu02_integrand_function(double u, double v, double x1, double x2,
+                                       double y1, double y2) {
   if (u == 0 && v == 0) return 0.0;
 
   double inverse_divisor = 1.0 / (u * v + rH_sqr / 2.0 * (u + v));
 
-  return /*missing factor is in G()*/ exp(-sqr(m) * (u + v)) * inverse_divisor *
+  return CF_div_16pipi * exp(-sqr(m) * (u + v)) * inverse_divisor *
          (exp(-0.25 *
               (u * (sqr(y1) + sqr(y2)) + v * (sqr(x1) + sqr(x2)) +
                rH_sqr / 2.0 * (sqr(x1 - y1) + sqr(x2 - y2))) *
@@ -27,24 +28,19 @@ double G_integrand_function(double u, double v, double x1, double x2, double y1,
           0.5 * exp(-0.25 * (sqr(y1) + sqr(y2)) * (u + v) * inverse_divisor));
 }
 
-int G_integrand_cubature([[maybe_unused]] unsigned ndim, const double* xx,
-                         void* userdata, [[maybe_unused]] unsigned fdim,
-                         double* ff) {
+int G_div_g2mu02_integrand_cubature([[maybe_unused]] unsigned ndim,
+                                    const double* xx, void* userdata,
+                                    [[maybe_unused]] unsigned fdim,
+                                    double* ff) {
   GIntegrandParams* params = (GIntegrandParams*)userdata;
 
-  ff[0] = G_integrand_function(xx[0], xx[1], params->x1, params->x2, params->y1,
-                               params->y2);
+  ff[0] = G_div_g2mu02_integrand_function(xx[0], xx[1], params->x1, params->x2,
+                                          params->y1, params->y2);
 
   return 0;
 }
 
-#ifdef _G2MU02
-#define G2MU02 t_g2mu02
-#else
-#define G2MU02 g_g2mu02
-#endif
-
-double G_by_integration(double x1, double x2, double y1, double y2) {
+double G_div_g2mu02_by_integration(double x1, double x2, double y1, double y2) {
   CubatureConfig cubature_config;
   cubature_config.num_dims = 2;
   cubature_config.max_eval = 5e6;
@@ -64,27 +60,32 @@ double G_by_integration(double x1, double x2, double y1, double y2) {
   integration_config.min[1] = 0.0;
   integration_config.max[1] = integration_config.max[0];
 
-  return CF * G2MU02 / (16.0 * PI * PI) *
-         IntegrationRoutines::cubature_integrate(
-             G_integrand_cubature, &cubature_config, &integration_config);
+  return IntegrationRoutines::cubature_integrate(
+      G_div_g2mu02_integrand_cubature, &cubature_config, &integration_config);
 }
 
-double G_wrapper(double r, double rb, double phi) {
-  return G_by_integration(r, 0.0, rb * cos(phi), rb * sin(phi));
+double G_div_g2mu02_wrapper(double r, double rb, double phi) {
+  return G_div_g2mu02_by_integration(r, 0.0, rb * cos(phi), rb * sin(phi));
 }
 
-Interpolator3D G_ip;
-constexpr const double CF_div_16pipi = CF / (16.0 * PI * PI);
+#ifdef _G2MU02
+#define G2MU02 t_g2mu02
+#else
+#define G2MU02 g_g2mu02
+#endif
+
+Interpolator3D G_div_g2mu02_interp;
 #ifndef EIC_GBWMODEL
 double G(double x1, double x2, double y1, double y2) {
   double r = std::sqrt(sqr(x1) + sqr(x2));
   double rb = std::sqrt(sqr(y1) + sqr(y2));
   float arg = (r == 0.0 || rb == 0.0) ? 0.0 : (x1 * y1 + x2 * y2) / (r * rb);
 
-  double interp_val = G_ip(r, rb, acos(arg), Interpolator3D::Tricubic);
-  if (interp_val > 0.0) return 0.0;
+  double G_div_g2mu02 =
+      G_div_g2mu02_interp(r, rb, acos(arg), Interpolator3D::Tricubic);
+  if (G_div_g2mu02 > 0.0) return 0.0;
 
-  return CF_div_16pipi * G2MU02 * interp_val;
+  return G2MU02 * G_div_g2mu02;
 }
 #else
 double G(double x1, double x2, double y1, double y2) {

@@ -7,7 +7,7 @@
 inline std::string interpolator_filepath = "";
 
 namespace DipoleModel {
-extern Interpolator3D G_ip;
+extern Interpolator3D G_div_g2mu02_interp;
 
 double T_times_sigma0(double b1, double b2);
 
@@ -17,10 +17,10 @@ double G_old(double x1, double x2, double y1, double y2);
 double Kmod(double x1, double x2, double y1, double y2);
 double G_mod(double x1, double x2, double y1, double y2);
 
-double G_integrand_function(double u, double v, double x1, double x2, double y1,
-                            double y2);
-double G_by_integration(double x1, double x2, double y1, double y2);
-double G_wrapper(double r, double rb, double phi);
+double G_div_g2mu02_integrand_function(double u, double v, double x1, double x2,
+                                       double y1, double y2);
+double G_div_g2mu02_by_integration(double x1, double x2, double y1, double y2);
+double G_div_g2mu02_wrapper(double r, double rb, double phi);
 
 double G(double x1, double x2, double y1, double y2);
 }  // namespace DipoleModel

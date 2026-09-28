@@ -67,8 +67,9 @@ void import_interp_data_by_params(
 
         std::cout << "Generating new data set..." << std::endl;
 #endif
-        DipoleModel::G_ip.generate_data(DipoleModel::G_wrapper, config, true);
-        DipoleModel::G_ip.export_data(filepath);
+        DipoleModel::G_div_g2mu02_interp.generate_data(
+            DipoleModel::G_div_g2mu02_wrapper, config, true);
+        DipoleModel::G_div_g2mu02_interp.export_data(filepath);
 #ifndef _QUIET
       } else if (answer == "n") {
         input_accepted = true;
@@ -84,7 +85,7 @@ void import_interp_data_by_params(
 #endif
   } else {
     TEST_LOG("Starting interpolator data import from file: " << filepath)
-    DipoleModel::G_ip.import_data(filepath);
+    DipoleModel::G_div_g2mu02_interp.import_data(filepath);
     TEST_LOG("Finished interpolator data import")
   }
 }
@@ -209,7 +210,7 @@ void set_parameters(int argc, char** argv) {
     } else if (flag.str() == "-t" || flag.str() == "--threads") {
       g_num_threads = uint(std::round(arg_number));
 #ifndef _PC2
-      DipoleModel::G_ip.set_num_threads(g_num_threads);
+      DipoleModel::G_div_g2mu02_interp.set_num_threads(g_num_threads);
 #endif
     } else if (flag.str() == "-Q")
       Q = arg_number;
